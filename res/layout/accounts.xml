@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+   <ListView android:layout_width="fill_parent"
+             android:layout_height="0px"
+             android:layout_weight="1"
+			       android:choiceMode="singleChoice"
+			       android:id="@+id/accounts_list" />
+	 <FrameLayout android:layout_height="wrap_content"
+             android:layout_width="fill_parent"
+             android:padding="6dip"
+             android:background="#FF666666">
+	   <Button android:text="@string/add_account"
+	             android:layout_width="fill_parent"
+	             android:layout_height="wrap_content"
+	             android:onClick="AddAccount"/>
+	 </FrameLayout>
+</LinearLayout>
