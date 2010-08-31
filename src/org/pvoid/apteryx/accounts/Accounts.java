@@ -7,6 +7,7 @@ import org.pvoid.apteryx.net.TerminalsProcessData;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -19,7 +20,16 @@ public class Accounts
       +"terminal text not null);";
   
   private static final String CREATE_TERMINALS_TABLE = 
-      "create table terminals_states (id text not null primary key asc, state integer)";
+      "create table terminals (id text not null primary key asc, address text not null, state integer," +
+      "printer_state text not null, cashbin_state text not null," +
+      "lpd text not null, cash integer not null," +
+      "last_activity text not null, last_payment text not null, bonds_count integer not null," +
+      "balance text not null, signal_level integer not null, soft_version text not null," +
+      "printer_model text not null, cashbin_model text null," +
+      "bonds_10 integer not null,bonds_50 integer not null,bonds_100 integer not null," +
+      "bonds_500 integer not null,bonds_1000 integer not null,bonds_5000 integer not null," +
+      "bonds_10000 integer not null,pays_per_hour text not null,agent_id text not null," +
+      "agent_name text not null);";
   
   private DatabaseHelper _database;
   private Context _context;
@@ -123,11 +133,111 @@ public class Accounts
     ContentValues values = new ContentValues();
     
     SQLiteDatabase db = OpenWrite();
+    db.delete(Consts.TERMINALS_TABLE, null, null);    
     for(String terminal_id : terminals)
     {
-      values.put(Consts.COLUMN_ID, terminal_id);
-      values.put(Consts.COLUMN_STATE, terminals.at(terminal_id).State());
-      db.replace(Consts.TERMINALS_STATES_TABLE,null,values);
+      Terminal terminal = terminals.at(terminal_id);
+      
+      values.put(Consts.COLUMN_ID, terminal.id());
+      values.put(Consts.COLUMN_ADDRESS, terminal.Address());
+      values.put(Consts.COLUMN_STATE, terminal.State());
+      values.put(Consts.COLUMN_PRINTERSTATE,terminal.printer_state);
+      values.put(Consts.COLUMN_CASHBINSTATE,terminal.cashbin_state);
+      values.put(Consts.COLUMN_LPD,terminal.lpd);
+      values.put(Consts.COLUMN_CASH,terminal.cash);
+      values.put(Consts.COLUMN_LASTACTIVITY,terminal.lastActivity);
+      values.put(Consts.COLUMN_LASTPAYMENT,terminal.lastPayment);
+      values.put(Consts.COLUMN_BONDS,terminal.bondsCount);
+      values.put(Consts.COLUMN_BALANCE,terminal.balance);
+      values.put(Consts.COLUMN_SIGNALLEVEL,terminal.signalLevel);
+      values.put(Consts.COLUMN_SOFTVERSION,terminal.softVersion);
+      values.put(Consts.COLUMN_PRINTERMODEL,terminal.printerModel);
+      values.put(Consts.COLUMN_CASHBINMODEL,terminal.cashbinModel);
+      values.put(Consts.COLUMN_BONDS10,terminal.bonds10count);
+      values.put(Consts.COLUMN_BONDS50,terminal.bonds50count);
+      values.put(Consts.COLUMN_BONDS100,terminal.bonds100count);
+      values.put(Consts.COLUMN_BONDS500,terminal.bonds500count);
+      values.put(Consts.COLUMN_BONDS1000,terminal.bonds1000count);
+      values.put(Consts.COLUMN_BONDS5000,terminal.bonds5000count);
+      values.put(Consts.COLUMN_BONDS10000,terminal.bonds10000count);
+      values.put(Consts.COLUMN_PAYSPERHOUR,terminal.paysPerHour);
+      values.put(Consts.COLUMN_AGENTID,terminal.agentId);
+      values.put(Consts.COLUMN_AGENTNAME,terminal.agentName);
+      
+      db.insert(Consts.TERMINALS_TABLE, null, values);
+    }
+    _database.close();
+///////
+    SharedPreferences prefs = _context.getSharedPreferences(Consts.APTERYX_PREFS,Context.MODE_PRIVATE);
+    SharedPreferences.Editor edit = prefs.edit();
+    edit.putLong(Consts.PREF_LASTUPDATE, System.currentTimeMillis());
+    edit.commit();
+  }
+  
+  public void GetTerminals(final TerminalsProcessData terminals)
+  {
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.query(Consts.TERMINALS_TABLE, new String[] {Consts.COLUMN_ID,
+                                                                   Consts.COLUMN_ADDRESS,
+                                                                   Consts.COLUMN_STATE,
+                                                                   Consts.COLUMN_PRINTERSTATE,
+                                                                   Consts.COLUMN_CASHBINSTATE,
+                                                                   Consts.COLUMN_LPD,
+                                                                   Consts.COLUMN_CASH,
+                                                                   Consts.COLUMN_LASTACTIVITY,
+                                                                   Consts.COLUMN_LASTPAYMENT,
+                                                                   Consts.COLUMN_BONDS,
+                                                                   Consts.COLUMN_BALANCE,
+                                                                   Consts.COLUMN_SIGNALLEVEL,
+                                                                   Consts.COLUMN_SOFTVERSION,
+                                                                   Consts.COLUMN_PRINTERMODEL,
+                                                                   Consts.COLUMN_CASHBINMODEL,
+                                                                   Consts.COLUMN_BONDS10,
+                                                                   Consts.COLUMN_BONDS50,
+                                                                   Consts.COLUMN_BONDS100,
+                                                                   Consts.COLUMN_BONDS500,
+                                                                   Consts.COLUMN_BONDS1000,
+                                                                   Consts.COLUMN_BONDS5000,
+                                                                   Consts.COLUMN_BONDS10000,
+                                                                   Consts.COLUMN_PAYSPERHOUR,
+                                                                   Consts.COLUMN_AGENTID,
+                                                                   Consts.COLUMN_AGENTNAME},
+                             null,null,null,null,null,null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        do
+        {
+          Terminal terminal = new Terminal(cursor.getString(0), cursor.getString(1));
+          terminal.State(cursor.getInt(2));
+          terminal.printer_state = cursor.getString(3);
+          terminal.cashbin_state = cursor.getString(4);
+          terminal.lpd = cursor.getString(5);
+          terminal.cash = cursor.getInt(6);
+          terminal.lastActivity = cursor.getString(7);
+          terminal.lastPayment = cursor.getString(8);
+          terminal.bondsCount = cursor.getInt(9);
+          terminal.balance = cursor.getString(10);
+          terminal.signalLevel = cursor.getInt(11);
+          terminal.softVersion = cursor.getString(12);
+          terminal.printerModel = cursor.getString(13);
+          terminal.cashbinModel = cursor.getString(14);
+          terminal.bonds10count = cursor.getInt(15);
+          terminal.bonds50count = cursor.getInt(16);
+          terminal.bonds100count = cursor.getInt(17);
+          terminal.bonds500count = cursor.getInt(18);
+          terminal.bonds1000count = cursor.getInt(19);
+          terminal.bonds5000count = cursor.getInt(20);
+          terminal.bonds10000count = cursor.getInt(21);
+          terminal.paysPerHour = cursor.getString(22);
+          terminal.agentId = cursor.getString(23);
+          terminal.agentName = cursor.getString(24);
+          terminals.add(terminal);
+        }
+        while(cursor.moveToNext());
+        cursor.close();
+      }
     }
     _database.close();
   }
@@ -136,7 +246,7 @@ public class Accounts
   {
     Boolean result = false;
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Consts.TERMINALS_STATES_TABLE, new String[] {Consts.COLUMN_ID, Consts.COLUMN_STATE},
+    Cursor cursor = db.query(Consts.TERMINALS_TABLE, new String[] {Consts.COLUMN_ID, Consts.COLUMN_STATE},
                              null,null,null,null,null,null);
     if(cursor!=null)
     {

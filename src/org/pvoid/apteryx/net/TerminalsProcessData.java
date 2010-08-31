@@ -62,7 +62,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       return(def);
     return value;
   }
-  
+    
   static private String getString(Attributes attributes, String name)
   {
     return(getString(attributes, name, "unknown"));
@@ -137,7 +137,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     // не допускаем вложенности
     text.delete(0, text.length());
   }
-  
+ 
   @Override
   public void characters(char[] ch, int start, int length)
   {
@@ -192,5 +192,10 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   public double Overdraft()
   {
     return(overdraft);
+  }
+  
+  public void add(Terminal terminal)
+  {
+    terminals.put(terminal.id(), terminal);
   }
 }

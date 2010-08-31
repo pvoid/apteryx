@@ -3,6 +3,8 @@
     <string name="hello">Hello World, MainView!</string>
     <string name="app_name">Apteryx</string>
     
+    <string name="last_update">Последнее обновление</string>
+    
     <string name="add_account">Новый аккаунт</string>
     <string name="settings">Настройки</string>
     <string name="refresh">Обновить статусы</string>
@@ -48,6 +50,8 @@
     <string name="fullinfo_bonds1000">1000е:</string>
     <string name="fullinfo_bonds5000">5000е:</string>
     <string name="fullinfo_pays_per_hour">Средние количество платежей в час:</string>
+    
+    <string name="doesnt_response">не отвечает</string>
     
     <string name="settings_autocheck">Проверять автоматически</string>
 </resources>

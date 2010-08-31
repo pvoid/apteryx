@@ -26,7 +26,7 @@
       <activity android:name=".ui.FullInfo"
                 android:label="">
       </activity>
-      <!-- service android:name=".UpdateStatusService" android:process=":remote" / -->
+      <service android:name=".UpdateStatusService" android:process=":remote" />
 </application>
     <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
 </manifest> 

@@ -1,8 +1,11 @@
 package org.pvoid.apteryx.ui;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import org.pvoid.apteryx.Consts;
+import org.pvoid.apteryx.Notifyer;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.accounts.Account;
 import org.pvoid.apteryx.accounts.Accounts;
@@ -13,7 +16,9 @@ import org.pvoid.apteryx.net.TerminalsProcessData;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,11 +43,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     public int compare(Terminal object1, Terminal object2)
     {
       if(object1.State() == object2.State())
-        return 0;
+        return object1.Address().compareToIgnoreCase(object2.Address());
       if(object1.State()==0)
-        return(-1);
-      if(object2.State()==0)
         return(1);
+      if(object2.State()==0)
+        return(-1);
       return(object1.State()-object2.State());
     }
   };
@@ -52,10 +57,8 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   {
     super.onCreate(savedInstanceState);
     requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-    //requestWindowFeature(Window.FEATURE_PROGRESS);
     setContentView(R.layout.main);
     setProgressBarIndeterminateVisibility(false);
-    //setProgressBarVisibility(false);
     _Terminals = new TerminalsProcessData();
     _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
     _TerminalsList = (ListView)findViewById(R.id.terminals_list);
@@ -66,8 +69,8 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _TerminalsList.setOnItemClickListener(this);
     }
     
-    RefreshStates();
-    //startService(new Intent(this,UpdateStatusService.class));
+    RestoreStates();
+    Notifyer.HideNotification(this);
   }
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
@@ -99,6 +102,26 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
   }
   
+  private void ShowLatUpdateDate()
+  {
+    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+    long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
+    if(time!=0)
+    {
+      setTitle(getString(R.string.last_update) + " (" + 
+               DateUtils.formatSameDayTime(time, System.currentTimeMillis(), DateFormat.DEFAULT, DateFormat.DEFAULT)
+               +")");
+    }
+  }
+  
+  private void RestoreStates()
+  {
+    _Accounts.GetTerminals(_Terminals);
+    DrawTerminals();
+//////
+    ShowLatUpdateDate();
+  }
+  
   public boolean onOptionsItemSelected(MenuItem item)
   {
     switch(item.getItemId())
@@ -113,8 +136,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     return(super.onOptionsItemSelected(item));
   }
   
-  @Override
-  public void onSuccessRequest()
+  private void DrawTerminals()
   {
     _TerminalsAdapter.clear();
     for(String terminal_key : _Terminals)
@@ -122,10 +144,16 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _TerminalsAdapter.add(_Terminals.at(terminal_key));
     }
     _TerminalsAdapter.sort(_TerminalComparer);
-    ArrayList<Terminal> states = new ArrayList<Terminal>();
-    _Accounts.CheckStates(_Terminals, states);
+  }
+  
+  @Override
+  public void onSuccessRequest()
+  {
+    DrawTerminals();
     _Accounts.SaveStates(_Terminals);
     setProgressBarIndeterminateVisibility(false);
+//////
+    ShowLatUpdateDate();
   }
   
   @Override
@@ -138,7 +166,6 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   @Override
   public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
   {
-    // TODO Auto-generated method stub
     Terminal terminal = _TerminalsAdapter.getItem(position);
     if(terminal!=null)
     {

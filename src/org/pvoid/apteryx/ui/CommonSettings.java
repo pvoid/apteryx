@@ -2,6 +2,7 @@ package org.pvoid.apteryx.ui;
 
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.UpdateStatusService;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -43,7 +44,9 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
       }
     }
     _Interval.setSelection(interval_position);
-    _Interval.setEnabled(false);
+    boolean autoCheck = prefs.getBoolean(Consts.PREF_AUTOCHECK, false);
+    _AutoCheck.setChecked(autoCheck);
+    _Interval.setEnabled(autoCheck);
     _Interval.setOnItemSelectedListener(this);
   }
   @Override
@@ -55,6 +58,11 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
     SharedPreferences.Editor edit = prefs.edit();
     edit.putBoolean(Consts.PREF_AUTOCHECK, _AutoCheck.isChecked());
     edit.commit();
+///////
+    if(_AutoCheck.isChecked())
+      UpdateStatusService.ShceduleCheck(this);
+    else
+      UpdateStatusService.StopChecking(this);
   }
   @Override
   public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3)
@@ -69,6 +77,5 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
   public void onNothingSelected(AdapterView<?> arg0)
   {
     // TODO Auto-generated method stub
-    
   }
 }

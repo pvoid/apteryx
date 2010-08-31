@@ -12,7 +12,6 @@ public class Terminal implements Parcelable
   private int state;
   public String printer_state;
   public String cashbin_state;
-  public String mobile_bill;
   public String lpd;
   public int cash;
   public String lastActivity;
@@ -41,6 +40,7 @@ public class Terminal implements Parcelable
   {
     this.tid = id;
     this.address = address;
+    this.lpd = "";
   }
   
   public String Address() 
@@ -77,7 +77,6 @@ public class Terminal implements Parcelable
     dest.writeInt(state);
     dest.writeString(printer_state);
     dest.writeString(cashbin_state);
-    dest.writeString(mobile_bill);
     dest.writeString(lpd);
     dest.writeInt(cash);
     dest.writeString(lastActivity);
@@ -109,7 +108,6 @@ public class Terminal implements Parcelable
       terminal.State(src.readInt());
       terminal.printer_state = src.readString();
       terminal.cashbin_state = src.readString();
-      terminal.mobile_bill = src.readString();
       terminal.lpd = src.readString();
       terminal.cash = src.readInt();
       terminal.lastActivity = src.readString();
