@@ -18,6 +18,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +27,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
 {
@@ -102,7 +104,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
   }
   
-  private void ShowLatUpdateDate()
+  private void ShowStateInfo()
   {
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
     long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
@@ -112,6 +114,17 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
                DateUtils.formatSameDayTime(time, System.currentTimeMillis(), DateFormat.DEFAULT, DateFormat.DEFAULT)
                +")");
     }
+//////
+    TextView balance = (TextView)findViewById(R.id.full_balance);
+    if(balance!=null)
+    {
+      balance.setText(Html.fromHtml("<b>"+getString(R.string.balance)+"</b>: "+_Terminals.Balance()));
+    }
+    balance = (TextView)findViewById(R.id.full_overdraft);
+    if(balance!=null)
+    {
+      balance.setText(Html.fromHtml("<b>"+getString(R.string.overdraft)+"</b>: "+_Terminals.Overdraft()));
+    }
   }
   
   private void RestoreStates()
@@ -119,7 +132,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     _Accounts.GetTerminals(_Terminals);
     DrawTerminals();
 //////
-    ShowLatUpdateDate();
+    ShowStateInfo();
   }
   
   public boolean onOptionsItemSelected(MenuItem item)
@@ -153,7 +166,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     _Accounts.SaveStates(_Terminals);
     setProgressBarIndeterminateVisibility(false);
 //////
-    ShowLatUpdateDate();
+    ShowStateInfo();
   }
   
   @Override

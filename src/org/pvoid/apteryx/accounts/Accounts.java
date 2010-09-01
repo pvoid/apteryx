@@ -1,6 +1,7 @@
 package org.pvoid.apteryx.accounts;
 
 import java.util.List;
+import java.util.Set;
 
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.net.TerminalsProcessData;
@@ -15,7 +16,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Accounts
 {
   private static final String CREATE_ACCOUNTS_TABLE = 
-      "create table accounts (id integer primary key autoincrement, "
+      "create table accounts (id text primary key,"
       + "title text not null,login text not null, password text not null,"
       +"terminal text not null);";
   
@@ -30,6 +31,9 @@ public class Accounts
       "bonds_500 integer not null,bonds_1000 integer not null,bonds_5000 integer not null," +
       "bonds_10000 integer not null,pays_per_hour text not null,agent_id text not null," +
       "agent_name text not null);";
+  
+  private static final String CREATE_BALANCE_TABLE = 
+      "create table balances (agent_id text not null primary key, balance real not null, overdraft real not null);";
   
   private DatabaseHelper _database;
   private Context _context;
@@ -46,6 +50,7 @@ public class Accounts
     {
       db.execSQL(CREATE_ACCOUNTS_TABLE);
       db.execSQL(CREATE_TERMINALS_TABLE);
+      db.execSQL(CREATE_BALANCE_TABLE);
     }
 
     @Override
@@ -72,20 +77,21 @@ public class Accounts
     _context = context;
   }
   
-  public long AddAccount(String title, String login, String password, String terminal)
+  public boolean AddAccount(String id, String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
+    values.put(Consts.COLUMN_ID, id);
     values.put(Consts.COLUMN_TITLE, title);
     values.put(Consts.COLUMN_LOGIN, login);
     values.put(Consts.COLUMN_PASSWORD, password);
     values.put(Consts.COLUMN_TERMINAL, terminal);    
     SQLiteDatabase db = OpenWrite();
-    long id = db.insert(Consts.ACCOUNTS_TABLE, null, values);
+    boolean result = db.insert(Consts.ACCOUNTS_TABLE, null, values)!=-1;
     _database.close();
-    return(id);
+    return(result);
   }
   
-  public void EditAccount(long id,String title, String login, String password, String terminal)
+  public void EditAccount(String id,String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
     values.put(Consts.COLUMN_TITLE, title);
@@ -93,11 +99,11 @@ public class Accounts
     values.put(Consts.COLUMN_PASSWORD, password);
     values.put(Consts.COLUMN_TERMINAL, terminal);
     SQLiteDatabase db = OpenWrite();
-    db.update(Consts.ACCOUNTS_TABLE, values, Consts.COLUMN_ID+'='+Long.toString(id), null);
+    db.update(Consts.ACCOUNTS_TABLE, values, Consts.COLUMN_ID+'='+id, null);
     _database.close();
   }
   
-  public void DeleteAccount(long id)
+  public void DeleteAccount(String id)
   {
     SQLiteDatabase db = OpenWrite();
     db.delete(Consts.ACCOUNTS_TABLE, Consts.COLUMN_ID + "=" + id,null);
@@ -118,8 +124,11 @@ public class Accounts
       {
         do
         {
-          long id = cursor.getLong(0);
-          adapter.add(new Account(id,cursor.getString(1),cursor.getString(2), cursor.getString(3), cursor.getString(4)));
+          adapter.add(new Account(cursor.getString(0),
+                                  cursor.getString(1),
+                                  cursor.getString(2), 
+                                  cursor.getString(3), 
+                                  cursor.getString(4)));
         }
         while(cursor.moveToNext());
       }
@@ -165,6 +174,18 @@ public class Accounts
       values.put(Consts.COLUMN_AGENTNAME,terminal.agentName);
       
       db.insert(Consts.TERMINALS_TABLE, null, values);
+    }
+///////
+    Set<String> keys = terminals.Agents();
+    values.clear();
+    db.delete(Consts.BALANCES_TABLE, null, null);
+    for(String agentId : keys)
+    {
+      values.put(Consts.COLUMN_AGENTID, agentId);
+      values.put(Consts.COLUMN_BALANCE, terminals.Balance(agentId));
+      values.put(Consts.COLUMN_OVERDRAFT, terminals.Overdraft(agentId));
+      
+      db.insert(Consts.BALANCES_TABLE, null, values);
     }
     _database.close();
 ///////
@@ -236,6 +257,25 @@ public class Accounts
           terminals.add(terminal);
         }
         while(cursor.moveToNext());
+        cursor.close();
+      }
+      
+      cursor = db.query(Consts.BALANCES_TABLE, new String[] {Consts.COLUMN_AGENTID,
+                                                              Consts.COLUMN_BALANCE,
+                                                              Consts.COLUMN_OVERDRAFT},
+                        null,null,null,null,null,null);
+      if(cursor!=null)
+      {
+        if(cursor.moveToFirst())
+        {
+          do
+          {
+            String agentId = cursor.getString(0);
+            terminals.Balance(agentId, cursor.getDouble(1));
+            terminals.Overdraft(agentId, cursor.getDouble(2));
+          }
+          while(cursor.moveToNext());
+        }
         cursor.close();
       }
     }

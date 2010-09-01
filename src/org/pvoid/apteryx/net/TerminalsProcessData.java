@@ -2,6 +2,8 @@ package org.pvoid.apteryx.net;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
+
 import org.pvoid.apteryx.Utils;
 import org.pvoid.apteryx.accounts.Terminal;
 import org.xml.sax.helpers.DefaultHandler;
@@ -18,28 +20,42 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private final int EXTRA_BALANCE  = 1;
   private final int EXTRA_OVERDRAFT  = 2;
   
-  protected HashMap<String,Terminal> terminals;
-  protected int status;
-  private double balance;
-  private double overdraft;
+  private HashMap<String,Terminal> _Terminals;
+  private int _Status;
+  private String _AgentId;
+  private HashMap<String,Double> _Balances;
+  private HashMap<String,Double> _Overdrafts;
+  private int _Balance;
+  private int _Overdraft;
   
-  private int tagState;
-  private int extraState;
-  private StringBuilder text;
-  private int count;
+  private int _TagState;
+  private int _ExtraState;
+  private StringBuilder _Text;
+  private int _Count;
   
   public TerminalsProcessData()
   {
-    terminals = new HashMap<String,Terminal>();
-    text = new StringBuilder();
-    count=0;
+    _Terminals = new HashMap<String,Terminal>();
+    _Balances = new HashMap<String, Double>();
+    _Overdrafts = new HashMap<String, Double>();
+    _Text = new StringBuilder();
+    _Balance = 0;
+    _Overdraft = 0;
+    _Count=0;
+  }
+  
+  public void SetAgent(String agentId)
+  {
+    _AgentId = agentId;
+    _Balance = 0;
+    _Overdraft = 0;
   }
   
   @Override
   public void startDocument()
   {
-    tagState = TAG_NONE;
-    text.delete(0, text.length());
+    _TagState = TAG_NONE;
+    _Text.delete(0, _Text.length());
   }
   
   static private int getInt(Attributes attributes, String name, int def)
@@ -77,13 +93,13 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       String address = attributes.getValue("addr");
       
       Terminal terminal;
-      if(terminals.containsKey(tid))
-        terminal = terminals.get(tid);
+      if(_Terminals.containsKey(tid))
+        terminal = _Terminals.get(tid);
       else
       {
         terminal = new Terminal(tid,address);
-        terminals.put(tid, terminal);
-        ++count;
+        _Terminals.put(tid, terminal);
+        ++_Count;
       }
       // статус
       terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
@@ -120,82 +136,119 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       terminal.agentName       = getString(attributes, "an");
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
-      tagState = TAG_RESULT;
+      _TagState = TAG_RESULT;
     else if(localName.compareToIgnoreCase("extra")==0)
     {
-      tagState = TAG_EXTRA;
+      _TagState = TAG_EXTRA;
       String extra_name = attributes.getValue("name");
       if(extra_name.compareToIgnoreCase("balance")==0)
-        extraState = EXTRA_BALANCE;
+        _ExtraState = EXTRA_BALANCE;
       else if(extra_name.compareToIgnoreCase("overdraft")==0)
-        extraState = EXTRA_OVERDRAFT;
+        _ExtraState = EXTRA_OVERDRAFT;
       else
-        extraState = EXTRA_UNKNOWN;
+        _ExtraState = EXTRA_UNKNOWN;
     }
     else
-      tagState = TAG_NONE;
+      _TagState = TAG_NONE;
     // не допускаем вложенности
-    text.delete(0, text.length());
+    _Text.delete(0, _Text.length());
   }
  
   @Override
   public void characters(char[] ch, int start, int length)
   {
-    text.append(ch,start,length);
+    _Text.append(ch,start,length);
   }
   
   @Override
   public void endElement(String uri, String localName, String qName)
   {
-    switch(tagState)
+    switch(_TagState)
     {
       case TAG_RESULT:
-        status = Integer.parseInt(text.toString());
+        _Status = Integer.parseInt(_Text.toString());
         break;
       case TAG_EXTRA:
-        if(extraState == EXTRA_BALANCE)
+        if(_ExtraState == EXTRA_BALANCE)
         {
-          balance = Double.parseDouble(text.toString());
+          Double balance = new Double(_Text.toString());
+          _Balance+=balance;
+          _Balances.put(_AgentId,balance);
         }
-        else if(extraState == EXTRA_OVERDRAFT)
-          overdraft = Double.parseDouble(text.toString());
+        else if(_ExtraState == EXTRA_OVERDRAFT)
+        {
+          Double overdraft = new Double(_Text.toString());
+          _Overdraft+=overdraft;
+          _Overdrafts.put(_AgentId,overdraft);
+        }
         break;
     }
-    tagState = TAG_NONE;
+    _TagState = TAG_NONE;
   }
   
   public boolean isEmpty()
   {
-    return(terminals.isEmpty());
+    return(_Terminals.isEmpty());
   }
   
   public Iterator<String> iterator()
   {
-    return(terminals.keySet().iterator());
+    return(_Terminals.keySet().iterator());
   }
   
   public Terminal at(String index)
   {
-    return terminals.get(index);
+    return _Terminals.get(index);
   }
 
   public int Count()
   {
-    return(count);
+    return(_Count);
   }
   
   public double Balance()
   {
-    return(balance);
+    return(_Balance);
   }
   
   public double Overdraft()
   {
-    return(overdraft);
+    return(_Overdraft);
+  }
+  
+  public double Balance(String agentId)
+  {
+    if(_Balances.containsKey(agentId))
+      return(_Balances.get(agentId));
+    return(0);
+  }
+  
+  public void Balance(String agentId, double balance)
+  {
+    _Balances.put(agentId, new Double(balance));
+    _Balance+=balance;
+  }
+  
+  public double Overdraft(String agentId)
+  {
+    if(_Overdrafts.containsKey(agentId))
+      return(_Overdrafts.get(agentId));
+    return(0);
+  }
+  
+  public void Overdraft(String agentId, double overdraft)
+  {
+    _Overdrafts.put(agentId, new Double(overdraft));
+    _Overdraft+=overdraft;
+  }
+  
+  public Set<String> Agents()
+  {
+    return(_Balances.keySet());
   }
   
   public void add(Terminal terminal)
   {
-    terminals.put(terminal.id(), terminal);
+    _Terminals.put(terminal.id(), terminal);
   }
 }

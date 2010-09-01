@@ -39,7 +39,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   private EditText _LoginEdit;
   private EditText _PasswordEdit;
   private EditText _TerminalEdit;
-  private long _Id;
+  private String _Id;
   
   public void onCreate(Bundle savedInstanceState)
   {
@@ -55,13 +55,13 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     Bundle extra = getIntent().getExtras();
     if(extra!=null && extra.containsKey(Consts.COLUMN_ID))
     {
-      _Id = extra.getLong(Consts.COLUMN_ID);
+      _Id = extra.getString(Consts.COLUMN_ID);
       _LoginEdit.setText(extra.getString(Consts.COLUMN_LOGIN));
       _TerminalEdit.setText(extra.getString(Consts.COLUMN_TERMINAL));
       _Password = extra.getString(Consts.COLUMN_PASSWORD);
     }
     else
-      _Id = 0;
+      _Id = null;
     /*if(_Id==0)
     {
       label.setVisibility(View.GONE);
@@ -92,7 +92,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     String password = _PasswordEdit.getText().toString();
     if(Utils.isEmptyString(password))
     {
-      if(_Id==0)
+      if(_Id==null)
       {
         Toast.makeText(this, getString(R.string.empty_password), 200).show();
         return;
@@ -114,7 +114,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
         return;
       }
     }
-    
+////////
     _TerminalId = _TerminalEdit.getText().toString();
     if(Utils.isEmptyString(_TerminalId))
     {
@@ -153,8 +153,8 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       if(agentInfo.Code()==0)
       {
         Accounts accounts = new Accounts(this);
-        if(_Id==0)
-          accounts.AddAccount(agentInfo.AgentName(), _Login, _Password, _TerminalId);
+        if(_Id==null)
+          accounts.AddAccount(agentInfo.AgentId(), agentInfo.AgentName(), _Login, _Password, _TerminalId);
         else
           accounts.EditAccount(_Id, agentInfo.AgentName(), _Login, _Password, _TerminalId);
         dismissDialog(0);

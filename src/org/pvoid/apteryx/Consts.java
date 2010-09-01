@@ -17,6 +17,7 @@ public class Consts
   public static final int DB_VERSION = 2;
   public static final String ACCOUNTS_TABLE = "accounts";
   public static final String TERMINALS_TABLE = "terminals";
+  public static final String BALANCES_TABLE = "balances";
   public static final String COLUMN_ID = "id";
   public static final String COLUMN_TITLE = "title";
   public static final String COLUMN_LOGIN = "login";
@@ -46,7 +47,9 @@ public class Consts
   public static final String COLUMN_BONDS10000 = "bonds_10000";
   public static final String COLUMN_PAYSPERHOUR = "pays_per_hour";
   public static final String COLUMN_AGENTID = "agent_id";
-  public static final String COLUMN_AGENTNAME = "agent_name";  
+  public static final String COLUMN_AGENTNAME = "agent_name";
+  
+  public static final String COLUMN_OVERDRAFT = "overdraft";
   
   public static final int MENU_DELETE = 1;
   public static final int MENU_EDIT = 2;

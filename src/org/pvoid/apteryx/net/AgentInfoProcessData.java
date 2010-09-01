@@ -10,6 +10,7 @@ public class AgentInfoProcessData extends DefaultHandler
   private static final int TAG_CODE = 1;
   
   private String _AgentName;
+  private String _AgentId;
   private StringBuilder _Text;
   private int _Code;
   private int _TagCode; 
@@ -32,6 +33,7 @@ public class AgentInfoProcessData extends DefaultHandler
     if(localName.compareToIgnoreCase("agt")==0)
     {
       _AgentName = attributes.getValue("an");
+      _AgentId = attributes.getValue("aid");
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
     {
@@ -66,6 +68,11 @@ public class AgentInfoProcessData extends DefaultHandler
   public String AgentName()
   {
     return(_AgentName);
+  }
+  
+  public String AgentId()
+  {
+    return(_AgentId);
   }
 }
 
