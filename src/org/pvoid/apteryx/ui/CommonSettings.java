@@ -18,6 +18,7 @@ import android.widget.Spinner;
 public class CommonSettings extends Activity implements OnClickListener,OnItemSelectedListener
 {
   private CheckedTextView _AutoCheck;
+  private CheckedTextView _UseVibro;
   private Spinner _Interval;
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -27,6 +28,19 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
     
     _AutoCheck = (CheckedTextView)findViewById(R.id.settings_autocheck);
     _AutoCheck.setOnClickListener(this);
+    _UseVibro = (CheckedTextView)findViewById(R.id.settings_usevibro);
+    _UseVibro.setOnClickListener(new OnClickListener()
+    {
+      @Override
+      public void onClick(View v)
+      {
+        _UseVibro.toggle();
+        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(Consts.PREF_USEVIBRO, _UseVibro.isChecked());
+        edit.commit();
+      }
+    });
     _Interval = (Spinner)findViewById(R.id.settings_interval);
     
     ArrayAdapter adapter = ArrayAdapter.createFromResource(this, R.array.intervals, android.R.layout.simple_spinner_item);
@@ -47,13 +61,17 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
     boolean autoCheck = prefs.getBoolean(Consts.PREF_AUTOCHECK, false);
     _AutoCheck.setChecked(autoCheck);
     _Interval.setEnabled(autoCheck);
+    _UseVibro.setEnabled(autoCheck);
     _Interval.setOnItemSelectedListener(this);
+    boolean useVibro = prefs.getBoolean(Consts.PREF_USEVIBRO, false);
+    _UseVibro.setChecked(useVibro);
   }
   @Override
   public void onClick(View v)
   {
     _AutoCheck.toggle();
     _Interval.setEnabled(_AutoCheck.isChecked());
+    _UseVibro.setEnabled(_AutoCheck.isChecked());
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
     SharedPreferences.Editor edit = prefs.edit();
     edit.putBoolean(Consts.PREF_AUTOCHECK, _AutoCheck.isChecked());

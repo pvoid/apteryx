@@ -5,18 +5,22 @@
     android:layout_height="fill_parent"
     >
   <RelativeLayout android:layout_width="fill_parent"
-                  android:layout_height="wrap_content">
+                  android:layout_height="wrap_content"
+                  android:padding="2pt"
+                  android:background="#ffffffff">
 	  <TextView android:id="@+id/full_balance"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:layout_alignParentTop="true"
 	            android:layout_alignParentLeft="true"
+	            android:textColor="#ff000000"
 	            />
 	  <TextView android:id="@+id/full_overdraft"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:layout_alignParentTop="true"
               android:layout_alignParentRight="true"
+              android:textColor="#ff000000"
               />
   </RelativeLayout>
   <ListView android:layout_width="fill_parent"

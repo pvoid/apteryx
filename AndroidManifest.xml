@@ -27,6 +27,8 @@
                 android:label="">
       </activity>
       <service android:name=".UpdateStatusService" android:process=":remote" />
-</application>
+    </application>
+    
     <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
+    <uses-permission android:name="android.permission.VIBRATE" ></uses-permission>
 </manifest> 

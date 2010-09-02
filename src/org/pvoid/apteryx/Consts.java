@@ -4,6 +4,7 @@ public class Consts
   public static final String APTERYX_PREFS = "apteryx-settings";
   public static final String PREF_INTERVAL = "apteryx.update-interval";
   public static final String PREF_AUTOCHECK = "apteryx.autoupdate";
+  public static final String PREF_USEVIBRO = "apteryx.usevibro";
   public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
   public static final String URL = "http://xml1.osmp.ru/term2/xml.jsp";
   

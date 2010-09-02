@@ -16,11 +16,22 @@
                    android:layout_marginLeft="2pt"
                    android:layout_marginRight="2pt" />
   
-
   <Spinner  android:id="@+id/settings_interval"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3pt"
             android:layout_marginLeft="2pt"
             android:layout_marginRight="2pt"/>
+
+<CheckedTextView android:id="@+id/settings_usevibro"
+                 android:layout_width="fill_parent"
+                 android:layout_height="wrap_content"
+                 android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+                 android:focusable="true"
+                 android:clickable="true"
+                 android:gravity="center_vertical"
+                 android:text="@string/settings_usevibro"
+                 android:layout_marginTop="2pt"
+                 android:layout_marginLeft="2pt"
+                 android:layout_marginRight="2pt" />
 </LinearLayout>

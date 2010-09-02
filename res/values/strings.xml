@@ -56,4 +56,5 @@
     <string name="doesnt_response">не отвечает</string>
     
     <string name="settings_autocheck">Проверять автоматически</string>
+    <string name="settings_usevibro">Использовать вибрацию</string>
 </resources>

@@ -51,7 +51,9 @@ public class DataTransfer
               "<terminal-id>"+terminal+"</terminal-id>"+
               "<extra name=\"login\">"+login+"</extra>"+
               "<extra name=\"password-md5\">"+password+"</extra>"+
-              "<extra name=\"client-software\">Dealer v1.9</extra>"+
+              "<extra name=\"client-software\">Dealer v1.9</extra>" +
+              "<extra name=\"cashs\">true</extra>" +
+              "<extra name=\"statistics\">true</extra>"+
             "</request>");
   }
   

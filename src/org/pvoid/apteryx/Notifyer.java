@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.text.Html;
 import android.widget.RemoteViews;
 
@@ -45,6 +46,10 @@ public class Notifyer
     
     PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0);
     notification.contentIntent  = contentIntent;
+    SharedPreferences prefs = context.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
+    
+    if(prefs.getBoolean(Consts.PREF_USEVIBRO, false))
+      notification.defaults |= Notification.DEFAULT_VIBRATE;
     
     nm.notify(Consts.NOTIFICATION_ICON, notification);
   }
