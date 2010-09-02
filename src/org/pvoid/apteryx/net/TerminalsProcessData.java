@@ -247,8 +247,27 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Balances.keySet());
   }
   
+  public boolean hasAgents()
+  {
+    return(_Balances.size()!=0);
+  }
+  
   public void add(Terminal terminal)
   {
     _Terminals.put(terminal.id(), terminal);
+  }
+
+  public void Clear()
+  {
+    _Terminals.clear();
+    _Balances.clear();
+    _Overdrafts.clear();
+    _Balance = 0;
+    _Overdraft = 0;
+  }
+  
+  public boolean Success()
+  {
+    return(_Status==0);
   }
 }

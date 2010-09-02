@@ -7,7 +7,9 @@
   <RelativeLayout android:layout_width="fill_parent"
                   android:layout_height="wrap_content"
                   android:padding="2pt"
-                  android:background="#ffffffff">
+                  android:background="#ffffffff"
+                  android:visibility="gone"
+                  android:id="@+id/balance_layer">
 	  <TextView android:id="@+id/full_balance"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"

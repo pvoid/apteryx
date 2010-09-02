@@ -15,6 +15,9 @@ import org.pvoid.apteryx.net.StatesRequestTask;
 import org.pvoid.apteryx.net.TerminalsProcessData;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,6 +30,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
@@ -115,15 +119,37 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
                +")");
     }
 //////
-    TextView balance = (TextView)findViewById(R.id.full_balance);
-    if(balance!=null)
+    RelativeLayout balance_layout = (RelativeLayout)findViewById(R.id.balance_layer);
+    if(_Terminals.hasAgents())
     {
-      balance.setText(Html.fromHtml("<b>"+getString(R.string.balance)+"</b>: "+_Terminals.Balance()));
+      balance_layout.setVisibility(View.VISIBLE);
+      
+      TextView balance = (TextView)findViewById(R.id.full_balance);
+      if(balance!=null)
+      {
+        balance.setText(Html.fromHtml("<b>"+getString(R.string.balance)+"</b>: "+_Terminals.Balance()));
+      }
+      balance = (TextView)findViewById(R.id.full_overdraft);
+      if(balance!=null)
+      {
+        balance.setText(Html.fromHtml("<b>"+getString(R.string.overdraft)+"</b>: "+_Terminals.Overdraft()));
+      }
     }
-    balance = (TextView)findViewById(R.id.full_overdraft);
-    if(balance!=null)
+    else
     {
-      balance.setText(Html.fromHtml("<b>"+getString(R.string.overdraft)+"</b>: "+_Terminals.Overdraft()));
+      balance_layout.setVisibility(View.GONE);
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setMessage(getString(R.string.add_account_message))
+             .setPositiveButton(R.string.settings,new OnClickListener()
+              {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                  Intent intent = new Intent(MainActivity.this,AddAccountActivity.class);
+                  startActivityForResult(intent, 0);
+                }
+              })
+             .show();
     }
   }
   
@@ -147,6 +173,14 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         break;
     }
     return(super.onOptionsItemSelected(item));
+  }
+  @Override
+  public void onActivityResult(int requestCode,int resultCode, Intent intent)
+  {
+    if(resultCode==Consts.RESULT_RELOAD)
+    {
+      RefreshStates();
+    }
   }
   
   private void DrawTerminals()

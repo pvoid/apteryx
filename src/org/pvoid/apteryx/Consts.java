@@ -1,4 +1,7 @@
 package org.pvoid.apteryx;
+
+import android.app.Activity;
+
 public class Consts
 {
   public static final String APTERYX_PREFS = "apteryx-settings";
@@ -10,6 +13,8 @@ public class Consts
   
   public static final String TAB_ACCOUNTS = "tab_account";
   public static final String TAB_PREFERENCES = "tab_preferences";
+  
+  public static final int RESULT_RELOAD = Activity.RESULT_FIRST_USER + 1;
   
   public static final int ACTIVITY_ADD_ACCOUNT = 1;
   public static final int ACTIVITY_EDIT_ACCOUNT = 2;

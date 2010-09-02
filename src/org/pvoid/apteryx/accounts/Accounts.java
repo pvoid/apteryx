@@ -107,6 +107,7 @@ public class Accounts
   {
     SQLiteDatabase db = OpenWrite();
     db.delete(Consts.ACCOUNTS_TABLE, Consts.COLUMN_ID + "=" + id,null);
+    db.delete(Consts.BALANCES_TABLE, Consts.COLUMN_AGENTID + "=" + id, null);
     _database.close();
   }
 /**

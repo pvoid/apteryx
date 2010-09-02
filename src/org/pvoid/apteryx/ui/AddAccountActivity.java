@@ -158,6 +158,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
         else
           accounts.EditAccount(_Id, agentInfo.AgentName(), _Login, _Password, _TerminalId);
         dismissDialog(0);
+        setResult(Consts.RESULT_RELOAD);
         finish();
       }
       else

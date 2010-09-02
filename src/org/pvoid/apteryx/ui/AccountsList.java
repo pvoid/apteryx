@@ -60,11 +60,19 @@ public class AccountsList extends Activity
     switch(requestCode)
     {
       case Consts.ACTIVITY_ADD_ACCOUNT:
-        _Adapter.clear();
-        setAccountsList();
+        if(resultCode == Consts.RESULT_RELOAD)
+        {
+          _Adapter.clear();
+          setAccountsList();
+          if(!isChild())
+            setResult(Consts.RESULT_RELOAD);
+          else
+            getParent().setResult(Consts.RESULT_RELOAD);
+        }
         break;
     }
   }
+  
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo)
   {
@@ -91,6 +99,10 @@ public class AccountsList extends Activity
           case DialogInterface.BUTTON_POSITIVE:
             _Accounts.DeleteAccount(account.Id);
             _Adapter.remove(account);
+            if(!isChild())
+              setResult(Consts.RESULT_RELOAD);
+            else
+              getParent().setResult(Consts.RESULT_RELOAD);
             break;
         }
       }

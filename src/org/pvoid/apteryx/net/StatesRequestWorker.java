@@ -23,6 +23,12 @@ public class StatesRequestWorker
   
   public boolean Work(Account... accounts)
   {
+    if(accounts.length==0)
+    {
+      _Terminals.Clear();
+      return(true);
+    }
+    
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser parser;
     try
