@@ -258,9 +258,8 @@ public class Accounts
           terminals.add(terminal);
         }
         while(cursor.moveToNext());
-        cursor.close();
       }
-      
+      cursor.close();      
       cursor = db.query(Consts.BALANCES_TABLE, new String[] {Consts.COLUMN_AGENTID,
                                                               Consts.COLUMN_BALANCE,
                                                               Consts.COLUMN_OVERDRAFT},
@@ -308,8 +307,8 @@ public class Accounts
           }
         }
         while(cursor.moveToNext());
-        cursor.close();
       }
+      cursor.close();
     }
     _database.close();
     return(result);

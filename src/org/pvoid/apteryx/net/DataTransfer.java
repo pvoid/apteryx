@@ -42,30 +42,35 @@ public class DataTransfer
     return(null);
   }
   
-  static private String FormatRequest(String login, String password, String terminal, int requestType)
+  static private String FormatRequest(String login, String password, String terminal, int requestType, boolean fullRequest)
   {
-    return ("<?xml version=\"1.0\" encoding=\"windows-1251\"?>"+
-            "<request>"+
-              "<protocol-version>3.00</protocol-version>"+
-              "<request-type>"+requestType+"</request-type>"+
-              "<terminal-id>"+terminal+"</terminal-id>"+
-              "<extra name=\"login\">"+login+"</extra>"+
-              "<extra name=\"password-md5\">"+password+"</extra>"+
-              "<extra name=\"client-software\">Dealer v1.9</extra>" +
-              "<extra name=\"cashs\">true</extra>" +
-              "<extra name=\"statistics\">true</extra>"+
-            "</request>");
+    String request = "<?xml version=\"1.0\" encoding=\"windows-1251\"?>"+
+    "<request>"+
+    "<protocol-version>3.00</protocol-version>"+
+    "<request-type>"+requestType+"</request-type>"+
+    "<terminal-id>"+terminal+"</terminal-id>"+
+    "<extra name=\"login\">"+login+"</extra>"+
+    "<extra name=\"password-md5\">"+password+"</extra>"+
+    "<extra name=\"client-software\">Dealer v1.9</extra>";
+    
+    if(fullRequest)
+    {
+      request += "<extra name=\"cashs\">true</extra>" +
+                 "<extra name=\"statistics\">true</extra>";
+    }
+    request += "</request>"; 
+    return (request);
   }
   
   static public void TestAccount(String login, String password, String terminal, IResponseHandler handler)
   {
     Bundle async_params = new Bundle();
-    async_params.putString(RequestTask.DATA,FormatRequest(login,password,terminal,18));
+    async_params.putString(RequestTask.DATA,FormatRequest(login,password,terminal,7,false));
     (new RequestTask(handler)).execute(async_params);
   }
   
   static public String RefreshStates(String login, String password, String terminal)
   {
-    return(Load(Consts.URL,FormatRequest(login, password, terminal, 16)));
+    return(Load(Consts.URL,FormatRequest(login, password, terminal, 16, true)));
   }
 }

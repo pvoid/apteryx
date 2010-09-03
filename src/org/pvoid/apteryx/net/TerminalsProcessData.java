@@ -118,7 +118,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       // Баланс сим карты
       terminal.balance= getString(attributes,"ss");
       // Уровень сигнала сим карты
-      terminal.bondsCount= getInt(attributes,"sl");
+      terminal.signalLevel= getInt(attributes,"sl");
       // Версия софта
       terminal.softVersion = getString(attributes, "csoft");
       // Модель принтера
