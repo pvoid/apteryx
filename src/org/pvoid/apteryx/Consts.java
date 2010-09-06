@@ -21,9 +21,12 @@ public class Consts
   
   public static final String DB_NAME = "apteryx";
   public static final int DB_VERSION = 2;
+  
   public static final String ACCOUNTS_TABLE = "accounts";
   public static final String TERMINALS_TABLE = "terminals";
   public static final String BALANCES_TABLE = "balances";
+  public static final String AGENTS_TABLE = "agents";
+  
   public static final String COLUMN_ID = "id";
   public static final String COLUMN_TITLE = "title";
   public static final String COLUMN_LOGIN = "login";
@@ -55,6 +58,8 @@ public class Consts
   public static final String COLUMN_AGENTID = "agent_id";
   public static final String COLUMN_AGENTNAME = "agent_name";
   
+  public static final String COLUMN_ACCOUNT = "account";
+  
   public static final String COLUMN_OVERDRAFT = "overdraft";
   
   public static final int MENU_DELETE = 1;
@@ -63,4 +68,8 @@ public class Consts
   public static final int[] INTERVALS = new int[] {900000,1800000,3600000,10800000,21600000,43200000,86400000};
   
   public static final int NOTIFICATION_ICON = 1;
+  
+  public static final String EXTRA_AGENTS = "agents";
+  public static final String EXTRA_SELECTED_AGENT = "selected_agent";
+  public static final String EXTRA_SELECTED_AGENTS = "selected_agents";
 }

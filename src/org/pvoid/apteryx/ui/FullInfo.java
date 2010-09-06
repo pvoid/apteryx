@@ -27,7 +27,7 @@ public class FullInfo extends Activity
     
     view = (TextView) findViewById(R.id.fullinfo_aid);
     if(view!=null)
-      view.setText(terminal.agentId);
+      view.setText(Long.toString(terminal.agentId));
     
     view = (TextView) findViewById(R.id.fullinfo_an);
     if(view!=null)

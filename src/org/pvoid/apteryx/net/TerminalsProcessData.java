@@ -22,9 +22,10 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   
   private HashMap<String,Terminal> _Terminals;
   private int _Status;
-  private String _AgentId;
-  private HashMap<String,Double> _Balances;
-  private HashMap<String,Double> _Overdrafts;
+  private long _AgentId;
+  private HashMap<Long,Double> _Balances;
+  private HashMap<Long,Double> _Overdrafts;
+  private HashMap<Long,String> _Agents;
   private int _Balance;
   private int _Overdraft;
   
@@ -36,15 +37,16 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   public TerminalsProcessData()
   {
     _Terminals = new HashMap<String,Terminal>();
-    _Balances = new HashMap<String, Double>();
-    _Overdrafts = new HashMap<String, Double>();
+    _Balances = new HashMap<Long, Double>();
+    _Overdrafts = new HashMap<Long, Double>();
+    _Agents = new HashMap<Long, String>();
     _Text = new StringBuilder();
     _Balance = 0;
     _Overdraft = 0;
     _Count=0;
   }
   
-  public void SetAgent(String agentId)
+  public void SetAgent(long agentId)
   {
     _AgentId = agentId;
     _Balance = 0;
@@ -56,6 +58,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   {
     _TagState = TAG_NONE;
     _Text.delete(0, _Text.length());
+    _Agents.clear();
   }
   
   static private int getInt(Attributes attributes, String name, int def)
@@ -64,6 +67,14 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     if(Utils.isEmptyString(value))
       return(def);
     return Integer.parseInt(value);
+  }
+  
+  static private long getLong(Attributes attributes, String name, int def)
+  {
+    String value = attributes.getValue(name);
+    if(Utils.isEmptyString(value))
+      return(def);
+    return Long.parseLong(value);
   }
   
   static private int getInt(Attributes attributes, String name)
@@ -132,8 +143,10 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       terminal.bonds5000count  = getInt(attributes,"b_co_5000");
       terminal.bonds10000count = getInt(attributes,"b_co_10000");
       terminal.paysPerHour     = getString(attributes,"pays_per_hour");
-      terminal.agentId         = getString(attributes, "aid");
+      terminal.agentId         = getLong(attributes, "aid",0);
       terminal.agentName       = getString(attributes, "an");
+      
+      _Agents.put(terminal.agentId, terminal.agentName);
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
       _TagState = TAG_RESULT;
@@ -216,35 +229,40 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Overdraft);
   }
   
-  public double Balance(String agentId)
+  public double Balance(long agentId)
   {
     if(_Balances.containsKey(agentId))
       return(_Balances.get(agentId));
     return(0);
   }
   
-  public void Balance(String agentId, double balance)
+  public void Balance(long agentId, double balance)
   {
     _Balances.put(agentId, new Double(balance));
     _Balance+=balance;
   }
   
-  public double Overdraft(String agentId)
+  public double Overdraft(long agentId)
   {
     if(_Overdrafts.containsKey(agentId))
       return(_Overdrafts.get(agentId));
     return(0);
   }
   
-  public void Overdraft(String agentId, double overdraft)
+  public void Overdraft(long agentId, double overdraft)
   {
     _Overdrafts.put(agentId, new Double(overdraft));
     _Overdraft+=overdraft;
   }
   
-  public Set<String> Agents()
+  public Set<Long> Accounts()
   {
     return(_Balances.keySet());
+  }
+  
+  public HashMap<Long, String> Agents()
+  {
+    return(_Agents); 
   }
   
   public boolean hasAgents()
@@ -255,6 +273,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   public void add(Terminal terminal)
   {
     _Terminals.put(terminal.id(), terminal);
+    _Agents.put(terminal.agentId, terminal.agentName);
   }
 
   public void Clear()

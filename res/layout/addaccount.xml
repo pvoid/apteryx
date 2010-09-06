@@ -4,68 +4,68 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
-<!--  Тут логотип и прочие красявости  -->
+<TextView android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/add_account_auth_title"
+          android:padding="5dip"
+          android:background="#ffffffff"
+          android:textColor="#ff000000"
+          />
 <ScrollView android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"
     >
-<LinearLayout android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-    >
-<!-- TextView
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/title"
-    android:id="@+id/title_label"
-    />
-<EditText
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:singleLine="true"
-    android:id="@+id/title"
-    /-->
-
-<TextView
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/login"
-    />
-<EditText
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:singleLine="true"
-    android:id="@+id/login" 
-    />
-<TextView
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/password"
-    />
-<EditText
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:singleLine="true"
-    android:password="true"
-    android:id="@+id/password" 
-    />
-<TextView
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/terminal_id"
-    />
-<EditText
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:singleLine="true"
-    android:id="@+id/terminal" 
-    />
-<Button
-    android:text="@string/add"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="5pt"
-    android:onClick="AddAccount"
-    />
-</LinearLayout>
+	<LinearLayout android:layout_width="fill_parent"
+	              android:layout_height="wrap_content"
+	              android:orientation="vertical"
+	              android:paddingTop="3dip"
+	              android:paddingLeft="5dip"
+	              android:paddingRight="5dip">
+		<TextView
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" 
+		    android:text="@string/login"
+		    />
+		<EditText
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:singleLine="true"
+		    android:id="@+id/login" 
+		    />
+		<TextView
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" 
+		    android:text="@string/password"
+		    />
+		<EditText
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:singleLine="true"
+		    android:password="true"
+		    android:id="@+id/password" 
+		    />
+		<TextView
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" 
+		    android:text="@string/terminal_id"
+		    />
+		<EditText
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:singleLine="true"
+		    android:id="@+id/terminal" 
+		    />
+	</LinearLayout>
 </ScrollView>
+<FrameLayout android:layout_height="wrap_content"
+             android:layout_width="fill_parent"
+             android:padding="6dip"
+             android:background="#FF666666">
+	<Button
+	    android:text="@string/next"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:onClick="CheckAccount"
+	    />
+</FrameLayout>
 </LinearLayout>

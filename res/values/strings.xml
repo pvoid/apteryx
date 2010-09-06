@@ -18,6 +18,12 @@
     <string name="empty_password">Укажите пароль</string>
     <string name="terminal_id">ID терминала</string>
     <string name="empty_terminal">Укажите id терминала</string>
+    <string name="add_account_auth_title">Укажите данные учетной записи</string>
+    <string name="next">Дальше</string>
+    <string name="done">Готово</string>
+    
+    <string name="select_main_agent">Укажите основного агента</string>
+    <string name="select_active_agents">Укажите агентов за терминалами которых надо следить</string>
     
     <string name="accounts_list">Список аккаунтов</string>
     <string name="accounts">Аккаунты</string>

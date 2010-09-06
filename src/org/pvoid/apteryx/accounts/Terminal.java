@@ -30,7 +30,7 @@ public class Terminal implements Parcelable
   public int bonds5000count;
   public int bonds10000count;
   public String paysPerHour;
-  public String agentId;
+  public long agentId;
   public String agentName;
   
   protected String address;
@@ -95,7 +95,7 @@ public class Terminal implements Parcelable
     dest.writeInt(bonds5000count);
     dest.writeInt(bonds10000count);
     dest.writeString(paysPerHour);
-    dest.writeString(agentId);
+    dest.writeLong(agentId);
     dest.writeString(agentName);
   }
   
@@ -126,7 +126,7 @@ public class Terminal implements Parcelable
       terminal.bonds5000count = src.readInt();
       terminal.bonds10000count = src.readInt();
       terminal.paysPerHour = src.readString();
-      terminal.agentId = src.readString();
+      terminal.agentId = src.readLong();
       terminal.agentName = src.readString();
       return terminal;
     }

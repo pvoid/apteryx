@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,33 +38,59 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
     Terminal terminal = getItem(position);
     if(terminal!=null)
     {
+      FrameLayout agent_info = (FrameLayout) view.findViewById(R.id.agent_info);
       TextView name = (TextView)view.findViewById(R.id.list_title);
-      name.setText(terminal.Address());
-      
-      TextView status = (TextView)view.findViewById(R.id.printer_status);
-      String state = "<b>"+_Context.getString(R.string.printer)+": </b>" + terminal.printer_state; 
-      status.setText(Html.fromHtml(state));
-      
-      status = (TextView)view.findViewById(R.id.cachebin_status);
-      state = "<b>"+_Context.getString(R.string.cachebin)+": </b>" + terminal.cashbin_state;
-      status.setText(Html.fromHtml(state));
-      
+      TextView printer_status = (TextView)view.findViewById(R.id.printer_status);
+      TextView cashbin_status = (TextView)view.findViewById(R.id.cachebin_status);
+      TextView cash = (TextView)view.findViewById(R.id.terminal_cash);
       ImageView icon = (ImageView)view.findViewById(R.id.icon);
-      int icon_id;
-      switch(terminal.State())
-      {
-        case Terminal.STATE_OK:
-          icon_id = R.drawable.icon;
-          break;
-        case Terminal.STATE_WARRNING:
-          icon_id = R.drawable.yellow;
-          break;
-        default:
-          icon_id = R.drawable.red;
-      }
       
-      Bitmap bitmap = BitmapFactory.decodeResource(_Context.getResources(), icon_id);
-      icon.setImageBitmap(bitmap);
+      if(terminal.id()==null)
+      {
+        TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
+        agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b>"));
+        agent_info.setVisibility(View.VISIBLE);
+        name.setVisibility(View.GONE);
+        printer_status.setVisibility(View.GONE);
+        cashbin_status.setVisibility(View.GONE);
+        cash.setVisibility(View.GONE);
+        icon.setVisibility(View.GONE);
+        view.setEnabled(false);
+      }
+      else
+      {
+        agent_info.setVisibility(View.GONE);
+        name.setVisibility(View.VISIBLE);
+        printer_status.setVisibility(View.VISIBLE);
+        cashbin_status.setVisibility(View.VISIBLE);
+        cash.setVisibility(View.VISIBLE);
+        icon.setVisibility(View.VISIBLE);
+        view.setEnabled(true);
+        
+        name.setText(terminal.Address());
+        String state = "<b>"+_Context.getString(R.string.printer)+": </b>" + terminal.printer_state; 
+        printer_status.setText(Html.fromHtml(state));
+        state = "<b>"+_Context.getString(R.string.cachebin)+": </b>" + terminal.cashbin_state;
+        cashbin_status.setText(Html.fromHtml(state));
+        cash.setText(Html.fromHtml("<b>"+_Context.getString(R.string.fullinfo_cash)+" </b>"+terminal.cash));
+        
+  
+        int icon_id;
+        switch(terminal.State())
+        {
+          case Terminal.STATE_OK:
+            icon_id = R.drawable.icon;
+            break;
+          case Terminal.STATE_WARRNING:
+            icon_id = R.drawable.yellow;
+            break;
+          default:
+            icon_id = R.drawable.red;
+        }
+        
+        Bitmap bitmap = BitmapFactory.decodeResource(_Context.getResources(), icon_id);
+        icon.setImageBitmap(bitmap);
+      }
     }
     
     return(view);

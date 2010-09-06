@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -14,6 +16,7 @@ import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.Utils;
 import org.pvoid.apteryx.accounts.Accounts;
+import org.pvoid.apteryx.accounts.Agent;
 import org.pvoid.apteryx.net.AgentInfoProcessData;
 import org.pvoid.apteryx.net.DataTransfer;
 import org.pvoid.apteryx.net.IResponseHandler;
@@ -24,30 +27,37 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
 public class AddAccountActivity extends Activity implements IResponseHandler
 {
+  private static final int REQUEST_MAINAGENT = 1;
+  private static final int REQUEST_ACTIVEAGENTS = 2;
+  
   private String _Login;
   private String _Password;
   private String _TerminalId;
   
-  //private EditText _TitleEdit;
   private EditText _LoginEdit;
   private EditText _PasswordEdit;
   private EditText _TerminalEdit;
-  private String _Id;
+  private long _Id;
+  
+  private AgentInfoProcessData _AgentInfo;
+  private Agent _MainAgent;
   
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+
     setContentView(R.layout.addaccount);
 ///////
-    /*TextView label = (TextView)findViewById(R.id.title_label);
-    _TitleEdit = (EditText)findViewById(R.id.title);*/
     _LoginEdit = (EditText)findViewById(R.id.login);
     _PasswordEdit = (EditText)findViewById(R.id.password);
     _TerminalEdit = (EditText)findViewById(R.id.terminal);
@@ -55,18 +65,13 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     Bundle extra = getIntent().getExtras();
     if(extra!=null && extra.containsKey(Consts.COLUMN_ID))
     {
-      _Id = extra.getString(Consts.COLUMN_ID);
+      _Id = extra.getLong(Consts.COLUMN_ID);
       _LoginEdit.setText(extra.getString(Consts.COLUMN_LOGIN));
       _TerminalEdit.setText(extra.getString(Consts.COLUMN_TERMINAL));
       _Password = extra.getString(Consts.COLUMN_PASSWORD);
     }
     else
-      _Id = null;
-    /*if(_Id==0)
-    {
-      label.setVisibility(View.GONE);
-      _TitleEdit.setVisibility(View.GONE);
-    }*/
+      _Id = 0;
   }
   
   @Override
@@ -79,7 +84,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     return(dialog);
   }
   
-  public void AddAccount(View view)
+  public void CheckAccount(View view)
   {
     
 ////////
@@ -92,7 +97,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     String password = _PasswordEdit.getText().toString();
     if(Utils.isEmptyString(password))
     {
-      if(_Id==null)
+      if(_Id==0)
       {
         Toast.makeText(this, getString(R.string.empty_password), 200).show();
         return;
@@ -127,6 +132,57 @@ public class AddAccountActivity extends Activity implements IResponseHandler
 ////////
   }
   
+  public void onActivityResult(int requestCode,int resultCode, Intent intent)
+  {
+    Bundle extras;
+    switch(resultCode)
+    {
+      case RESULT_CANCELED:
+        setResult(RESULT_CANCELED,null);
+        finish();
+        break;
+      case RESULT_OK:
+        switch(requestCode)
+        {
+          case REQUEST_MAINAGENT:
+            extras = intent.getExtras();
+            _MainAgent = extras.getParcelable(Consts.EXTRA_SELECTED_AGENT);
+            SelectActiveAgents();
+            break;
+          case REQUEST_ACTIVEAGENTS:
+            extras = intent.getExtras();
+            List<Agent> agents = extras.getParcelableArrayList(Consts.EXTRA_SELECTED_AGENTS);
+            SaveAccount(agents);
+            break;
+        }
+    }
+  }
+  
+  public void SelectActiveAgents()
+  {
+    Intent intent = new Intent(this,SelectActiveAgents.class);
+    Bundle params = new Bundle();
+    params.putParcelableArrayList(Consts.EXTRA_AGENTS, _AgentInfo.Agents());
+    intent.putExtras(params);
+    startActivityForResult(intent, REQUEST_ACTIVEAGENTS);
+  }
+  
+  public void SaveAccount(List<Agent> agents)
+  {
+    Accounts accounts = new Accounts(this);
+    if(_Id==0)
+    {
+      accounts.AddAccount(_MainAgent.Id, _MainAgent.Name, _Login, _Password, _TerminalId);
+      accounts.SaveAgents(_MainAgent.Id, agents);
+    }
+    else
+      accounts.EditAccount(_Id, _MainAgent.Name, _Login, _Password, _TerminalId);
+    
+    dismissDialog(0);
+    setResult(Consts.RESULT_RELOAD);
+    finish();
+  }
+  
   public void onResponse(String response)
   {
     if(response==null)
@@ -147,19 +203,24 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       ByteArrayInputStream stream = new ByteArrayInputStream(response.getBytes("UTF-8") );
       source.setByteStream(stream);
       source.setEncoding("UTF-8");
-      AgentInfoProcessData agentInfo = new AgentInfoProcessData();
-      parser.parse(source, agentInfo);
+      _AgentInfo = new AgentInfoProcessData();
+      parser.parse(source, _AgentInfo);
 ////////
-      if(agentInfo.Code()==0)
+      if(_AgentInfo.Code()==0)
       {
-        Accounts accounts = new Accounts(this);
-        if(_Id==null)
-          accounts.AddAccount(agentInfo.AgentId(), agentInfo.AgentName(), _Login, _Password, _TerminalId);
-        else
-          accounts.EditAccount(_Id, agentInfo.AgentName(), _Login, _Password, _TerminalId);
-        dismissDialog(0);
-        setResult(Consts.RESULT_RELOAD);
-        finish();
+        ArrayList<Agent> agents = _AgentInfo.Agents();
+        if(agents.size()==1)
+        {
+          _MainAgent = agents.get(0);
+          SaveAccount(agents);
+          return;
+        }
+        
+        Intent intent = new Intent(this,SelectMainAgent.class);
+        Bundle params = new Bundle();
+        params.putParcelableArrayList(Consts.EXTRA_AGENTS, agents);
+        intent.putExtras(params);
+        startActivityForResult(intent, REQUEST_MAINAGENT);        
       }
       else
       {

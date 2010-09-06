@@ -11,21 +11,13 @@
           <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
-      <activity android:name=".ui.AddAccountActivity"
-              android:label="@string/add_account">
-      </activity>
-      <activity android:name=".ui.Preferences"
-                android:label="@string/settings">
-      </activity>
-      <activity android:name=".ui.AccountsList"
-                android:label="@string/accounts_list">
-      </activity>
-      <activity android:name=".ui.CommonSettings"
-                android:label="@string/settings">
-      </activity>
-      <activity android:name=".ui.FullInfo"
-                android:label="">
-      </activity>
+      <activity android:name=".ui.AddAccountActivity" />
+      <activity android:name=".ui.Preferences" />
+      <activity android:name=".ui.AccountsList" />
+      <activity android:name=".ui.CommonSettings" />
+      <activity android:name=".ui.FullInfo" />
+      <activity android:name=".ui.SelectMainAgent" />
+      <activity android:name=".ui.SelectActiveAgents" />
       <service android:name=".UpdateStatusService" android:process=":remote" />
     </application>
     

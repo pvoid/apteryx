@@ -1,8 +1,13 @@
 package org.pvoid.apteryx.net;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import org.pvoid.apteryx.accounts.Agent;
 
 public class AgentInfoProcessData extends DefaultHandler
 {
@@ -12,18 +17,15 @@ public class AgentInfoProcessData extends DefaultHandler
   private static final int TAG_AGENTNAME = 3;
   private static final int TAG_AGENTID = 4;
   
-  private String _AgentName;
-  private String _AgentId;
-  private String _TreeLevel;
   private StringBuilder _Text;
   private int _Code;
   private int _TagCode;
-  private boolean _IsAgent;
-  private boolean _IsReady;
+  private ArrayList<Agent> _Agents;
   
   public AgentInfoProcessData()
   {
     _Text = new StringBuilder();
+    _Agents = new ArrayList<Agent>();
   }
   
   @Override
@@ -31,36 +33,18 @@ public class AgentInfoProcessData extends DefaultHandler
   {
     _TagCode = TAG_NONE;
     _Text.delete(0, _Text.length());
-    _IsAgent = false;
-    _IsReady = false;
+    _Agents.clear();
   }
   
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException
   {
-    if(localName.compareToIgnoreCase("agent")==0 && !_IsReady)
+    if(localName.compareToIgnoreCase("agt")==0)
     {
-      _AgentName = null;
-      _AgentId = null;
-      _TreeLevel = null;
-      _IsAgent = true;
-    }
-    else if(localName.compareToIgnoreCase("field")==0 && _IsAgent)
-    {
-      _Text.delete(0, _Text.length());
-      String name = attributes.getValue("name");
-      if(name.compareToIgnoreCase("LEV")==0)
-      {
-        _TagCode = TAG_LEVEL;
-      }
-      else if(name.compareToIgnoreCase("AGT_FULL_NAME")==0)
-      {
-        _TagCode = TAG_AGENTNAME;
-      }
-      else if(name.compareToIgnoreCase("AGT_ID")==0)
-      {
-        _TagCode = TAG_AGENTID;
-      }
+      Agent agent = new Agent();
+      agent.Id = Long.parseLong(attributes.getValue("aid"));
+      agent.Name = attributes.getValue("an");
+      _Agents.add(agent);
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
     {
@@ -83,26 +67,7 @@ public class AgentInfoProcessData extends DefaultHandler
       case TAG_CODE:
         _Code = Integer.parseInt(_Text.toString());
         break;
-      case TAG_AGENTID:
-        _AgentId = _Text.toString();
-        break;
-      case TAG_AGENTNAME:
-        _AgentName = _Text.toString();
-        break;
-      case TAG_LEVEL:
-        _TreeLevel = _Text.toString();
-        break;
     }
-    
-    if(localName.compareToIgnoreCase("agent")==0)
-    {
-      if(_TreeLevel.equals("1"))
-      {
-        _IsReady = true;
-      }
-      _IsAgent = false;
-    }
-    
     _TagCode = TAG_NONE;
   }
   
@@ -111,14 +76,9 @@ public class AgentInfoProcessData extends DefaultHandler
     return(_Code);
   }
   
-  public String AgentName()
+  public ArrayList<Agent> Agents()
   {
-    return(_AgentName);
-  }
-  
-  public String AgentId()
-  {
-    return(_AgentId);
+    return(_Agents);
   }
 }
-
+  

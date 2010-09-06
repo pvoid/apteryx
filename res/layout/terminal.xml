@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    android:padding="5dip">
+    android:layout_height="?android:attr/listPreferredItemHeight">
+  <FrameLayout android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:background="#ffffffff"
+               android:padding="4dip"
+               android:id="@+id/agent_info">
+      <TextView android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#ff000000"
+                android:textSize="10dip"
+                android:id="@+id/agent_name" />
+  </FrameLayout>
   <ImageView
         android:id="@+id/icon"
         
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
+        android:layout_below="@id/agent_info"
         
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
@@ -19,16 +30,26 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/icon"
+        android:layout_below="@id/agent_info"
         android:layout_alignParentRight="true"
         android:singleLine="true"
         android:ellipsize="marquee"
         android:layout_alignParentTop="true" />
     <TextView  
-        android:id="@+id/printer_status"
+        android:id="@+id/terminal_cash"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" 
         android:layout_toRightOf="@id/icon"
         android:layout_below="@id/list_title"
+        android:singleLine="true"
+        android:textSize="5pt"
+        android:ellipsize="marquee"/>
+    <TextView  
+        android:id="@+id/printer_status"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:layout_toRightOf="@id/icon"
+        android:layout_below="@id/terminal_cash"
         android:singleLine="true"
         android:textSize="5pt"
         android:ellipsize="marquee"/>

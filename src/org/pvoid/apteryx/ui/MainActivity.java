@@ -3,6 +3,7 @@ package org.pvoid.apteryx.ui;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.Notifyer;
@@ -32,6 +33,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
 {
@@ -43,13 +45,25 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private TerminalsArrayAdapter _TerminalsAdapter;
   private Accounts _Accounts;
   
+  // TODO: Перетащить сортировку и наполнение в AsyncTask 
   private static final Comparator<Terminal> _TerminalComparer = new Comparator<Terminal>()
   {
     @Override
     public int compare(Terminal object1, Terminal object2)
     {
+      int result = (int)(object1.agentId - object2.agentId);
+      
+      if(result!=0)
+        return(result);
+      
+      if(object1.Address()==null)
+        return(-1);
+      if(object2.Address()==null)
+        return(1);
+      
       if(object1.State() == object2.State())
         return object1.Address().compareToIgnoreCase(object2.Address());
+
       if(object1.State()==0)
         return(1);
       if(object2.State()==0)
@@ -74,10 +88,16 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _TerminalsList.setAdapter(_TerminalsAdapter);
       _TerminalsList.setOnItemClickListener(this);
     }
-    
+  }
+  
+  @Override
+  public void onStart()
+  {
+    super.onStart();
     RestoreStates();
     Notifyer.HideNotification(this);
   }
+  
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
@@ -85,7 +105,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     if(result)
     {
       MenuItem item = menu.add(Menu.NONE, REFRESH_MENU_ID, Menu.NONE, R.string.refresh);
-      item.setIcon(android.R.drawable.ic_menu_directions);
+      item.setIcon(R.drawable.menu_refresh);
       
       item = menu.add(Menu.NONE, SETTINGS_MENU_ID, Menu.NONE, R.string.settings);
       item.setIcon(android.R.drawable.ic_menu_preferences);
@@ -119,10 +139,10 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
                +")");
     }
 //////
-    RelativeLayout balance_layout = (RelativeLayout)findViewById(R.id.balance_layer);
+    //RelativeLayout balance_layout = (RelativeLayout)findViewById(R.id.balance_layer);
     if(_Terminals.hasAgents())
     {
-      balance_layout.setVisibility(View.VISIBLE);
+      /*balance_layout.setVisibility(View.VISIBLE);
       
       TextView balance = (TextView)findViewById(R.id.full_balance);
       if(balance!=null)
@@ -133,11 +153,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       if(balance!=null)
       {
         balance.setText(Html.fromHtml("<b>"+getString(R.string.overdraft)+"</b>: "+_Terminals.Overdraft()));
-      }
+      }*/
     }
     else
     {
-      balance_layout.setVisibility(View.GONE);
+      //balance_layout.setVisibility(View.GONE);
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(getString(R.string.add_account_message))
              .setPositiveButton(R.string.settings,new OnClickListener()
@@ -190,6 +210,17 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     {
       _TerminalsAdapter.add(_Terminals.at(terminal_key));
     }
+    
+    HashMap<Long, String> agents = _Terminals.Agents();
+    for(Long agentId : agents.keySet())
+    {
+      Terminal terminal = new Terminal(null, null);
+      terminal.agentId = agentId;
+      terminal.agentName = agents.get(agentId);
+      terminal.State(0);
+      _TerminalsAdapter.add(terminal);
+    }
+    
     _TerminalsAdapter.sort(_TerminalComparer);
   }
   
@@ -207,14 +238,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   public void onRequestError()
   {
     setProgressBarIndeterminateVisibility(false);
-    // TODO Auto-generated method stub
-    
+    Toast.makeText(this, R.string.network_error, 300).show();
   }
   @Override
   public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
   {
     Terminal terminal = _TerminalsAdapter.getItem(position);
-    if(terminal!=null)
+    if(terminal!=null && terminal.id()!=null)
     {
       Intent intent = new Intent(this, FullInfo.class);
       intent.putExtra("terminal", terminal);

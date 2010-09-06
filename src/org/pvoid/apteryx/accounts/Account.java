@@ -4,13 +4,13 @@ import org.pvoid.apteryx.Utils;
 
 public class Account
 {
-  public final String Id;
+  public final Long Id;
   public final String Title;
   public final String Login;
   public final String PasswordHash;
   public final String Terminal;
   
-  public Account(String id, String title, String login,String password,String terminal)
+  public Account(Long id, String title, String login,String password,String terminal)
   {
     Id = id;
     Title = title;
