@@ -21,6 +21,17 @@
 	              android:paddingTop="3dip"
 	              android:paddingLeft="5dip"
 	              android:paddingRight="5dip">
+    <TextView
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:text="@string/terminal_id"
+        />
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:id="@+id/terminal" 
+        />
 		<TextView
 		    android:layout_width="fill_parent" 
 		    android:layout_height="wrap_content" 
@@ -43,18 +54,7 @@
 		    android:singleLine="true"
 		    android:password="true"
 		    android:id="@+id/password" 
-		    />
-		<TextView
-		    android:layout_width="fill_parent" 
-		    android:layout_height="wrap_content" 
-		    android:text="@string/terminal_id"
-		    />
-		<EditText
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:singleLine="true"
-		    android:id="@+id/terminal" 
-		    />
+		    />		
 	</LinearLayout>
 </ScrollView>
 <FrameLayout android:layout_height="wrap_content"

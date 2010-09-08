@@ -32,7 +32,6 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private int _TagState;
   private int _ExtraState;
   private StringBuilder _Text;
-  private int _Count;
   
   public TerminalsProcessData()
   {
@@ -43,7 +42,6 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Text = new StringBuilder();
     _Balance = 0;
     _Overdraft = 0;
-    _Count=0;
   }
   
   public void SetAgent(long agentId)
@@ -59,6 +57,9 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _TagState = TAG_NONE;
     _Text.delete(0, _Text.length());
     _Agents.clear();
+    _Terminals.clear();
+    _Balances.clear();
+    _Overdrafts.clear();
   }
   
   static private int getInt(Attributes attributes, String name, int def)
@@ -104,14 +105,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       String address = attributes.getValue("addr");
       
       Terminal terminal;
-      if(_Terminals.containsKey(tid))
-        terminal = _Terminals.get(tid);
-      else
-      {
-        terminal = new Terminal(tid,address);
-        _Terminals.put(tid, terminal);
-        ++_Count;
-      }
+      terminal = new Terminal(tid,address);
       // статус
       terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
       // состояние принтера
@@ -146,6 +140,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       terminal.agentId         = getLong(attributes, "aid",0);
       terminal.agentName       = getString(attributes, "an");
       
+      _Terminals.put(tid, terminal);
       _Agents.put(terminal.agentId, terminal.agentName);
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
@@ -214,11 +209,6 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return _Terminals.get(index);
   }
 
-  public int Count()
-  {
-    return(_Count);
-  }
-  
   public double Balance()
   {
     return(_Balance);
@@ -283,6 +273,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Overdrafts.clear();
     _Balance = 0;
     _Overdraft = 0;
+    _Agents.clear();
   }
   
   public boolean Success()

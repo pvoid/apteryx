@@ -22,7 +22,6 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,8 +30,6 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
@@ -44,6 +41,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private ListView _TerminalsList;
   private TerminalsArrayAdapter _TerminalsAdapter;
   private Accounts _Accounts;
+  
+  private boolean _Refreshing;
+  private Object _RefreshLock;
   
   // TODO: Перетащить сортировку и наполнение в AsyncTask 
   private static final Comparator<Terminal> _TerminalComparer = new Comparator<Terminal>()
@@ -83,6 +83,8 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
     _TerminalsList = (ListView)findViewById(R.id.terminals_list);
     _Accounts = new Accounts(this);
+    _Refreshing = false;
+    _RefreshLock = new Object();
     if(_TerminalsList!=null)
     {
       _TerminalsList.setAdapter(_TerminalsAdapter);
@@ -121,43 +123,34 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private void RefreshStates()
   {
-    setProgressBarIndeterminateVisibility(true);
-    ArrayList<Account> accounts = new ArrayList<Account>();
-    _Accounts.GetAccounts(accounts);
-    Account[] ac = new Account[accounts.size()];
-    (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
+    synchronized (_RefreshLock)
+    {
+      _Refreshing = true;
+      setProgressBarIndeterminateVisibility(true);
+      ArrayList<Account> accounts = new ArrayList<Account>();
+      _Accounts.GetAccounts(accounts);
+      Account[] ac = new Account[accounts.size()];
+      (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
+    }
   }
   
   private void ShowStateInfo()
   {
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-    long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
-    if(time!=0)
-    {
-      setTitle(getString(R.string.last_update) + " (" + 
-               DateUtils.formatSameDayTime(time, System.currentTimeMillis(), DateFormat.DEFAULT, DateFormat.DEFAULT)
-               +")");
-    }
 //////
-    //RelativeLayout balance_layout = (RelativeLayout)findViewById(R.id.balance_layer);
     if(_Terminals.hasAgents())
     {
-      /*balance_layout.setVisibility(View.VISIBLE);
-      
-      TextView balance = (TextView)findViewById(R.id.full_balance);
-      if(balance!=null)
+      long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
+      if(time!=0)
       {
-        balance.setText(Html.fromHtml("<b>"+getString(R.string.balance)+"</b>: "+_Terminals.Balance()));
+        setTitle(getString(R.string.last_update) + " (" + 
+                 DateUtils.formatSameDayTime(time, System.currentTimeMillis(), DateFormat.DEFAULT, DateFormat.DEFAULT)
+                 +")");
       }
-      balance = (TextView)findViewById(R.id.full_overdraft);
-      if(balance!=null)
-      {
-        balance.setText(Html.fromHtml("<b>"+getString(R.string.overdraft)+"</b>: "+_Terminals.Overdraft()));
-      }*/
     }
     else
     {
-      //balance_layout.setVisibility(View.GONE);
+      setTitle(R.string.app_name);
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(getString(R.string.add_account_message))
              .setPositiveButton(R.string.settings,new OnClickListener()
@@ -175,6 +168,12 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private void RestoreStates()
   {
+    synchronized (_RefreshLock)
+    {
+      if(_Refreshing)
+        return;
+    }
+//////
     _Accounts.GetTerminals(_Terminals);
     DrawTerminals();
 //////
@@ -227,6 +226,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   @Override
   public void onSuccessRequest()
   {
+    synchronized (_RefreshLock)
+    {
+      _Refreshing = false;
+    }
+//////
     DrawTerminals();
     _Accounts.SaveStates(_Terminals);
     setProgressBarIndeterminateVisibility(false);
@@ -237,6 +241,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   @Override
   public void onRequestError()
   {
+    synchronized (_RefreshLock)
+    {
+      _Refreshing = false;
+    }
+//////
     setProgressBarIndeterminateVisibility(false);
     Toast.makeText(this, R.string.network_error, 300).show();
   }
