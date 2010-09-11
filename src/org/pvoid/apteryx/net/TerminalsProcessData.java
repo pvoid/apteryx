@@ -251,7 +251,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Agents); 
   }
   
-  public boolean hasAgents()
+  public boolean hasAccounts()
   {
     return(_Balances.size()!=0);
   }
@@ -270,6 +270,12 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Balance = 0;
     _Overdraft = 0;
     _Agents.clear();
+    _Status = 0;
+  }
+
+  public void SetNetworkError()
+  {
+    _Status = -1;
   }
   
   public boolean Success()

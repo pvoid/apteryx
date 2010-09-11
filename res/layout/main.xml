@@ -7,7 +7,7 @@
   <ViewFlipper android:id="@+id/balances_flipper"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
-               android:flipInterval="2000"
+               android:flipInterval="5000"
                android:padding="8dip">
   </ViewFlipper>
   <ListView android:layout_width="fill_parent"

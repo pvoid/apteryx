@@ -158,7 +158,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
     ViewFlipper flipper = (ViewFlipper)findViewById(R.id.balances_flipper);
 //////
-    if(_Terminals.hasAgents())
+    if(_Terminals.hasAccounts())
     {
       DrawBalances(flipper);
       flipper.setVisibility(View.VISIBLE);
@@ -171,7 +171,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
                  +")");
       }
     }
-    else
+    else if(_Terminals.Success())
     {
       flipper.setVisibility(View.GONE);
       setTitle(R.string.app_name);
@@ -188,6 +188,8 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
               })
              .show();
     }
+    else
+      Toast.makeText(this, getString(R.string.network_error), Toast.LENGTH_LONG).show();
   }
   
   private void RestoreStates()
@@ -297,7 +299,10 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     for(Account account : accounts)
     {
       if(index<childs)
+      {
         view = (TextView)flipper.getChildAt(index);
+        ++index;
+      }
       else
       {
         view = new TextView(this);
