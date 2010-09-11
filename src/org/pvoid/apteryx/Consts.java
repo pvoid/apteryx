@@ -72,4 +72,6 @@ public class Consts
   public static final String EXTRA_AGENTS = "agents";
   public static final String EXTRA_SELECTED_AGENT = "selected_agent";
   public static final String EXTRA_SELECTED_AGENTS = "selected_agents";
+  
+  public static final String REFRESH_BROADCAST_MESSAGE = "org.pvoid.apteryx.StatusUpdatedMessage";
 }

@@ -43,6 +43,9 @@ public class StatesReceiver extends BroadcastReceiver
         Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);
     }
     
+    Intent broadcastIntent = new Intent(Consts.REFRESH_BROADCAST_MESSAGE);
+    context.sendBroadcast(broadcastIntent);
+    
     SharedPreferences prefs = context.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
     long interval = prefs.getInt(Consts.PREF_INTERVAL, 0);
     if(interval==0)

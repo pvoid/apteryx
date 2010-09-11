@@ -21,7 +21,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
@@ -51,6 +54,15 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private boolean _Refreshing;
   private Object _RefreshLock;
+  
+  public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
+  {
+    @Override
+    public void onReceive(Context context, Intent intent)
+    {
+      MainActivity.this.RefreshStates();
+    }
+  };
   
   // TODO: Перетащить сортировку и наполнение в AsyncTask 
   private static final Comparator<Terminal> _TerminalComparer = new Comparator<Terminal>()
@@ -101,7 +113,6 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     ViewFlipper fliper = (ViewFlipper)findViewById(R.id.balances_flipper);
     fliper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_in));
     fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));
-    //fliper.startFlipping();
     
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
     if(prefs.getBoolean(Consts.PREF_AUTOCHECK, false))
@@ -109,6 +120,21 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
       startService(serviceIntent);
     }
+  }
+  
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
+    registerReceiver(UpdateMessageReceiver, filter);
+  }
+  
+  @Override
+  public void onPause()
+  {
+    super.onPause();
+    unregisterReceiver(UpdateMessageReceiver);
   }
   
   @Override
