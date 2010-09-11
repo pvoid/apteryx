@@ -64,4 +64,7 @@
     
     <string name="settings_autocheck">Проверять автоматически</string>
     <string name="settings_usevibro">Использовать вибрацию</string>
+    
+    <string name="service_starte">Запущена автоматическая проверка</string>
+    <string name="update_service">Проверка терминалов</string>
 </resources>

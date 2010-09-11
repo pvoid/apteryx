@@ -56,10 +56,6 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   {
     _TagState = TAG_NONE;
     _Text.delete(0, _Text.length());
-    _Agents.clear();
-    _Terminals.clear();
-    _Balances.clear();
-    _Overdrafts.clear();
   }
   
   static private int getInt(Attributes attributes, String name, int def)
@@ -279,5 +275,10 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   public boolean Success()
   {
     return(_Status==0);
+  }
+  
+  public int Status()
+  {
+    return(_Status);
   }
 }

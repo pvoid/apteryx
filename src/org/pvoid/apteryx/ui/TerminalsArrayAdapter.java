@@ -4,14 +4,11 @@ import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.accounts.Terminal;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,7 +35,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
     Terminal terminal = getItem(position);
     if(terminal!=null)
     {
-      FrameLayout agent_info = (FrameLayout) view.findViewById(R.id.agent_info);
+      TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
       TextView name = (TextView)view.findViewById(R.id.list_title);
       TextView printer_status = (TextView)view.findViewById(R.id.printer_status);
       TextView cashbin_status = (TextView)view.findViewById(R.id.cachebin_status);
@@ -47,9 +44,8 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       
       if(terminal.id()==null)
       {
-        TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
         agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b>"));
-        agent_info.setVisibility(View.VISIBLE);
+        agent_name.setVisibility(View.VISIBLE);
         name.setVisibility(View.GONE);
         printer_status.setVisibility(View.GONE);
         cashbin_status.setVisibility(View.GONE);
@@ -59,19 +55,33 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       }
       else
       {
-        agent_info.setVisibility(View.GONE);
+        agent_name.setVisibility(View.GONE);
         name.setVisibility(View.VISIBLE);
-        printer_status.setVisibility(View.VISIBLE);
-        cashbin_status.setVisibility(View.VISIBLE);
         cash.setVisibility(View.VISIBLE);
         icon.setVisibility(View.VISIBLE);
         view.setEnabled(true);
         
         name.setText(terminal.Address());
-        String state = "<b>"+_Context.getString(R.string.printer)+": </b>" + terminal.printer_state; 
-        printer_status.setText(Html.fromHtml(state));
-        state = "<b>"+_Context.getString(R.string.cachebin)+": </b>" + terminal.cashbin_state;
-        cashbin_status.setText(Html.fromHtml(state));
+        String state;
+        
+        if(!terminal.printer_state.equalsIgnoreCase("OK"))
+        {
+          state = "<b>"+_Context.getString(R.string.printer)+": </b>" + terminal.printer_state; 
+          printer_status.setText(Html.fromHtml(state));
+          printer_status.setVisibility(View.VISIBLE);
+        }
+        else
+          printer_status.setVisibility(View.GONE);
+        
+        if(!terminal.cashbin_state.equalsIgnoreCase("OK"))
+        {
+          state = "<b>"+_Context.getString(R.string.cachebin)+": </b>" + terminal.cashbin_state;
+          cashbin_status.setText(Html.fromHtml(state));
+          cashbin_status.setVisibility(View.VISIBLE);
+        }
+        else
+          cashbin_status.setVisibility(View.GONE);
+        
         cash.setText(Html.fromHtml("<b>"+_Context.getString(R.string.fullinfo_cash)+" </b>"+terminal.cash));
         
   
@@ -79,17 +89,15 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
         switch(terminal.State())
         {
           case Terminal.STATE_OK:
-            icon_id = R.drawable.icon;
+            icon_id = R.drawable.terminal_active;
             break;
           case Terminal.STATE_WARRNING:
-            icon_id = R.drawable.yellow;
+            icon_id = R.drawable.terminal_pending;
             break;
           default:
-            icon_id = R.drawable.red;
+            icon_id = R.drawable.terminal_inactive;
         }
-        
-        Bitmap bitmap = BitmapFactory.decodeResource(_Context.getResources(), icon_id);
-        icon.setImageBitmap(bitmap);
+        icon.setImageResource(icon_id);
       }
     }
     

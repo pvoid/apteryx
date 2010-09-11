@@ -23,9 +23,10 @@ public class StatesRequestWorker
   
   public boolean Work(Account... accounts)
   {
+    _Terminals.Clear();
+    
     if(accounts.length==0)
     {
-      _Terminals.Clear();
       return(true);
     }
     

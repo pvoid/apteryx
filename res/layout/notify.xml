@@ -1,10 +1,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
               android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="fill_parent"
               android:padding="3dp"
               >
-  <TextView android:layout_width="fill_parent"
+  <ImageView android:layout_width="wrap_content"
+             android:layout_height="fill_parent"
+             android:src="@drawable/terminal_active"
+             android:scaleType="fitStart"
+             android:layout_marginRight="5dip"
+             android:id="@+id/notify_icon"
+             android:layout_marginTop="2dip"/>
+  <TextView android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/notify_text" />
 </LinearLayout>

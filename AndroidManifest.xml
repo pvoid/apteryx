@@ -18,10 +18,18 @@
       <activity android:name=".ui.FullInfo" />
       <activity android:name=".ui.SelectMainAgent" />
       <activity android:name=".ui.SelectActiveAgents" />
-      <service android:name=".UpdateStatusService" android:process=":remote" />
+      <service android:name=".UpdateStatusService" android:label="@string/update_service" />
+      <receiver android:name=".StatesReceiver" android:process=":remote"/>
+      <receiver android:name=".OnBootReceiver" android:enabled="true" android:exported="false">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED"/>
+        </intent-filter>
+      </receiver>
     </application>
     
     <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
     <uses-permission android:name="android.permission.VIBRATE" ></uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    
     <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"></uses-sdk>
 </manifest> 

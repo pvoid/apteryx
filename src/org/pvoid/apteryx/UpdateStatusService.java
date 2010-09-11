@@ -1,90 +1,159 @@
 package org.pvoid.apteryx;
 
-import java.util.ArrayList;
-
-import org.pvoid.apteryx.net.StatesRequestWorker;
-import org.pvoid.apteryx.net.TerminalsProcessData;
-import org.pvoid.apteryx.accounts.Account;
-import org.pvoid.apteryx.accounts.Accounts;
-import org.pvoid.apteryx.accounts.Terminal;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Binder;
 import android.os.IBinder;
-import android.os.Parcel;
-import android.os.RemoteException;
 import android.os.SystemClock;
 
 public class UpdateStatusService extends Service
 {
-  private Runnable _Task = new Runnable()
-  {
-    @Override
-    public void run()
-    {
-      TerminalsProcessData terminals = new TerminalsProcessData();
-      ArrayList<Terminal> inactive_terminals = new ArrayList<Terminal>();
+  private static final Class[] _StartForegroundSignature = new Class[] { int.class, Notification.class};
+  private static final Class[] _StopForegroundSignature = new Class[] { boolean.class};
 
-      Accounts accounts_storage = new Accounts(UpdateStatusService.this);
-      ArrayList<Account> accounts = new ArrayList<Account>();
-      accounts_storage.GetAccounts(accounts);
-      Account[] ac = new Account[accounts.size()];
-      StatesRequestWorker worker = new StatesRequestWorker(terminals);
-      if(worker.Work(accounts.toArray(ac)))
-      {
-        if(accounts_storage.CheckStates(terminals, inactive_terminals))
-          Notifyer.ShowNotification(UpdateStatusService.this, inactive_terminals);
-      }
-      ShceduleCheck(UpdateStatusService.this);
-      UpdateStatusService.this.stopSelf();
-    }
-  };
+  private Method _StartForeground;
+  private Method _StopForeground;
+  private AlarmManager _AlarmManager;
+  
+  private static boolean _ServiceRuning = false; 
+  
+  NotificationManager _NotifyManager;
   
   @Override
   public void onCreate()
   {
-    Thread t = new Thread(null,_Task,"TestServiceThread");
-    t.start();
+    super.onCreate();
+    try
+    {
+      _StartForeground = getClass().getMethod("startForeground",_StartForegroundSignature);
+      _StopForeground = getClass().getMethod("stopForeground",_StopForegroundSignature);
+    }
+    catch(NoSuchMethodException e)
+    {
+      _StartForeground = _StopForeground = null;
+    }
+    
+    _NotifyManager = (NotificationManager)getSystemService(Service.NOTIFICATION_SERVICE);
   }
   
-  private final IBinder _Binder = new Binder() 
+  @Override
+  public void onDestroy()
   {
-    @Override
-    protected boolean onTransact(int code, Parcel data, Parcel reply,int flags) 
-              throws RemoteException 
+    super.onDestroy();
+    handleStop();
+  }
+  
+  @Override
+  public void onStart(Intent intent, int startId)
+  {
+    super.onStart(intent, startId);
+    handleStart();
+  }
+  
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId)
+  {
+    handleStart();
+    return(START_STICKY);
+  }
+  
+  private void handleStart()
+  {
+    _ServiceRuning = true;
+////////
+    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
+    long interval = prefs.getInt(Consts.PREF_INTERVAL, 0);
+    if(interval==0)
+      return;
+///////
+    Intent intent = new Intent(this,StatesReceiver.class);
+    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+    _AlarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+    _AlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,pendingIntent);
+/////// Иконку поставим
+    if(_StartForeground!=null)
     {
-      return super.onTransact(code, data, reply, flags);
+      Object[] args = new Object[2];
+      args[0] = Integer.valueOf(Consts.NOTIFICATION_ICON);
+      args[1] = Notifyer.GetIcon(this);
+      
+      try
+      {
+        _StartForeground.invoke(this, args);
+      }
+      catch (IllegalArgumentException e)
+      {
+        e.printStackTrace();
+      }
+      catch (IllegalAccessException e)
+      {
+        e.printStackTrace();
+      }
+      catch (InvocationTargetException e)
+      {
+        e.printStackTrace();
+      }
+      return;
     }
-  };
+////////
+    setForeground(true);
+    _NotifyManager.notify(Consts.NOTIFICATION_ICON, Notifyer.GetIcon(this));
+  }
+  
+  private void handleStop()
+  {
+    _ServiceRuning = false;
+////////
+    if(_AlarmManager!=null)
+    {
+      Intent intent = new Intent(this, StatesReceiver.class);
+      _AlarmManager.cancel(PendingIntent.getBroadcast(this, 0, intent, 0));
+    }
+////////
+    if(_StopForeground!=null)
+    {
+      Object[] args = new Object[1];
+      args[0] = Boolean.TRUE;
+      
+      try
+      {
+        _StopForeground.invoke(this, args);
+      }
+      catch (IllegalArgumentException e)
+      {
+        e.printStackTrace();
+      }
+      catch (IllegalAccessException e)
+      {
+        e.printStackTrace();
+      }
+      catch (InvocationTargetException e)
+      {
+        e.printStackTrace();
+      }
+      return;
+    }
+//////
+    _NotifyManager.cancel(Consts.NOTIFICATION_ICON);
+    setForeground(false);
+  }
   
   @Override
   public IBinder onBind(Intent arg0)
   {
-    return(_Binder);
+    return(null);
   }
   
-  public static void ShceduleCheck(Context context)
+  public static boolean Executed()
   {
-    long interval;
-    SharedPreferences prefs = context.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
-    interval = prefs.getInt(Consts.PREF_INTERVAL, 0);
-    if(interval==0)
-      return;
-    
-    PendingIntent intent = PendingIntent.getService(context, 0, new Intent(context,UpdateStatusService.class), 0);
-    AlarmManager amanager = (AlarmManager)context.getSystemService(ALARM_SERVICE);
-    amanager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,intent);
-  }
-  
-  public static void StopChecking(Context context)
-  {
-    PendingIntent intent = PendingIntent.getService(context, 0, new Intent(context,UpdateStatusService.class), 0);
-    AlarmManager amanager = (AlarmManager)context.getSystemService(ALARM_SERVICE);
-    amanager.cancel(intent);
+    return(_ServiceRuning);
   }
 }

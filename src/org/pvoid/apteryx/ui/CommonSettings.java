@@ -5,6 +5,7 @@ import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.UpdateStatusService;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -77,10 +78,11 @@ public class CommonSettings extends Activity implements OnClickListener,OnItemSe
     edit.putBoolean(Consts.PREF_AUTOCHECK, _AutoCheck.isChecked());
     edit.commit();
 ///////
+    Intent serviceIntent = new Intent(this,UpdateStatusService.class);
     if(_AutoCheck.isChecked())
-      UpdateStatusService.ShceduleCheck(this);
+      startService(serviceIntent);
     else
-      UpdateStatusService.StopChecking(this);
+      stopService(serviceIntent);
   }
   @Override
   public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3)

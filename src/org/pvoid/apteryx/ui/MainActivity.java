@@ -8,6 +8,7 @@ import java.util.HashMap;
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.Notifyer;
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.UpdateStatusService;
 import org.pvoid.apteryx.accounts.Account;
 import org.pvoid.apteryx.accounts.Accounts;
 import org.pvoid.apteryx.accounts.Terminal;
@@ -89,6 +90,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     {
       _TerminalsList.setAdapter(_TerminalsAdapter);
       _TerminalsList.setOnItemClickListener(this);
+    }
+    
+    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+    if(prefs.getBoolean(Consts.PREF_AUTOCHECK, false))
+    {
+      Intent serviceIntent = new Intent(this,UpdateStatusService.class);
+      startService(serviceIntent);
     }
   }
   

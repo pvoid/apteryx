@@ -1,7 +1,6 @@
 package org.pvoid.apteryx.net;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -13,9 +12,6 @@ public class AgentInfoProcessData extends DefaultHandler
 {
   private static final int TAG_NONE = 0;
   private static final int TAG_CODE = 1;
-  private static final int TAG_LEVEL = 2;
-  private static final int TAG_AGENTNAME = 3;
-  private static final int TAG_AGENTID = 4;
   
   private StringBuilder _Text;
   private int _Code;

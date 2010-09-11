@@ -19,6 +19,7 @@ import org.pvoid.apteryx.accounts.Accounts;
 import org.pvoid.apteryx.accounts.Agent;
 import org.pvoid.apteryx.net.AgentInfoProcessData;
 import org.pvoid.apteryx.net.DataTransfer;
+import org.pvoid.apteryx.net.ErrorCodes;
 import org.pvoid.apteryx.net.IResponseHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -225,7 +226,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       else
       {
         dismissDialog(0);
-        Toast.makeText(this, getString(R.string.auth_error), 300).show();
+        Toast.makeText(this, getString(ErrorCodes.Message(_AgentInfo.Code())), 300).show();
       }
     }
     catch (ParserConfigurationException e)
