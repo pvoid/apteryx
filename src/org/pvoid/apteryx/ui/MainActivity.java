@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.Notifyer;
@@ -23,15 +24,20 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
 {
@@ -92,6 +98,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _TerminalsList.setOnItemClickListener(this);
     }
     
+    ViewFlipper fliper = (ViewFlipper)findViewById(R.id.balances_flipper);
+    fliper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_in));
+    fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));
+    //fliper.startFlipping();
+    
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
     if(prefs.getBoolean(Consts.PREF_AUTOCHECK, false))
     {
@@ -145,9 +156,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private void ShowStateInfo()
   {
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+    ViewFlipper flipper = (ViewFlipper)findViewById(R.id.balances_flipper);
 //////
     if(_Terminals.hasAgents())
     {
+      DrawBalances(flipper);
+      flipper.setVisibility(View.VISIBLE);
+      
       long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
       if(time!=0)
       {
@@ -158,6 +173,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     }
     else
     {
+      flipper.setVisibility(View.GONE);
       setTitle(R.string.app_name);
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(getString(R.string.add_account_message))
@@ -267,5 +283,30 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       intent.putExtra("terminal", terminal);
       startActivity(intent);
     }
+  }
+  
+  public void DrawBalances(ViewFlipper flipper)
+  {
+    int childs = flipper.getChildCount();
+    int index = 0;
+///////
+    ArrayList<Account> accounts = new ArrayList<Account>();
+    _Accounts.GetAccounts(accounts);
+///////
+    TextView view;
+    for(Account account : accounts)
+    {
+      if(index<childs)
+        view = (TextView)flipper.getChildAt(index);
+      else
+      {
+        view = new TextView(this);
+        flipper.addView(view, LayoutParams.WRAP_CONTENT);
+      }
+
+      view.setText(Html.fromHtml("<b>"+account.Title+"</b><br>"+_Terminals.Balance(account.Id)));
+    }
+    
+    flipper.startFlipping();
   }
 }
