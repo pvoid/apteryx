@@ -8,8 +8,8 @@
    p {padding:0;margin:0 6px 12px 6px;}
   #icon {position:absolute;left:60px;top:20px;}
   h1 {position:absolute;left:150px;top:15px;font-size:60px;margin:0;padding:0;color:#000;}
-  #device {float:right;margin:0 20px;box-shadow:0 0 15px #555;-moz-box-shadow:0 0 15px #555;-webkit-box-shadow:0 0 15px #555;}
-  
+  #device {float:right;clear:right;margin:20px;box-shadow:0 0 15px #555;-moz-box-shadow:0 0 15px #555;-webkit-box-shadow:0 0 15px #555;}
+  #qr {float:right;font-size:11px;border:1px solid #666;padding:10px;line-height:150%;margin:0 20px;}
   pre { background: #000; color: #fff; padding: 15px;display:inline-block;margin:0;}
   </style>
 </head>
@@ -17,7 +17,8 @@
   <img src="icon.png" width="72" height="72" id="icon">
   <h1>Apteryx</h1>
   <div id="content">
-    <img src="device.png" width="320" height="480" id="device" />
+    <div id="qr">QR код программы.<br><img src="code.png" width="150" height="150"></div>
+    <img src="device.png" width="320" height="480" id="device" >
     <p>Программа предназначена для мониторинга состояний терминалов.</p>
     <p>Поставляется как есть (AS IS) без всяческих гарантий, по лицензии GPLv3. С текстом лицензии можно ознакомится здесь <a href="http://www.gnu.org/licenses/gpl-3.0.html">http://www.gnu.org/licenses/gpl-3.0.html</a></p>
     <p>С исходными кодами программы можно ознакомится здесь <a href="http://github.com/pvoid/apteryx/">http://github.com/pvoid/apteryx/</a></p>
