@@ -19,11 +19,11 @@ public class Preferences extends TabActivity
     
     final TabHost tabs = getTabHost();
     tabs.addTab(tabs.newTabSpec(Consts.TAB_ACCOUNTS)
-                    .setIndicator(getString(R.string.accounts),getResources().getDrawable(R.drawable.icon))
+                    .setIndicator(getString(R.string.accounts))
                     .setContent(new Intent(this,AccountsList.class))
                 );
     tabs.addTab(tabs.newTabSpec(Consts.TAB_PREFERENCES)
-        .setIndicator(getString(R.string.settings),getResources().getDrawable(R.drawable.icon))
+        .setIndicator(getString(R.string.settings))
         .setContent(new Intent(this,CommonSettings.class))
     );
   }

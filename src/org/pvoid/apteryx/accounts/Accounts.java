@@ -304,7 +304,7 @@ public class Accounts
           Terminal terminal = terminals.at(terminal_id);
           if(terminal!=null)
           {
-            if(terminal.State() == Terminal.STATE_ERROR && terminal_state!=Terminal.STATE_ERROR)
+            if(terminal.State() != Terminal.STATE_OK && terminal_state==Terminal.STATE_OK)
             {
               result = true;
               states.add(terminal);
