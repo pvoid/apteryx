@@ -338,6 +338,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       view.setText(Html.fromHtml("<b>"+account.Title+"</b><br>"+_Terminals.Balance(account.Id)));
     }
     
-    flipper.startFlipping();
+    if(accounts.size()>1)
+      flipper.startFlipping();
+    else
+      flipper.stopFlipping();
   }
 }
