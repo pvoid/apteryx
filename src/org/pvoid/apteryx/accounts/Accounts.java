@@ -214,6 +214,7 @@ public class Accounts
       }
       cursor.close();
     }
+    db.close();
     return(result);
   }
   
