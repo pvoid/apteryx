@@ -1,10 +1,15 @@
 package org.pvoid.apteryx.ui;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.accounts.Terminal;
 
 import android.content.Context;
 import android.text.Html;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +45,10 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       TextView printer_status = (TextView)view.findViewById(R.id.printer_status);
       TextView cashbin_status = (TextView)view.findViewById(R.id.cachebin_status);
       TextView cash = (TextView)view.findViewById(R.id.terminal_cash);
+      TextView lastActivity = (TextView)view.findViewById(R.id.last_activity);
       ImageView icon = (ImageView)view.findViewById(R.id.icon);
+      
+      lastActivity.setVisibility(View.GONE);
       
       if(terminal.id()==null)
       {
@@ -93,6 +101,18 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
             break;
           case Terminal.STATE_WARRNING:
             icon_id = R.drawable.terminal_pending;
+            SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+            Date dt;
+            try
+            {
+              dt = format.parse(terminal.lastActivity);
+              lastActivity.setText(DateUtils.getRelativeDateTimeString(_Context, dt.getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,DateUtils.FORMAT_ABBREV_RELATIVE));
+              lastActivity.setVisibility(View.VISIBLE);
+            }
+            catch (ParseException e)
+            {
+              e.printStackTrace();
+            }
             break;
           default:
             icon_id = R.drawable.terminal_inactive;

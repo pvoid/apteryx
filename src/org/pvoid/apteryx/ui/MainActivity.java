@@ -4,7 +4,6 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Set;
 
 import org.pvoid.apteryx.Consts;
 import org.pvoid.apteryx.Notifyer;
