@@ -31,6 +31,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private HashMap<Long,Double> _Balances;
   private HashMap<Long,Double> _Overdrafts;
   private HashMap<Long,String> _Agents;
+  private HashMap<Long,Integer> _Cash;
   private int _Balance;
   private int _Overdraft;
   private long[] _AgentsFilter;
@@ -45,6 +46,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Terminals = new HashMap<String,Terminal>();
     _Balances = new HashMap<Long, Double>();
     _Overdrafts = new HashMap<Long, Double>();
+    _Cash = new HashMap<Long, Integer>();
     _Agents = new HashMap<Long, String>();
     _Text = new StringBuilder();
     _Balance = 0;
@@ -151,6 +153,11 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
         
         _Terminals.put(tid, terminal);
         _Agents.put(terminal.agentId, terminal.agentName);
+        int cash = 0;
+        if(_Cash.containsKey(agentId))
+           cash = _Cash.get(agentId);
+        cash+=terminal.cash;
+        _Cash.put(agentId, cash);
       }
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
@@ -265,6 +272,13 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Agents); 
   }
   
+  public int AgentCash(Long agentId)
+  {
+    if(_Cash.containsKey(agentId))
+      return(_Cash.get(agentId));
+    return(0);
+  }
+  
   public boolean hasAccounts()
   {
     return(!_IsEmpty);
@@ -274,6 +288,11 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   {
     _Terminals.put(terminal.id(), terminal);
     _Agents.put(terminal.agentId, terminal.agentName);
+    int cash = 0;
+    if(_Cash.containsKey(terminal.agentId))
+      cash = _Cash.get(terminal.agentId);
+    cash+=terminal.cash;
+    _Cash.put(terminal.agentId, cash);
     _IsEmpty = false;
   }
 
@@ -282,6 +301,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Terminals.clear();
     _Balances.clear();
     _Overdrafts.clear();
+    _Cash.clear();
     _Balance = 0;
     _Overdraft = 0;
     _Agents.clear();

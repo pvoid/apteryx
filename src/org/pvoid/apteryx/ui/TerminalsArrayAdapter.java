@@ -44,7 +44,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       
       if(terminal.id()==null)
       {
-        agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b>"));
+        agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b> ("+terminal.cash+")"));
         agent_name.setVisibility(View.VISIBLE);
         name.setVisibility(View.GONE);
         printer_status.setVisibility(View.GONE);

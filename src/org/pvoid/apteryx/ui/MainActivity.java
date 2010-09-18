@@ -294,6 +294,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       Terminal terminal = new Terminal(null, null);
       terminal.agentId = agentId;
       terminal.agentName = agents.get(agentId);
+      terminal.cash = _Terminals.AgentCash(agentId);
       terminal.State(0);
       _TerminalsAdapter.add(terminal);
     }
