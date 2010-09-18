@@ -200,6 +200,23 @@ public class Accounts
     edit.commit();
   }
   
+  public boolean HasAccounts()
+  {
+    boolean result = false;
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.rawQuery("select count(*) from "+Consts.ACCOUNTS_TABLE, null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        if(cursor.getInt(0)>0)
+          result = true;
+      }
+      cursor.close();
+    }
+    return(result);
+  }
+  
   public void GetTerminals(final TerminalsProcessData terminals)
   {
     SQLiteDatabase db = OpenRead();

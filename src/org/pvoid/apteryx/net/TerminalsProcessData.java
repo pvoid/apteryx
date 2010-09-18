@@ -32,6 +32,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private int _TagState;
   private int _ExtraState;
   private StringBuilder _Text;
+  private boolean _IsEmpty;
   
   public TerminalsProcessData()
   {
@@ -42,6 +43,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Text = new StringBuilder();
     _Balance = 0;
     _Overdraft = 0;
+    _IsEmpty = true;
   }
   
   public void SetAgent(long agentId)
@@ -56,6 +58,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   {
     _TagState = TAG_NONE;
     _Text.delete(0, _Text.length());
+    _IsEmpty = false;
   }
   
   static private int getInt(Attributes attributes, String name, int def)
@@ -253,13 +256,14 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   
   public boolean hasAccounts()
   {
-    return(_Balances.size()!=0);
+    return(!_IsEmpty);
   }
   
   public void add(Terminal terminal)
   {
     _Terminals.put(terminal.id(), terminal);
     _Agents.put(terminal.agentId, terminal.agentName);
+    _IsEmpty = false;
   }
 
   public void Clear()
@@ -271,6 +275,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _Overdraft = 0;
     _Agents.clear();
     _Status = 0;
+    _IsEmpty = true;
   }
 
   public void SetNetworkError()

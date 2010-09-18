@@ -174,9 +174,33 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       setProgressBarIndeterminateVisibility(true);
       ArrayList<Account> accounts = new ArrayList<Account>();
       _Accounts.GetAccounts(accounts);
-      Account[] ac = new Account[accounts.size()];
-      (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
+      if(accounts.size()>0)
+      {
+        Account[] ac = new Account[accounts.size()];
+        (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
+      }
+      else
+        ShowSettingsAlarm();
     }
+  }
+  
+  private void ShowSettingsAlarm()
+  {
+    ViewFlipper flipper = (ViewFlipper)findViewById(R.id.balances_flipper);
+    flipper.setVisibility(View.GONE);
+    setTitle(R.string.app_name);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setMessage(getString(R.string.add_account_message))
+           .setPositiveButton(R.string.settings,new OnClickListener()
+            {
+              @Override
+              public void onClick(DialogInterface dialog, int which)
+              {
+                Intent intent = new Intent(MainActivity.this,AddAccountActivity.class);
+                startActivityForResult(intent, 0);
+              }
+            })
+           .show();
   }
   
   private void ShowStateInfo()
@@ -197,25 +221,11 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
                  +")");
       }
     }
-    else if(_Terminals.Success())
+    else
     {
       flipper.setVisibility(View.GONE);
-      setTitle(R.string.app_name);
-      AlertDialog.Builder builder = new AlertDialog.Builder(this);
-      builder.setMessage(getString(R.string.add_account_message))
-             .setPositiveButton(R.string.settings,new OnClickListener()
-              {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                  Intent intent = new Intent(MainActivity.this,AddAccountActivity.class);
-                  startActivityForResult(intent, 0);
-                }
-              })
-             .show();
-    }
-    else
       Toast.makeText(this, getString(R.string.network_error), Toast.LENGTH_LONG).show();
+    }
   }
   
   private void RestoreStates()
@@ -226,9 +236,15 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         return;
     }
 //////
+    if(!_Accounts.HasAccounts())
+    {
+      ShowSettingsAlarm();
+      return;
+    }
+///////
     _Accounts.GetTerminals(_Terminals);
     DrawTerminals();
-//////
+///////
     ShowStateInfo();
   }
   
