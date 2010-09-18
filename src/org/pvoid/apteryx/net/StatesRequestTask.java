@@ -1,6 +1,11 @@
 package org.pvoid.apteryx.net;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.pvoid.apteryx.accounts.Account;
+import org.pvoid.apteryx.accounts.Agent;
+
 import android.os.AsyncTask;
 
 public class StatesRequestTask extends AsyncTask<Account, Integer, Boolean>
@@ -8,10 +13,10 @@ public class StatesRequestTask extends AsyncTask<Account, Integer, Boolean>
   private IStatesRespnseHandler _Handler;
   private StatesRequestWorker _Worker;
   
-  public StatesRequestTask(IStatesRespnseHandler handler, TerminalsProcessData terminals)
+  public StatesRequestTask(IStatesRespnseHandler handler,HashMap<Long, ArrayList<Agent>> filter, TerminalsProcessData terminals)
   {
     _Handler = handler;
-    _Worker = new StatesRequestWorker(terminals);
+    _Worker = new StatesRequestWorker(terminals,filter);
   }
   
   @Override

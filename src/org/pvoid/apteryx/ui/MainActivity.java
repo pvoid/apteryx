@@ -12,6 +12,7 @@ import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.UpdateStatusService;
 import org.pvoid.apteryx.accounts.Account;
 import org.pvoid.apteryx.accounts.Accounts;
+import org.pvoid.apteryx.accounts.Agent;
 import org.pvoid.apteryx.accounts.Terminal;
 import org.pvoid.apteryx.net.IStatesRespnseHandler;
 import org.pvoid.apteryx.net.StatesRequestTask;
@@ -173,11 +174,20 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _Refreshing = true;
       setProgressBarIndeterminateVisibility(true);
       ArrayList<Account> accounts = new ArrayList<Account>();
+      HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
       _Accounts.GetAccounts(accounts);
       if(accounts.size()>0)
       {
+        for(Account account : accounts)
+        {
+          ArrayList<Agent> agents_line = new ArrayList<Agent>();
+          _Accounts.GetAgents(account.Id, agents_line);
+          if(agents_line.size()>0)
+            agents.put(account.Id, agents_line);
+        }
+        
         Account[] ac = new Account[accounts.size()];
-        (new StatesRequestTask(this, _Terminals)).execute(accounts.toArray(ac));
+        (new StatesRequestTask(this,agents, _Terminals)).execute(accounts.toArray(ac));
       }
       else
         ShowSettingsAlarm();

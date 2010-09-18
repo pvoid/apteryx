@@ -3,22 +3,27 @@ package org.pvoid.apteryx.net;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.pvoid.apteryx.accounts.Account;
+import org.pvoid.apteryx.accounts.Agent;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class StatesRequestWorker
 {
   private final TerminalsProcessData _Terminals;
+  private final HashMap<Long, ArrayList<Agent>> _Filter;
 
-  public StatesRequestWorker(TerminalsProcessData terminals)
+  public StatesRequestWorker(TerminalsProcessData terminals,HashMap<Long, ArrayList<Agent>> filter)
   {
-    _Terminals = terminals;      
+    _Terminals = terminals;
+    _Filter = filter;
   }
   
   public boolean Work(Account... accounts)
@@ -50,6 +55,7 @@ public class StatesRequestWorker
     for(Account account : accounts)
     {
       _Terminals.SetAgent(account.Id);
+      _Terminals.SetAgentsFilter(_Filter.get(account.Id));
       String response = DataTransfer.RefreshStates(account.Login, account.PasswordHash, account.Terminal);
       if(response==null)
         continue;

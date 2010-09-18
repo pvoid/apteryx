@@ -127,6 +127,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
       return;
     }
+    
 ////////
     showDialog(0);
     DataTransfer.TestAccount(_Login, _Password, _TerminalId, this);
@@ -177,8 +178,12 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       accounts.SaveAgents(_MainAgent.Id, agents);
     }
     else
+    {
       accounts.EditAccount(_Id, _MainAgent.Name, _Login, _Password, _TerminalId);
-    
+      accounts.ClearAgents(_Id);
+      accounts.SaveAgents(_Id, agents);
+    }
+
     dismissDialog(0);
     setResult(Consts.RESULT_RELOAD);
     finish();

@@ -1,10 +1,15 @@
 package org.pvoid.apteryx.net;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.pvoid.apteryx.Utils;
+import org.pvoid.apteryx.accounts.Agent;
 import org.pvoid.apteryx.accounts.Terminal;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
@@ -28,6 +33,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private HashMap<Long,String> _Agents;
   private int _Balance;
   private int _Overdraft;
+  private long[] _AgentsFilter;
   
   private int _TagState;
   private int _ExtraState;
@@ -103,44 +109,49 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       String tid = attributes.getValue("tid");
       String address = attributes.getValue("addr");
       
-      Terminal terminal;
-      terminal = new Terminal(tid,address);
-      // статус
-      terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
-      // состояние принтера
-      terminal.printer_state = getString(attributes, "rp", "none");
-      // состояние купироприемника
-      terminal.cashbin_state = getString(attributes, "rc", "none");
-      // сумма
-      terminal.cash = getInt(attributes, "cs");
-      // последняя активность
-      terminal.lastActivity = getString(attributes, "lat");
-      // последний платеж
-      terminal.lastPayment = getString(attributes, "lpd");
-      // Число купюр
-      terminal.bondsCount= getInt(attributes, "nc");
-      // Баланс сим карты
-      terminal.balance= getString(attributes,"ss");
-      // Уровень сигнала сим карты
-      terminal.signalLevel= getInt(attributes,"sl");
-      // Версия софта
-      terminal.softVersion = getString(attributes, "csoft");
-      // Модель принтера
-      terminal.printerModel    = getString(attributes,"pm");
-      terminal.cashbinModel    = getString(attributes,"dm");
-      terminal.bonds10count    = getInt(attributes,"b_co_10");
-      terminal.bonds50count    = getInt(attributes,"b_co_50");
-      terminal.bonds100count   = getInt(attributes,"b_co_100");
-      terminal.bonds500count   = getInt(attributes,"b_co_500");
-      terminal.bonds1000count  = getInt(attributes,"b_co_1000");
-      terminal.bonds5000count  = getInt(attributes,"b_co_5000");
-      terminal.bonds10000count = getInt(attributes,"b_co_10000");
-      terminal.paysPerHour     = getString(attributes,"pays_per_hour");
-      terminal.agentId         = getLong(attributes, "aid",0);
-      terminal.agentName       = getString(attributes, "an");
+      long agentId = getLong(attributes, "aid",0);
       
-      _Terminals.put(tid, terminal);
-      _Agents.put(terminal.agentId, terminal.agentName);
+      if(_AgentsFilter==null || Arrays.binarySearch(_AgentsFilter, agentId)>=0)
+      {
+        Terminal terminal;
+        terminal = new Terminal(tid,address);
+        // статус
+        terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
+        // состояние принтера
+        terminal.printer_state = getString(attributes, "rp", "none");
+        // состояние купироприемника
+        terminal.cashbin_state = getString(attributes, "rc", "none");
+        // сумма
+        terminal.cash = getInt(attributes, "cs");
+        // последняя активность
+        terminal.lastActivity = getString(attributes, "lat");
+        // последний платеж
+        terminal.lastPayment = getString(attributes, "lpd");
+        // Число купюр
+        terminal.bondsCount= getInt(attributes, "nc");
+        // Баланс сим карты
+        terminal.balance= getString(attributes,"ss");
+        // Уровень сигнала сим карты
+        terminal.signalLevel= getInt(attributes,"sl");
+        // Версия софта
+        terminal.softVersion = getString(attributes, "csoft");
+        // Модель принтера
+        terminal.printerModel    = getString(attributes,"pm");
+        terminal.cashbinModel    = getString(attributes,"dm");
+        terminal.bonds10count    = getInt(attributes,"b_co_10");
+        terminal.bonds50count    = getInt(attributes,"b_co_50");
+        terminal.bonds100count   = getInt(attributes,"b_co_100");
+        terminal.bonds500count   = getInt(attributes,"b_co_500");
+        terminal.bonds1000count  = getInt(attributes,"b_co_1000");
+        terminal.bonds5000count  = getInt(attributes,"b_co_5000");
+        terminal.bonds10000count = getInt(attributes,"b_co_10000");
+        terminal.paysPerHour     = getString(attributes,"pays_per_hour");
+        terminal.agentId         = agentId;
+        terminal.agentName       = getString(attributes, "an");
+        
+        _Terminals.put(tid, terminal);
+        _Agents.put(terminal.agentId, terminal.agentName);
+      }
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
       _TagState = TAG_RESULT;
@@ -278,6 +289,24 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _IsEmpty = true;
   }
 
+  public void SetAgentsFilter(List<Agent> agents)
+  {
+    if(agents==null)
+    {
+      _AgentsFilter = null;
+      return;
+    }
+    
+    _AgentsFilter = new long[agents.size()];
+    int index = 0;
+    for(Agent agent : agents)
+    {
+      _AgentsFilter[index] = agent.Id;
+      index++;
+    }
+    Arrays.sort(_AgentsFilter);
+  }
+  
   public void SetNetworkError()
   {
     _Status = -1;

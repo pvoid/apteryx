@@ -214,7 +214,7 @@ public class Accounts
       }
       cursor.close();
     }
-    db.close();
+    _database.close();
     return(result);
   }
   
@@ -350,5 +350,33 @@ public class Accounts
     }
     _database.close();
     return(true);
+  }
+  
+  public void ClearAgents(long account)
+  {
+    SQLiteDatabase db = OpenWrite();
+    db.delete(Consts.AGENTS_TABLE, Consts.COLUMN_ACCOUNT+"="+account,null);
+    _database.close();
+  }
+  
+  public void GetAgents(long account, List<Agent> agents)
+  {
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.query(Consts.AGENTS_TABLE, new String[] {Consts.COLUMN_AGENTID}, null, null, Consts.COLUMN_ACCOUNT+"="+account, null, null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        do
+        {
+          Agent agent = new Agent();
+          agent.Id = cursor.getLong(0);
+          agents.add(agent);
+        }
+        while(cursor.moveToNext());
+      }
+      cursor.close();
+    }
+    _database.close();
   }
 }

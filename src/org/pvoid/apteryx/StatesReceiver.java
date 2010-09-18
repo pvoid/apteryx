@@ -1,9 +1,11 @@
 package org.pvoid.apteryx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.pvoid.apteryx.accounts.Account;
 import org.pvoid.apteryx.accounts.Accounts;
+import org.pvoid.apteryx.accounts.Agent;
 import org.pvoid.apteryx.accounts.Terminal;
 import org.pvoid.apteryx.net.ErrorCodes;
 import org.pvoid.apteryx.net.StatesRequestWorker;
@@ -29,18 +31,29 @@ public class StatesReceiver extends BroadcastReceiver
     Accounts accounts_storage = new Accounts(context);
     ArrayList<Account> accounts = new ArrayList<Account>();
     accounts_storage.GetAccounts(accounts);
-    Account[] ac = new Account[accounts.size()];
-    StatesRequestWorker worker = new StatesRequestWorker(terminals);
-    if(worker.Work(accounts.toArray(ac)))
+    if(accounts.size()>0)
     {
-      if(terminals.Success())
+      HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
+      for(Account account : accounts)
       {
-        if(accounts_storage.CheckStates(terminals, inactive_terminals))
-          Notifyer.ShowNotification(context, inactive_terminals);
-        accounts_storage.SaveStates(terminals);
+        ArrayList<Agent> agents_line = new ArrayList<Agent>();
+        accounts_storage.GetAgents(account.Id, agents_line);
+        if(agents_line.size()>0)
+          agents.put(account.Id, agents_line);
       }
-      else
-        Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);
+      Account[] ac = new Account[accounts.size()];
+      StatesRequestWorker worker = new StatesRequestWorker(terminals,agents);
+      if(worker.Work(accounts.toArray(ac)))
+      {
+        if(terminals.Success())
+        {
+          if(accounts_storage.CheckStates(terminals, inactive_terminals))
+            Notifyer.ShowNotification(context, inactive_terminals);
+          accounts_storage.SaveStates(terminals);
+        }
+        else
+          Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);
+      }
     }
     
     Intent broadcastIntent = new Intent(Consts.REFRESH_BROADCAST_MESSAGE);
