@@ -9,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.text.Html;
 import android.widget.RemoteViews;
 
@@ -71,6 +72,15 @@ public class Notifyer
     
     if(prefs.getBoolean(Consts.PREF_USEVIBRO, false))
       notification.defaults |= Notification.DEFAULT_VIBRATE;
+    
+    String sound = prefs.getString(Consts.PREF_SOUND, "");
+    if(sound.length()>0)
+    {
+      if(sound.equals("default"))
+        notification.defaults|=Notification.DEFAULT_SOUND;
+      else
+        notification.sound = Uri.parse(sound);
+    }
     
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
     nm.notify(Consts.NOTIFICATION_ICON, notification);

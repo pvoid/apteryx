@@ -103,13 +103,13 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
           case Terminal.STATE_WARRNING:
             icon_id = R.drawable.terminal_pending;
             SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-            TimeZone timezone = TimeZone.getTimeZone("Russia/Moscow");
+            TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
             format.setTimeZone(timezone);
             Date dt;
             try
             {
               dt = format.parse(terminal.lastActivity);
-              lastActivity.setText(DateUtils.getRelativeDateTimeString(_Context, dt.getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,DateUtils.FORMAT_ABBREV_RELATIVE));
+              lastActivity.setText(DateUtils.getRelativeTimeSpanString(dt.getTime(),System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE));
               lastActivity.setVisibility(View.VISIBLE);
             }
             catch (ParseException e)
@@ -123,7 +123,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
         icon.setImageResource(icon_id);
       }
     }
-    
+     
     return(view);
   }
 }

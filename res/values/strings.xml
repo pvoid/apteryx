@@ -62,7 +62,17 @@
     <string name="doesnt_response">не отвечает</string>
     
     <string name="settings_autocheck">Проверять автоматически</string>
+    <string name="settings_interval">Интервал обновления</string>
     <string name="settings_usevibro">Использовать вибрацию</string>
+    <string name="settings_melody">Сигнал</string>
+    
+    <string name="interval_15m">каждые 15 минут</string>
+    <string name="interval_30m">каждые 30 минут</string>
+    <string name="interval_1h">каждый час</string>
+    <string name="interval_3h">каждые 3 часа</string>
+    <string name="interval_6h">каждые 6 часов</string>
+    <string name="interval_12h">каждые 12 часов</string>
+    <string name="interval_1d">раз в день</string>
     
     <string name="service_starte">Запущена автоматическая проверка</string>
     <string name="update_service">Проверка терминалов</string>
