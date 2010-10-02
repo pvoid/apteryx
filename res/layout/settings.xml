@@ -1,37 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-  <CheckedTextView android:id="@+id/settings_autocheck"
-                   android:layout_width="fill_parent"
-                   android:layout_height="wrap_content"
-                   android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-                   android:focusable="true"
-                   android:clickable="true"
-                   android:gravity="center_vertical"
-                   android:text="@string/settings_autocheck"
-                   android:layout_marginTop="2pt"
-                   android:layout_marginLeft="2pt"
-                   android:layout_marginRight="2pt" />
-  
-  <Spinner  android:id="@+id/settings_interval"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3pt"
-            android:layout_marginLeft="2pt"
-            android:layout_marginRight="2pt"/>
-
-<CheckedTextView android:id="@+id/settings_usevibro"
-                 android:layout_width="fill_parent"
-                 android:layout_height="wrap_content"
-                 android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-                 android:focusable="true"
-                 android:clickable="true"
-                 android:gravity="center_vertical"
-                 android:text="@string/settings_usevibro"
-                 android:layout_marginTop="2pt"
-                 android:layout_marginLeft="2pt"
-                 android:layout_marginRight="2pt" />
-</LinearLayout>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <CheckBoxPreference android:key="autocheck"
+                      android:title="@string/settings_autocheck"
+                      android:summary="@string/settings_checksummary"/>
+  <ListPreference android:key="interval"
+                  android:title="@string/settings_interval"
+                  android:entries="@array/intervalsTitle"
+                  android:entryValues="@array/intervalsValues" />
+  <PreferenceCategory android:title="@string/settings_notify">
+    <CheckBoxPreference android:key="usevibro"
+                        android:title="@string/settings_usevibro"
+                        android:summary=""/>
+    <RingtonePreference android:key="usesound"
+                        android:title="@string/settings_melody"
+                        android:summary=""/>
+  </PreferenceCategory>
+</PreferenceScreen>

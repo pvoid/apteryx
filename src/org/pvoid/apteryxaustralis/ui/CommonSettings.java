@@ -1,145 +1,174 @@
 package org.pvoid.apteryxaustralis.ui;
 
-import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.common.adapters.CustomItemsAdapter;
-import org.pvoid.common.views.options.OptionView;
-import org.pvoid.common.views.options.OptionViewCheckbox;
-import org.pvoid.common.views.options.OptionViewSound;
-import org.pvoid.common.views.options.OptionViewSpiner;
-import org.pvoid.common.views.options.OptionViewSpiner.OptionViewSpinerItem;
+import org.pvoid.apteryxaustralis.Utils;
 
-import android.app.ListActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.PreferenceActivity;
+import android.preference.RingtonePreference;
+import android.provider.Settings;
 
-public class CommonSettings extends ListActivity// implements OnClickListener,OnItemSelectedListener
+public class CommonSettings extends PreferenceActivity
 {
-  private OptionViewCheckbox _Autocheck;
-  private OptionViewSpiner _Interval;
-  private OptionViewCheckbox _UseVibration;
-  private OptionViewSound _Sound;
-  
-  private class OptionsListAdapter extends CustomItemsAdapter
-  {
-    @Override
-    protected void Populate()
-    {
-      AddItem(_Autocheck);
-      AddItem(_Interval);
-      AddItem(_UseVibration);
-      AddItem(_Sound);
-    }
-  }
+  private CheckBoxPreference _Autocheck;
+  private ListPreference _Intervals;
+  private CheckBoxPreference _UseVibro;
+  private RingtonePreference _Ringtone;
   
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-////////
-    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-    boolean enabled = prefs.getBoolean(Consts.PREF_AUTOCHECK, false);    
-////////
-    _Autocheck = new OptionViewCheckbox(R.string.settings_autocheck, this);
-    _Autocheck.setValue(enabled);
-    _Autocheck.setOnChangeListener(new OptionView.OnChangeListener()
+    addPreferencesFromResource(R.layout.settings);
+    
+    _Autocheck = (CheckBoxPreference)findPreference("autocheck");
+    _Intervals = (ListPreference)findPreference("interval");
+    _UseVibro = (CheckBoxPreference) findPreference("usevibro");
+    _Ringtone = (RingtonePreference) findPreference("usesound");
+    _Ringtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
+    
+    SharedPreferences preferences = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+    
+    if(preferences.getBoolean(Consts.PREF_AUTOCHECK, false))
+    {
+      _Autocheck.setChecked(true);
+    }
+    else
+    {
+      _Intervals.setEnabled(false);
+      _UseVibro.setEnabled(false);
+      _Ringtone.setEnabled(false);
+    }
+    //////
+    int interval = preferences.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]);
+    String intervalText = Integer.toString(interval);
+    int index = _Intervals.findIndexOfValue(intervalText);
+    if(index>-1)
+    {
+      _Intervals.setSummary(_Intervals.getEntries()[index]);
+      _Intervals.setValue(intervalText);
+    }
+    //////
+    _Autocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
-      public void onChange(OptionView option)
+      public boolean onPreferenceChange(Preference preference, Object newValue)
       {
-        boolean enabled = _Autocheck.getValue();
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(Consts.PREF_AUTOCHECK, enabled);
-        edit.commit();
-      ///////
+        boolean checked = false; 
         Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
-        if(enabled)
+        if(newValue == Boolean.TRUE)
+        {
+          checked = true;
           startService(serviceIntent);
+        }
         else
           stopService(serviceIntent);
       ///////
-        _Interval.setEnabled(enabled);
-        _UseVibration.setEnabled(enabled);
-        _Sound.setEnabled(enabled);
+        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(Consts.PREF_AUTOCHECK, checked);
+        edit.commit();
+      ///////
+        _Autocheck.setChecked(checked);
+        _Intervals.setEnabled(checked);
+        _UseVibro.setEnabled(checked);
+        _Ringtone.setEnabled(checked);
+        return true;
       }
     });
-    
-    _Interval = new OptionViewSpiner(R.string.settings_interval, this);
-    _Interval.setOnChangeListener(new OptionView.OnChangeListener()
+    //////
+    _Intervals.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
-      public void onChange(OptionView option)
+      public boolean onPreferenceChange(Preference preference, Object newValue)
       {
-        OptionViewSpinerItem selected = _Interval.getValue();
-        if(selected!=null)
+        int interval = Integer.parseInt((String)newValue);
+        if(interval!=0)
         {
           SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
           SharedPreferences.Editor edit = prefs.edit();
-          edit.putInt(Consts.PREF_INTERVAL, selected.getInteger());
+          edit.putInt(Consts.PREF_INTERVAL, interval);
           edit.commit();
+          //////
+          int index = _Intervals.findIndexOfValue((String)newValue);
+          if(index>-1)
+          {
+            _Intervals.setSummary(_Intervals.getEntries()[index]);
+          }
+          //////
+          return(true);
         }
+        return(false);
       }
     });
-    _Interval.setEnabled(enabled);
-////////
-    OptionViewSpinerItem[] items = new OptionViewSpiner.OptionViewSpinerItem[Consts.INTERVAL_NAMES.length];
-    int interval = prefs.getInt(Consts.PREF_INTERVAL, 10800000);
-    int selected_index = -1;
-    for(int i=0;i<Consts.INTERVAL_NAMES.length;++i)
+    //////
+    _UseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
-      items[i] = _Interval.new OptionViewSpinerItem(getString(Consts.INTERVAL_NAMES[i]), Consts.INTERVALS[i]);
-      if(Consts.INTERVALS[i] == interval)
-        selected_index = i;
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue)
+      {
+        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(Consts.PREF_USEVIBRO, newValue == Boolean.TRUE);
+        edit.commit();
+        return true;
+      }
+    });
+    //////
+    String sound_uri = preferences.getString(Consts.PREF_SOUND, "");
+    setSoundSummary(sound_uri);
+    _Ringtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue)
+      {
+        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putString(Consts.PREF_SOUND,(String)newValue);
+        edit.commit();
+        return(CommonSettings.this.setSoundSummary((String)newValue));
+      }
+    });
+  }
+  
+  private boolean setSoundSummary(String uriString)
+  {
+    String summary = null;
+    if(Utils.isEmptyString(uriString))
+    {
+      summary = getString(R.string.no_sound);
     }
-    _Interval.SetItems(items);
-    if(selected_index>-1)
-      _Interval.SetSelectedItem(items[selected_index]);
-////////
-    _UseVibration = new OptionViewCheckbox(R.string.settings_usevibro, this);
-    _UseVibration.setValue(prefs.getBoolean(Consts.PREF_USEVIBRO, false));
-    _UseVibration.setOnChangeListener(new OptionView.OnChangeListener()
-    {
-      @Override
-      public void onChange(OptionView option)
-      {
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(Consts.PREF_USEVIBRO, _UseVibration.getValue());
-        edit.commit();
-      }
-    });
-    _UseVibration.setEnabled(enabled);
-////////
-    _Sound = new OptionViewSound(R.string.settings_melody, this);
-    String uri = prefs.getString(Consts.PREF_SOUND,"");
-    if(uri.length()==0)
-      _Sound.DontUseSound();
-    else if(uri.equalsIgnoreCase("default"))
-      _Sound.UseDefaultSound();
     else
-      _Sound.setValue(Uri.parse(uri));
-    _Sound.setOnChangeListener(new OptionView.OnChangeListener()
     {
-      @Override
-      public void onChange(OptionView option)
+      Uri uri = Uri.parse(uriString);
+      if(uri.equals(Settings.System.DEFAULT_NOTIFICATION_URI))
       {
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        if(_Sound.NoSound())
-          edit.putString(Consts.PREF_SOUND,"");
-        else if(_Sound.DefaultSound())
-          edit.putString(Consts.PREF_SOUND,"default");
-        else
-          edit.putString(Consts.PREF_SOUND,_Sound.getValue().toString());
-        edit.commit();
+        summary = getString(R.string.default_sound);
       }
-    });
-    _Sound.setEnabled(enabled);
-////////
-    setListAdapter(new OptionsListAdapter());
+      else
+      {
+        Ringtone ringtone = RingtoneManager.getRingtone(CommonSettings.this, uri);
+        if(ringtone!=null)
+          summary = ringtone.getTitle(CommonSettings.this);
+      }
+    }
+    
+    if(summary!=null)
+    {
+      _Ringtone.setSummary(summary);
+      return(true);
+    }
+    return(false);
   }
 }

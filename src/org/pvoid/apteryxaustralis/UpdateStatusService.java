@@ -70,7 +70,7 @@ public class UpdateStatusService extends Service
     _ServiceRuning = true;
 ////////
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
-    long interval = prefs.getInt(Consts.PREF_INTERVAL, 0);
+    long interval = prefs.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]);
     if(interval==0)
       return;
 ///////

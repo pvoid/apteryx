@@ -74,12 +74,9 @@ public class Notifyer
       notification.defaults |= Notification.DEFAULT_VIBRATE;
     
     String sound = prefs.getString(Consts.PREF_SOUND, "");
-    if(sound.length()>0)
+    if(!Utils.isEmptyString(sound))
     {
-      if(sound.equals("default"))
-        notification.defaults|=Notification.DEFAULT_SOUND;
-      else
-        notification.sound = Uri.parse(sound);
+      notification.sound = Uri.parse(sound);
     }
     
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);

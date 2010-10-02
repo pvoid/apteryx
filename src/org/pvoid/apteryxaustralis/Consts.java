@@ -66,14 +66,8 @@ public class Consts
   public static final int MENU_DELETE = 1;
   public static final int MENU_EDIT = 2;
   
-  public static final int[] INTERVAL_NAMES = new int[] {R.string.interval_15m,
-                                                        R.string.interval_30m,
-                                                        R.string.interval_1h,
-                                                        R.string.interval_3h,
-                                                        R.string.interval_6h,
-                                                        R.string.interval_12h,
-                                                        R.string.interval_1d};
   public static final int[] INTERVALS =      new int[] {900000,1800000,3600000,10800000,21600000,43200000,86400000};
+  public static final int   DEFAULT_INTERVAL = 2;
   
   public static final int NOTIFICATION_ICON = 1;
   
