@@ -16,6 +16,7 @@ import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
 import org.pvoid.apteryxaustralis.net.StatesRequestTask;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -162,7 +163,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private void ShowPreferencesActivity()
   {
-    Intent intent = new Intent(this,Preferences.class);
+    Intent intent = new Intent(this,CommonSettings.class);
     startActivityForResult(intent, 0); 
   }
   
@@ -290,12 +291,12 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     HashMap<Long, String> agents = _Terminals.Agents();
     for(Long agentId : agents.keySet())
     {
-      Terminal terminal = new Terminal(null, null);
+      /*Terminal terminal = new Terminal(null, null);
       terminal.agentId = agentId;
       terminal.agentName = agents.get(agentId);
       terminal.cash = _Terminals.AgentCash(agentId);
       terminal.State(0);
-      _TerminalsAdapter.add(terminal);
+      _TerminalsAdapter.add(terminal);*/
     }
     
     _TerminalsAdapter.sort(_TerminalComparer);
@@ -333,9 +334,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     Terminal terminal = _TerminalsAdapter.getItem(position);
     if(terminal!=null && terminal.id()!=null)
     {
-      Intent intent = new Intent(this, FullInfo.class);
+      /*Intent intent = new Intent(this, FullInfo.class);
       intent.putExtra("terminal", terminal);
-      startActivity(intent);
+      startActivity(intent);*/
     }
   }
   

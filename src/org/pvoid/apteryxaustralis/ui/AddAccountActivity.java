@@ -21,6 +21,8 @@ import org.pvoid.apteryxaustralis.net.AgentInfoProcessData;
 import org.pvoid.apteryxaustralis.net.DataTransfer;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
+import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.Response;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -130,7 +132,10 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     
 ////////
     showDialog(0);
-    DataTransfer.TestAccount(_Login, _Password, _TerminalId, this);
+    Request request = new Request(_Login, _Password, _TerminalId);
+    request.getAgentInfo();
+    Response response = request.getResponse();
+    //DataTransfer.TestAccount(_Login, _Password, _TerminalId, this);
 ////////
   }
   

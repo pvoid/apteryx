@@ -30,13 +30,13 @@ public class AccountsList extends Activity
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.accounts);
+    /*setContentView(R.layout.accounts);
     _Adapter = new ArrayAdapter<Account>(this, android.R.layout.simple_list_item_1);
     _Accounts = new Accounts(this);
     ListView list = (ListView)findViewById(R.id.accounts_list);
     setAccountsList();
     list.setAdapter(_Adapter);
-    registerForContextMenu(list);
+    registerForContextMenu(list);*/
   }
 
   private void setAccountsList()
@@ -76,7 +76,7 @@ public class AccountsList extends Activity
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo)
   {
-    switch(view.getId())
+    /*switch(view.getId())
     {
       case R.id.accounts_list:
         AdapterView.AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
@@ -84,7 +84,7 @@ public class AccountsList extends Activity
         menu.add(Menu.NONE, Consts.MENU_EDIT, 0, R.string.edit);
         menu.add(Menu.NONE, Consts.MENU_DELETE, 1, R.string.delete);
         break;
-    }
+    }*/
   }
   
   private void DeleteAccount(final Account account)

@@ -254,7 +254,7 @@ public class Accounts
         terminals.startDocument();
         do
         {
-          Terminal terminal = new Terminal(cursor.getString(0), cursor.getString(1));
+          /*Terminal terminal = new Terminal(cursor.getString(0),0, cursor.getString(1));
           terminal.State(cursor.getInt(2));
           terminal.printer_state = cursor.getString(3);
           terminal.cashbin_state = cursor.getString(4);
@@ -278,7 +278,7 @@ public class Accounts
           terminal.paysPerHour = cursor.getString(22);
           terminal.agentId = Long.parseLong(cursor.getString(23));
           terminal.agentName = cursor.getString(24);
-          terminals.add(terminal);
+          terminals.add(terminal);*/
         }
         while(cursor.moveToNext());
       }

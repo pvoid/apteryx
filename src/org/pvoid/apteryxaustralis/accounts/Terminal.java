@@ -1,13 +1,21 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.io.Serializable;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Terminal implements Parcelable
+public class Terminal implements Parcelable, Serializable
 {
+  private static final long serialVersionUID = -7462609920747072267L;
+  
   public final static int STATE_OK = 0;
   public final static int STATE_WARRNING = 2;
   public final static int STATE_ERROR = 1;
+  
+  private long _Id;
+  private long _AgentId;
+  private String _Address;
   
   private int state;
   public String printer_state;
@@ -33,24 +41,21 @@ public class Terminal implements Parcelable
   public long agentId;
   public String agentName;
   
-  protected String address;
-  protected String tid;
-  
-  public Terminal(String id, String address)
+  public Terminal(long id, long agentId, String address)
   {
-    this.tid = id;
-    this.address = address;
-    this.lpd = "";
+    _Id = id;
+    _AgentId = agentId;
+    _Address = address;
   }
   
   public String Address() 
   {
-    return address;
+    return _Address;
   }
   
   public String id()
   {
-    return(tid);
+    return(Long.toString(_Id));
   }
   
   public void State(int state)
@@ -72,7 +77,7 @@ public class Terminal implements Parcelable
   @Override
   public void writeToParcel(Parcel dest, int flags)
   {
-    dest.writeString(tid);
+    /*dest.writeString(tid);
     dest.writeString(address);
     dest.writeInt(state);
     dest.writeString(printer_state);
@@ -96,7 +101,7 @@ public class Terminal implements Parcelable
     dest.writeInt(bonds10000count);
     dest.writeString(paysPerHour);
     dest.writeLong(agentId);
-    dest.writeString(agentName);
+    dest.writeString(agentName);*/
   }
   
   public static final Parcelable.Creator<Terminal> CREATOR = new Parcelable.Creator<Terminal>()
@@ -104,8 +109,8 @@ public class Terminal implements Parcelable
     @Override
     public Terminal createFromParcel(Parcel src)
     {
-      Terminal terminal = new Terminal(src.readString(), src.readString());
-      terminal.State(src.readInt());
+      Terminal terminal = new Terminal(src.readLong(),src.readLong(),src.readString());
+      /*terminal.State(src.readInt());
       terminal.printer_state = src.readString();
       terminal.cashbin_state = src.readString();
       terminal.lpd = src.readString();
@@ -127,7 +132,7 @@ public class Terminal implements Parcelable
       terminal.bonds10000count = src.readInt();
       terminal.paysPerHour = src.readString();
       terminal.agentId = src.readLong();
-      terminal.agentName = src.readString();
+      terminal.agentName = src.readString();*/
       return terminal;
     }
 

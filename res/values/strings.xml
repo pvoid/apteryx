@@ -26,7 +26,7 @@
     
     <string name="accounts_list">Список аккаунтов</string>
     <string name="accounts">Аккаунты</string>
-    <string name="add">Добавить</string>
+    <string name="add">Добавить аккаунт</string>
     <string name="edit">Изменить</string>
     <string name="delete">Удалить</string>
     <string name="cancel">Отмена</string>
@@ -61,6 +61,7 @@
     
     <string name="doesnt_response">не отвечает</string>
     
+    <string name="settings_autocheck_title">Автоматическая проверка</string>
     <string name="settings_autocheck">Проверять автоматически</string>
     <string name="settings_checksummary">Проверть состояние терминалов через заданный интервал</string>
     <string name="settings_interval">Интервал обновления</string>

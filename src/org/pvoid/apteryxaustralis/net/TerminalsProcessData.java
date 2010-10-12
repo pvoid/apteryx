@@ -113,7 +113,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       
       if(_AgentsFilter==null || Arrays.binarySearch(_AgentsFilter, agentId)>=0)
       {
-        Terminal terminal;
+        /*Terminal terminal;
         terminal = new Terminal(tid,address);
         // статус
         terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
@@ -155,7 +155,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
         if(_Cash.containsKey(agentId))
            cash = _Cash.get(agentId);
         cash+=terminal.cash;
-        _Cash.put(agentId, cash);
+        _Cash.put(agentId, cash);*/
       }
     }
     else if(localName.compareToIgnoreCase("result-code")==0)

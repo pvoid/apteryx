@@ -10,7 +10,7 @@ public class Consts
   public static final String PREF_USEVIBRO = "apteryx.usevibro";
   public static final String PREF_SOUND = "apteryx.sound";
   public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
-  public static final String URL = "http://xml1.osmp.ru/term2/xml.jsp";
+  public static final String URL = "https://service1.osmp.ru/xmlgate/xml.jsp";
   
   public static final String TAB_ACCOUNTS = "tab_account";
   public static final String TAB_PREFERENCES = "tab_preferences";

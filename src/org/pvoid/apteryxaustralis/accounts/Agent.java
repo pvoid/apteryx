@@ -7,6 +7,8 @@ public class Agent implements Parcelable
 {
   public long Id;
   public String Name;
+  public String Phone;
+  
   @Override
   public int describeContents()
   {
@@ -17,6 +19,7 @@ public class Agent implements Parcelable
   {
     dest.writeLong(Id);
     dest.writeString(Name);
+    dest.writeString(Phone);
   }
   
   public static final Parcelable.Creator<Agent> CREATOR = new Parcelable.Creator<Agent>()
@@ -33,6 +36,7 @@ public class Agent implements Parcelable
       Agent agent = new Agent();
       agent.Id = source.readLong();
       agent.Name = source.readString();
+      agent.Phone = source.readString();
       return(agent);
     }
   };

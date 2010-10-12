@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView android:layout_width="fill_parent"
-          android:layout_height="wrap_content"
-          android:text="@string/add_account_auth_title"
-          android:padding="5dip"
-          android:background="#ffffffff"
-          android:textColor="#ff000000"
-          />
-<ScrollView android:layout_width="fill_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1"
-    >
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 	<LinearLayout android:layout_width="fill_parent"
 	              android:layout_height="wrap_content"
 	              android:orientation="vertical"
@@ -30,7 +17,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:singleLine="true"
-        android:id="@+id/terminal" 
+        android:id="@+id/terminal"
         />
 		<TextView
 		    android:layout_width="fill_parent" 
@@ -41,7 +28,7 @@
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:singleLine="true"
-		    android:id="@+id/login" 
+		    android:id="@+id/login"
 		    />
 		<TextView
 		    android:layout_width="fill_parent" 
@@ -54,18 +41,13 @@
 		    android:singleLine="true"
 		    android:password="true"
 		    android:id="@+id/password" 
-		    />		
+		    />
+		<Button
+      android:text="@string/add"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dip"
+      android:onClick="CheckAccount"
+      />
 	</LinearLayout>
 </ScrollView>
-<FrameLayout android:layout_height="wrap_content"
-             android:layout_width="fill_parent"
-             android:padding="6dip"
-             android:background="#FF666666">
-	<Button
-	    android:text="@string/next"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:onClick="CheckAccount"
-	    />
-</FrameLayout>
-</LinearLayout>
