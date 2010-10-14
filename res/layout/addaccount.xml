@@ -18,7 +18,6 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:id="@+id/terminal"
-        android:text="8885252"
         />
 		<TextView
 		    android:layout_width="fill_parent" 
@@ -42,7 +41,6 @@
 		    android:singleLine="true"
 		    android:password="true"
 		    android:id="@+id/password"
-		    android:text="09876543210"
 		    />
 		<Button
       android:text="@string/add"
