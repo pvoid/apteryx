@@ -11,7 +11,7 @@
           <action android:name="org.pvoid.apteryx.StatusUpdatedMessage" />
         </intent-filter>
       </activity>
-      <activity android:name=".ui.AddAccountActivity" />
+      <activity android:name=".preference.AddAccountActivity" />
       <activity android:name=".ui.Preferences" />
       <activity android:name=".ui.AccountsList" />
       <activity android:name=".preference.CommonSettings" android:label="@string/settings" />

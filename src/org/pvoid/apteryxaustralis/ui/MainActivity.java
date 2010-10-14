@@ -16,6 +16,7 @@ import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
 import org.pvoid.apteryxaustralis.net.StatesRequestTask;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
+import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 import android.app.Activity;

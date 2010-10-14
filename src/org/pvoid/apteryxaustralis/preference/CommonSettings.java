@@ -9,7 +9,6 @@ import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Accounts;
-import org.pvoid.apteryxaustralis.ui.AddAccountActivity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

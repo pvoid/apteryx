@@ -29,7 +29,12 @@ public class Response extends DefaultHandler
     _HttpCode = connection.getResponseCode();
     if(_HttpCode==200)
     {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),"windows-1251"));
+      String encoding = connection.getContentEncoding();
+      if(encoding==null)
+      {
+        encoding = "utf-8";
+      }
+      BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),encoding));
       String line;
       StringBuffer result = new StringBuffer();
       while((line = reader.readLine())!=null)
@@ -121,5 +126,15 @@ public class Response extends DefaultHandler
       _Parser.SectionEnd();
       _Parser = null;
     }
+  }
+  
+  public Agents Agents()
+  {
+    return(_Agents);
+  }
+  
+  public int OsmpCode()
+  {
+    return(_OsmpCode);
   }
 }

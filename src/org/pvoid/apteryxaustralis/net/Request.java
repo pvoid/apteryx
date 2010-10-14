@@ -1,8 +1,6 @@
 package org.pvoid.apteryxaustralis.net;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -22,10 +20,6 @@ public class Request
   
   public Request(String login, String passwordHash, String terminal)
   {
-   //Теперь можно спокойно отерывать любые https соединения
-    //
-    
-    
     _Request.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
                     "<request>"+
                     "<auth login=\"");
@@ -47,6 +41,11 @@ public class Request
   public void getAgentInfo()
   {
     _AgentInterface.append("<getAgentInfo/>");
+  }
+  
+  public void getAgents()
+  {
+    _AgentInterface.append("<getAgents/>");
   }
   
   public Response getResponse()

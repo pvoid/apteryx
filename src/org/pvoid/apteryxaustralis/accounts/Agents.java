@@ -3,6 +3,7 @@ package org.pvoid.apteryxaustralis.accounts;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
 import org.xml.sax.Attributes;
@@ -11,7 +12,13 @@ import android.util.Log;
 
 public class Agents implements IResponseParser
 {
-  private ArrayList<Agent> _Agents = new ArrayList<Agent>();
+  private final int STATE_NONE = 0;
+  private final int STATE_AGENTINFO = 1;
+  private final int STATE_AGENTSINFO = 2;
+  
+  private int _CurrentState;
+  private ArrayList<Agent> _Agents;
+  private Agent _CurrentAgent;
   
   public static Agents getParser()
   {
@@ -21,18 +28,41 @@ public class Agents implements IResponseParser
   @Override
   public void ElementStart(String tagName, Attributes attributes)
   {
+    if(tagName.equalsIgnoreCase("getAgentInfo"))
+    {
+      _CurrentState = STATE_AGENTINFO;
+      return;
+    }
+////////
+    if(tagName.equalsIgnoreCase("getAgents"))
+    {
+      _CurrentState = STATE_AGENTSINFO;
+      return;
+    }
+////////
     if(tagName.equalsIgnoreCase("agent"))
     {
       String id = attributes.getValue("id");
       String name = attributes.getValue("name");
       String phone = attributes.getValue("phone");
-      Agent agent = new Agent();
       try
       {
-        agent.Id = Long.parseLong(id);
-        agent.Name = name;
-        agent.Phone = phone;
-        _Agents.add(agent);
+        
+        switch(_CurrentState)
+        {
+          case STATE_AGENTINFO:
+            if(_CurrentAgent==null)
+              _CurrentAgent = new Agent();
+            _CurrentAgent.Id = Long.parseLong(id);
+            _CurrentAgent.Name = name;
+            _CurrentAgent.Phone = phone;
+            break;
+          case STATE_AGENTSINFO:
+            if(_Agents==null)
+              _Agents = new ArrayList<Agent>();
+            _Agents.add(new Agent(Long.parseLong(id),name,phone));
+            break;
+        }        
       }
       catch(NumberFormatException e)
       {
@@ -51,20 +81,30 @@ public class Agents implements IResponseParser
   @Override
   public void SectionStart()
   {
-    // TODO Auto-generated method stub
-    
+    _CurrentState = STATE_NONE;
   }
 
   @Override
   public void SectionEnd()
   {
-    Arrays.sort(_Agents.toArray(), new Comparator<Object>()
-      {
-        @Override
-        public int compare(Object object1, Object object2)
+    if(_Agents!=null)
+      Arrays.sort(_Agents.toArray(), new Comparator<Object>()
         {
-          return((int)( ((Agent)object1).Id - ((Agent)object2).Id) );
-        }
-      });
+          @Override
+          public int compare(Object object1, Object object2)
+          {
+            return((int)( ((Agent)object1).Id - ((Agent)object2).Id) );
+          }
+        });
+  }
+  
+  public Agent GetAgentInfo()
+  {
+    return(_CurrentAgent);
+  }
+  
+  public List<Agent> getAgents()
+  {
+    return(_Agents);
   }
 }

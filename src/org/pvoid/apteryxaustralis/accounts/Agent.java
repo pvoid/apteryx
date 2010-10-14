@@ -9,6 +9,18 @@ public class Agent implements Parcelable
   public String Name;
   public String Phone;
   
+  public Agent()
+  {
+    
+  }
+  
+  public Agent(long id, String name, String phone)
+  {
+    Id = id;
+    Name = name;
+    Phone = phone;
+  }
+  
   @Override
   public int describeContents()
   {

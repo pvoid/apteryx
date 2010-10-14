@@ -64,9 +64,9 @@ public class DataTransfer
   
   static public void TestAccount(String login, String password, String terminal, IResponseHandler handler)
   {
-    Bundle async_params = new Bundle();
+    /*Bundle async_params = new Bundle();
     async_params.putString(RequestTask.DATA,FormatRequest(login,password,terminal,18,false));
-    (new RequestTask(handler)).execute(async_params);
+    (new RequestTask(handler)).execute(async_params);*/
   }
   
   static public String RefreshStates(String login, String password, String terminal)

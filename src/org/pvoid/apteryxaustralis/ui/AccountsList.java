@@ -6,6 +6,7 @@ import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 
 import android.app.Activity;
 import android.app.AlertDialog;

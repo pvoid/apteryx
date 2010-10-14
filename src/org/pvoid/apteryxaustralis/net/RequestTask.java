@@ -1,11 +1,8 @@
 package org.pvoid.apteryxaustralis.net;
 
-import org.pvoid.apteryxaustralis.Consts;
-
 import android.os.AsyncTask;
-import android.os.Bundle;
 
-public class RequestTask extends AsyncTask<Bundle, Integer, String>
+public class RequestTask extends AsyncTask<Request, Integer, Response>
 {
   public static final String DATA = "RequestTask.data";
   protected IResponseHandler _handler;
@@ -16,17 +13,16 @@ public class RequestTask extends AsyncTask<Bundle, Integer, String>
   }
   
   @Override
-  protected String doInBackground(Bundle... params)
+  protected Response doInBackground(Request... params)
   {
     if(params.length==0)
       return(null);
     
-    String data = params[0].getString(DATA);
-    return(DataTransfer.Load(Consts.URL, data));
+    return(params[0].getResponse());
   }
   
   @Override
-  protected void onPostExecute(String response)
+  protected void onPostExecute(Response response)
   {
     if(_handler!=null)
       _handler.onResponse(response);

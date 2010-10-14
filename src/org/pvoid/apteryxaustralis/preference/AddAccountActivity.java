@@ -1,4 +1,4 @@
-package org.pvoid.apteryxaustralis.ui;
+package org.pvoid.apteryxaustralis.preference;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,7 +22,10 @@ import org.pvoid.apteryxaustralis.net.DataTransfer;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.RequestTask;
 import org.pvoid.apteryxaustralis.net.Response;
+import org.pvoid.apteryxaustralis.ui.SelectActiveAgents;
+import org.pvoid.apteryxaustralis.ui.SelectMainAgent;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -134,9 +137,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     showDialog(0);
     Request request = new Request(_Login, _Password, _TerminalId);
     request.getAgentInfo();
-    Response response = request.getResponse();
-    //DataTransfer.TestAccount(_Login, _Password, _TerminalId, this);
-////////
+    (new RequestTask(this)).execute(request);
   }
   
   public void onActivityResult(int requestCode,int resultCode, Intent intent)
@@ -194,7 +195,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     finish();
   }
   
-  public void onResponse(String response)
+  public void onResponse(Response response)
   {
     if(response==null)
     {
@@ -206,7 +207,9 @@ public class AddAccountActivity extends Activity implements IResponseHandler
              .show();
       return;
     }
-    SAXParserFactory factory = SAXParserFactory.newInstance();
+    dismissDialog(0);
+    Toast.makeText(this, response.Agents().GetAgentInfo().Name, Toast.LENGTH_LONG).show();
+    /*SAXParserFactory factory = SAXParserFactory.newInstance();
     try
     {
       SAXParser parser = factory.newSAXParser();
@@ -253,6 +256,6 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
+    }*/
   }
 }
