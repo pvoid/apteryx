@@ -369,8 +369,7 @@ public class Accounts
       {
         do
         {
-          Agent agent = new Agent();
-          agent.Id = cursor.getLong(0);
+          Agent agent = new Agent(cursor.getLong(0));
           agents.add(agent);
         }
         while(cursor.moveToNext());

@@ -1,39 +1,24 @@
 package org.pvoid.apteryxaustralis.preference;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Utils;
-import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.net.AgentInfoProcessData;
-import org.pvoid.apteryxaustralis.net.DataTransfer;
-import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.RequestTask;
 import org.pvoid.apteryxaustralis.net.Response;
-import org.pvoid.apteryxaustralis.ui.SelectActiveAgents;
-import org.pvoid.apteryxaustralis.ui.SelectMainAgent;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -42,9 +27,6 @@ import android.widget.Toast;
 
 public class AddAccountActivity extends Activity implements IResponseHandler
 {
-  private static final int REQUEST_MAINAGENT = 1;
-  private static final int REQUEST_ACTIVEAGENTS = 2;
-  
   private String _Login;
   private String _Password;
   private String _TerminalId;
@@ -54,8 +36,6 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   private EditText _TerminalEdit;
   private long _Id;
   
-  private AgentInfoProcessData _AgentInfo;
-  private Agent _MainAgent;
   
   public void onCreate(Bundle savedInstanceState)
   {
@@ -92,7 +72,6 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   
   public void CheckAccount(View view)
   {
-    
 ////////
     _Login = _LoginEdit.getText().toString();
     if(Utils.isEmptyString(_Login))
@@ -140,61 +119,6 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     (new RequestTask(this)).execute(request);
   }
   
-  public void onActivityResult(int requestCode,int resultCode, Intent intent)
-  {
-    Bundle extras;
-    switch(resultCode)
-    {
-      case RESULT_CANCELED:
-        setResult(RESULT_CANCELED,null);
-        finish();
-        break;
-      case RESULT_OK:
-        switch(requestCode)
-        {
-          case REQUEST_MAINAGENT:
-            extras = intent.getExtras();
-            _MainAgent = extras.getParcelable(Consts.EXTRA_SELECTED_AGENT);
-            SelectActiveAgents();
-            break;
-          case REQUEST_ACTIVEAGENTS:
-            extras = intent.getExtras();
-            List<Agent> agents = extras.getParcelableArrayList(Consts.EXTRA_SELECTED_AGENTS);
-            SaveAccount(agents);
-            break;
-        }
-    }
-  }
-  
-  public void SelectActiveAgents()
-  {
-    Intent intent = new Intent(this,SelectActiveAgents.class);
-    Bundle params = new Bundle();
-    params.putParcelableArrayList(Consts.EXTRA_AGENTS, _AgentInfo.Agents());
-    intent.putExtras(params);
-    startActivityForResult(intent, REQUEST_ACTIVEAGENTS);
-  }
-  
-  public void SaveAccount(List<Agent> agents)
-  {
-    Accounts accounts = new Accounts(this);
-    if(_Id==0)
-    {
-      accounts.AddAccount(_MainAgent.Id, _MainAgent.Name, _Login, _Password, _TerminalId);
-      accounts.SaveAgents(_MainAgent.Id, agents);
-    }
-    else
-    {
-      accounts.EditAccount(_Id, _MainAgent.Name, _Login, _Password, _TerminalId);
-      accounts.ClearAgents(_Id);
-      accounts.SaveAgents(_Id, agents);
-    }
-
-    dismissDialog(0);
-    setResult(Consts.RESULT_RELOAD);
-    finish();
-  }
-  
   public void onResponse(Response response)
   {
     if(response==null)
@@ -208,54 +132,12 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       return;
     }
     dismissDialog(0);
-    Toast.makeText(this, response.Agents().GetAgentInfo().Name, Toast.LENGTH_LONG).show();
-    /*SAXParserFactory factory = SAXParserFactory.newInstance();
-    try
+    Agent agent = response.Agents().GetAgentInfo();
+    if(agent!=null)
     {
-      SAXParser parser = factory.newSAXParser();
-      InputSource source = new InputSource();
-      ByteArrayInputStream stream = new ByteArrayInputStream(response.getBytes("UTF-8") );
-      source.setByteStream(stream);
-      source.setEncoding("UTF-8");
-      _AgentInfo = new AgentInfoProcessData();
-      parser.parse(source, _AgentInfo);
-////////
-      if(_AgentInfo.Code()==0)
-      {
-        ArrayList<Agent> agents = _AgentInfo.Agents();
-        if(agents.size()==1)
-        {
-          _MainAgent = agents.get(0);
-          SaveAccount(agents);
-          return;
-        }
-        
-        Intent intent = new Intent(this,SelectMainAgent.class);
-        Bundle params = new Bundle();
-        params.putParcelableArrayList(Consts.EXTRA_AGENTS, agents);
-        intent.putExtras(params);
-        startActivityForResult(intent, REQUEST_MAINAGENT);        
-      }
-      else
-      {
-        dismissDialog(0);
-        Toast.makeText(this, getString(ErrorCodes.Message(_AgentInfo.Code())), 300).show();
-      }
+      Account account = new Account(agent.Id, agent.Name, _Login, _Password, _TerminalId);
+      AccountsStorage.Instance().AddUnique(account);
+      //TODO: и агентов подчиненных тоже
     }
-    catch (ParserConfigurationException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    catch (SAXException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    catch (IOException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }*/
   }
 }

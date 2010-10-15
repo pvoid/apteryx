@@ -1,22 +1,25 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.io.Serializable;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Agent implements Parcelable
+public class Agent extends Preserved implements Parcelable, Serializable
 {
-  public long Id;
+  private static final long serialVersionUID = 1930822646830029307L;
+  
   public String Name;
   public String Phone;
   
-  public Agent()
+  public Agent(long id)
   {
-    
+    super(id);
   }
   
   public Agent(long id, String name, String phone)
   {
-    Id = id;
+    super(id);
     Name = name;
     Phone = phone;
   }
@@ -45,8 +48,7 @@ public class Agent implements Parcelable
     @Override
     public Agent createFromParcel(Parcel source)
     {
-      Agent agent = new Agent();
-      agent.Id = source.readLong();
+      Agent agent = new Agent(source.readLong());
       agent.Name = source.readString();
       agent.Phone = source.readString();
       return(agent);

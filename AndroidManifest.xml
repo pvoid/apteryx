@@ -16,8 +16,6 @@
       <activity android:name=".ui.AccountsList" />
       <activity android:name=".preference.CommonSettings" android:label="@string/settings" />
       <activity android:name=".ui.FullInfo" />
-      <activity android:name=".ui.SelectMainAgent" />
-      <activity android:name=".ui.SelectActiveAgents" />
       <service android:name=".UpdateStatusService" android:label="@string/update_service" />
       <receiver android:name=".StatesReceiver" android:process=":remote"/>
       <receiver android:name=".OnBootReceiver" android:enabled="true" android:exported="false">

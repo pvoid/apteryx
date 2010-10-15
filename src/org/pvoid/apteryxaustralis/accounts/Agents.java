@@ -47,13 +47,10 @@ public class Agents implements IResponseParser
       String phone = attributes.getValue("phone");
       try
       {
-        
         switch(_CurrentState)
         {
           case STATE_AGENTINFO:
-            if(_CurrentAgent==null)
-              _CurrentAgent = new Agent();
-            _CurrentAgent.Id = Long.parseLong(id);
+            _CurrentAgent = new Agent(Long.parseLong(id));
             _CurrentAgent.Name = name;
             _CurrentAgent.Phone = phone;
             break;
