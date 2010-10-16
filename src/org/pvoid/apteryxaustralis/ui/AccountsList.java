@@ -98,7 +98,7 @@ public class AccountsList extends Activity
         switch (which)
         {
           case DialogInterface.BUTTON_POSITIVE:
-            _Accounts.DeleteAccount(account.Id);
+            _Accounts.DeleteAccount(account.Id());
             _Adapter.remove(account);
             if(!isChild())
               setResult(Consts.RESULT_RELOAD);
@@ -120,10 +120,10 @@ public class AccountsList extends Activity
   private void EditAccount(final Account account)
   {
     Intent intent = new Intent(this,AddAccountActivity.class);
-    intent.putExtra(Consts.COLUMN_ID, account.Id);
-    intent.putExtra(Consts.COLUMN_LOGIN, account.Login);
-    intent.putExtra(Consts.COLUMN_TERMINAL, account.Terminal);
-    intent.putExtra(Consts.COLUMN_PASSWORD, account.PasswordHash);
+    intent.putExtra(Consts.COLUMN_ID, account.Id());
+    intent.putExtra(Consts.COLUMN_LOGIN, account.getLogin());
+    intent.putExtra(Consts.COLUMN_TERMINAL, account.getTerminalId());
+    intent.putExtra(Consts.COLUMN_PASSWORD, account.getPassword());
     startActivityForResult(intent, Consts.ACTIVITY_EDIT_ACCOUNT);
   }
   

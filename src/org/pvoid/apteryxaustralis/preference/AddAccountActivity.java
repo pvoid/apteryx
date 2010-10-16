@@ -3,6 +3,7 @@ package org.pvoid.apteryxaustralis.preference;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
@@ -10,6 +11,7 @@ import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.RequestTask;
@@ -135,9 +137,15 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     Agent agent = response.Agents().GetAgentInfo();
     if(agent!=null)
     {
-      Account account = new Account(agent.Id, agent.Name, _Login, _Password, _TerminalId);
+      Account account = new Account(agent.Id(), agent.getName(), _Login, _Password, Long.parseLong(_TerminalId));
       AccountsStorage.Instance().AddUnique(account);
-      //TODO: и агентов подчиненных тоже
+      AccountsStorage.Instance().Serialize(this);
+      
+      List<Agent> agents = response.Agents().getAgents();
+      AgentsStorage.Instance().AddUnique(agents);
+      AgentsStorage.Instance().Serialize(this);
+
+      finish();
     }
   }
 }

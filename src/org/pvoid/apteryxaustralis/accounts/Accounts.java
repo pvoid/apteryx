@@ -133,7 +133,7 @@ public class Accounts
                                   cursor.getString(1),
                                   cursor.getString(2), 
                                   cursor.getString(3), 
-                                  cursor.getString(4)));
+                                  Long.parseLong(cursor.getString(4))));
         }
         while(cursor.moveToNext());
       }
@@ -345,7 +345,7 @@ public class Accounts
     
     for(Agent agent : agents)
     {
-      values.put(Consts.COLUMN_AGENTID, agent.Id);
+      values.put(Consts.COLUMN_AGENTID, agent.Id());
       db.insert(Consts.AGENTS_TABLE, null, values);
     }
     _database.close();

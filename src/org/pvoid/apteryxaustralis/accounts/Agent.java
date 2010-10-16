@@ -7,10 +7,10 @@ import android.os.Parcelable;
 
 public class Agent extends Preserved implements Parcelable, Serializable
 {
-  private static final long serialVersionUID = 1930822646830029307L;
-  
-  public String Name;
-  public String Phone;
+  private static final long serialVersionUID = 5056483544575722367L;
+  private String _Name;
+  private String _Phone;
+  private long _AccountId;
   
   public Agent(long id)
   {
@@ -20,8 +20,38 @@ public class Agent extends Preserved implements Parcelable, Serializable
   public Agent(long id, String name, String phone)
   {
     super(id);
-    Name = name;
-    Phone = phone;
+    _Name = name;
+    _Phone = phone;
+  }
+  
+  public String getName()
+  {
+    return(_Name);
+  }
+  
+  public void setName(String name)
+  {
+    _Name = name;
+  }
+  
+  public String getPhone()
+  {
+    return(_Phone);
+  }
+  
+  public void setPhone(String phone)
+  {
+    _Phone = phone;
+  }
+  
+  public long getAccount()
+  {
+    return(_AccountId);
+  }
+  
+  public void setAccount(long accountId)
+  {
+    _AccountId = accountId;
   }
   
   @Override
@@ -32,9 +62,9 @@ public class Agent extends Preserved implements Parcelable, Serializable
   @Override
   public void writeToParcel(Parcel dest, int flags)
   {
-    dest.writeLong(Id);
-    dest.writeString(Name);
-    dest.writeString(Phone);
+    dest.writeLong(Id());
+    dest.writeString(_Name);
+    dest.writeString(_Phone);
   }
   
   public static final Parcelable.Creator<Agent> CREATOR = new Parcelable.Creator<Agent>()
@@ -49,14 +79,31 @@ public class Agent extends Preserved implements Parcelable, Serializable
     public Agent createFromParcel(Parcel source)
     {
       Agent agent = new Agent(source.readLong());
-      agent.Name = source.readString();
-      agent.Phone = source.readString();
+      agent._Name = source.readString();
+      agent._Phone = source.readString();
       return(agent);
     }
   };
   
   public String toString()
   {
-    return(Name);
+    return(_Name);
+  }
+
+  @Override
+  public <T extends Preserved> void Copy(T another)
+  {
+    Agent agent;
+    try
+    {
+      agent = (Agent)another;
+    } 
+    catch(ClassCastException e)
+    {
+      e.printStackTrace();
+      return;
+    }
+    _Name = agent.getName();
+    _Phone = agent.getPhone();    
   }
 }

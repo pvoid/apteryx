@@ -10,7 +10,7 @@ import org.xml.sax.Attributes;
 
 import android.util.Log;
 
-public class Agents implements IResponseParser
+public class AgentsSection implements IResponseParser
 {
   private final int STATE_NONE = 0;
   private final int STATE_AGENTINFO = 1;
@@ -20,9 +20,9 @@ public class Agents implements IResponseParser
   private ArrayList<Agent> _Agents;
   private Agent _CurrentAgent;
   
-  public static Agents getParser()
+  public static AgentsSection getParser()
   {
-    return(new Agents());
+    return(new AgentsSection());
   }
 
   @Override
@@ -47,25 +47,34 @@ public class Agents implements IResponseParser
       String phone = attributes.getValue("phone");
       try
       {
-        switch(_CurrentState)
-        {
-          case STATE_AGENTINFO:
-            _CurrentAgent = new Agent(Long.parseLong(id));
-            _CurrentAgent.Name = name;
-            _CurrentAgent.Phone = phone;
-            break;
-          case STATE_AGENTSINFO:
-            if(_Agents==null)
-              _Agents = new ArrayList<Agent>();
-            _Agents.add(new Agent(Long.parseLong(id),name,phone));
-            break;
-        }        
+        _CurrentAgent = new Agent(Long.parseLong(id),name,phone);
       }
       catch(NumberFormatException e)
       {
         Log.e("Apteryx", "Invalid agent id:"+id);
         e.printStackTrace();
       }
+      return;
+    }
+/////////
+    if(tagName.equalsIgnoreCase("row") && _CurrentState == STATE_AGENTSINFO)
+    {
+      String id = attributes.getValue("agt_id");
+      String name = attributes.getValue("agt_name");
+      if(_Agents==null)
+        _Agents = new ArrayList<Agent>();
+      try
+      {
+        Agent agent = new Agent(Long.parseLong(id),name,null);
+        agent.setAccount(_CurrentAgent.Id());
+        _Agents.add(agent);
+      }
+      catch(NumberFormatException e)
+      {
+        Log.e("Apteryx", "Invalid agent id:"+id);
+        e.printStackTrace();
+      }
+      return;
     }
   }
 
@@ -90,7 +99,7 @@ public class Agents implements IResponseParser
           @Override
           public int compare(Object object1, Object object2)
           {
-            return((int)( ((Agent)object1).Id - ((Agent)object2).Id) );
+            return((int)( ((Agent)object1).Id() - ((Agent)object2).Id()) );
           }
         });
   }

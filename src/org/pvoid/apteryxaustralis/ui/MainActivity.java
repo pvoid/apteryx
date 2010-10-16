@@ -11,6 +11,7 @@ import org.pvoid.apteryxaustralis.Notifyer;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
@@ -97,13 +98,17 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+////////
+    _Accounts = new Accounts(this);    
+    AccountsStorage.Instance().Restore(this);
+    AccountsStorage.Instance().ConvertFromOld(_Accounts,this);
+////////
     requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main);
     setProgressBarIndeterminateVisibility(false);
     _Terminals = new TerminalsProcessData();
     _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
     _TerminalsList = (ListView)findViewById(R.id.terminals_list);
-    _Accounts = new Accounts(this);
     _Refreshing = false;
     _RefreshLock = new Object();
     if(_TerminalsList!=null)
@@ -182,9 +187,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         for(Account account : accounts)
         {
           ArrayList<Agent> agents_line = new ArrayList<Agent>();
-          _Accounts.GetAgents(account.Id, agents_line);
+          _Accounts.GetAgents(account.Id(), agents_line);
           if(agents_line.size()>0)
-            agents.put(account.Id, agents_line);
+            agents.put(account.Id(), agents_line);
         }
         
         Account[] ac = new Account[accounts.size()];
@@ -363,7 +368,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         flipper.addView(view, LayoutParams.WRAP_CONTENT);
       }
 
-      view.setText(Html.fromHtml("<b>"+account.Title+"</b><br>"+_Terminals.Balance(account.Id)));
+      view.setText(Html.fromHtml("<b>"+account.getTitle()+"</b><br>"+_Terminals.Balance(account.Id())));
     }
     
     if(accounts.size()>1)

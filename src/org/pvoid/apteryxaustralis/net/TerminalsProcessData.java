@@ -319,7 +319,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     int index = 0;
     for(Agent agent : agents)
     {
-      _AgentsFilter[index] = agent.Id;
+      _AgentsFilter[index] = agent.Id();
       index++;
     }
     Arrays.sort(_AgentsFilter);

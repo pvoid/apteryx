@@ -18,6 +18,7 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:id="@+id/terminal"
+        android:numeric="integer"
         />
 		<TextView
 		    android:layout_width="fill_parent" 
@@ -29,6 +30,7 @@
 		    android:layout_height="wrap_content"
 		    android:singleLine="true"
 		    android:id="@+id/login"
+		    android:numeric="integer"
 		    />
 		<TextView
 		    android:layout_width="fill_parent" 

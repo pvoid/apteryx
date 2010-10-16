@@ -11,7 +11,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.pvoid.apteryxaustralis.accounts.Agents;
+import org.pvoid.apteryxaustralis.accounts.AgentsSection;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -22,7 +22,7 @@ public class Response extends DefaultHandler
   private int _HttpCode;
   private int _OsmpCode;
   private IResponseParser _Parser = null;
-  private Agents _Agents;
+  private AgentsSection _Agents;
   
   public Response(HttpsURLConnection connection) throws UnsupportedEncodingException, IOException
   {
@@ -102,7 +102,7 @@ public class Response extends DefaultHandler
     }
     else if(localName.equalsIgnoreCase("agents"))
     {
-      _Agents = Agents.getParser();
+      _Agents = AgentsSection.getParser();
       _Parser = _Agents;
       _Parser.SectionStart();
     }
@@ -128,7 +128,7 @@ public class Response extends DefaultHandler
     }
   }
   
-  public Agents Agents()
+  public AgentsSection Agents()
   {
     return(_Agents);
   }

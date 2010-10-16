@@ -52,7 +52,7 @@ public class StatesRequestWorker
       return(false);
     }
 //////
-    for(Account account : accounts)
+    /*for(Account account : accounts)
     {
       _Terminals.SetAgent(account.Id);
       _Terminals.SetAgentsFilter(_Filter.get(account.Id));
@@ -87,7 +87,7 @@ public class StatesRequestWorker
         e.printStackTrace();
       }
       
-    }
+    }*/
     return(true);
   }
 }

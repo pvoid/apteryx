@@ -1,14 +1,11 @@
 package org.pvoid.apteryxaustralis.preference;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,16 +48,11 @@ public class CommonSettings extends PreferenceActivity
     InitializeInterval(preferences.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]));
     InitializeVibration();
     InitializeSound(preferences.getString(Consts.PREF_SOUND, ""));
-    InitializeAgents();
+    InitializeAccounts();
   }
 
-  private void InitializeAgents()
+  private void InitializeAccounts()
   {
-/////// В последующем переделать
-    Accounts accounts = new Accounts(this);
-    ArrayList<Account> adapter = new ArrayList<Account>();
-    accounts.GetAccounts(adapter);
-///////
     PreferenceCategory category = (PreferenceCategory)findPreference("accounts");
     AddAccount add_account = new AddAccount(this);
     add_account.setOnPreferenceClickListener(new OnPreferenceClickListener()
@@ -74,11 +66,14 @@ public class CommonSettings extends PreferenceActivity
       }
     });
     category.addPreference(add_account);
-    for(Account account : adapter)
-    {
-      AccountPreference accountPreference = new AccountPreference(this, account.Id, account.Title);
-      category.addPreference(accountPreference);
-    }
+////////
+    AccountsStorage storage = AccountsStorage.Instance();
+    if(!storage.isEmpty())
+      for(Account account : storage)
+      {
+        AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
+        category.addPreference(accountPreference);
+      }
   }
   
   private void InitializeSound(String sound_uri)
