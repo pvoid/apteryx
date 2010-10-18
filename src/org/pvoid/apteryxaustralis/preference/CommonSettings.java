@@ -7,6 +7,7 @@ import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Ringtone;
@@ -22,6 +23,13 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.RingtonePreference;
 import android.provider.Settings;
+import android.view.ContextMenu;
+import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnCreateContextMenuListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
 public class CommonSettings extends PreferenceActivity
 {
@@ -29,6 +37,20 @@ public class CommonSettings extends PreferenceActivity
   private ListPreference _Intervals;
   private CheckBoxPreference _UseVibro;
   private RingtonePreference _Ringtone;
+  private ArrayAdapter<String> _Commands;
+  
+  private OnPreferenceClickListener accountClickListener = new OnPreferenceClickListener()
+  {
+    @Override
+    public boolean onPreferenceClick(Preference preference)
+    {
+      AlertDialog.Builder dialog = new AlertDialog.Builder(CommonSettings.this);
+      dialog.setAdapter(_Commands, null);
+      dialog.setCancelable(true);
+      dialog.show();
+      return(true);
+    }
+  };
   
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -72,8 +94,13 @@ public class CommonSettings extends PreferenceActivity
       for(Account account : storage)
       {
         AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
+        accountPreference.setOnPreferenceClickListener(accountClickListener);
         category.addPreference(accountPreference);
       }
+//////// Команды управления
+    _Commands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
+    _Commands.add(getString(R.string.edit));
+    _Commands.add(getString(R.string.delete));
   }
   
   private void InitializeSound(String sound_uri)

@@ -15,5 +15,11 @@ public class AgentsStorage extends Storage<Agent>
     return("agents.data");
   }
 
+  @Override
+  protected Agent EmptyItem(long id)
+  {
+    return(new Agent(id));
+  }
+
   // TODO: Функция конвертации из старого
 }

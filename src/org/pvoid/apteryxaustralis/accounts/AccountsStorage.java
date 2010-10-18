@@ -18,6 +18,13 @@ public class AccountsStorage extends Storage<Account>
   {
     return("accounts.data");
   }
+
+  @Override
+  protected Account EmptyItem(long id)
+  {
+    return(new Account(id));
+  }
+  
   
   public void ConvertFromOld(Accounts accounts, Context context)
   {

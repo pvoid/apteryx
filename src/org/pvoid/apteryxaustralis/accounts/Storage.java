@@ -23,7 +23,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
  */
   public boolean Add(T... items)
   {
-    return(Add(items));
+    return(Add(Arrays.asList(items)));
   }
 /**
  * Добавляет к хранилищу элементы на основе итератора. Записи не производит, добавление только в памяти
@@ -49,7 +49,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
  */
   public void AddUnique(T... items)
   {
-    AddUnique(items);
+    AddUnique(Arrays.asList(items));
   }
 /**
  * Добавляет к хранилищу элементы на основе итератора, не допуская их дублирования. Если элемент с таким ID 
@@ -78,14 +78,19 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   
   public boolean Delete(T item)
   {
-    // TODO: Просто катострафически необходимо это реализовать.
+    int index = Arrays.binarySearch(_Items.toArray(),item);
+    if(index>=0)
+    {
+      _Items.remove(index);
+      return(true);
+    }
     return(false);
   }
   
   public boolean Delete(long id)
   {
-    // TODO: Просто катострафически необходимо это реализовать.
-    return(false);
+    T item = EmptyItem(id);
+    return(Delete(item));
   }
 /**
  * Итератор для перебора записей в хранилище. Записи отсортированы по Id
@@ -103,6 +108,8 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   {
     return(_Items==null || _Items.isEmpty());
   }
+  
+  protected abstract T EmptyItem(long id);
 /**
  * @return Имя файла куда должно записываться хранилище
  */

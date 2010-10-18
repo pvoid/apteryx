@@ -13,6 +13,11 @@ public class Account extends Preserved implements Serializable
   private String _PasswordHash;
   private long _Terminal;
   
+  public Account(long id)
+  {
+    super(id);
+  }
+  
   public Account(long id, String title, String login,String password,long terminal)
   {
     super(id);
