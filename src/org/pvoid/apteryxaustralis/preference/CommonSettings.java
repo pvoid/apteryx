@@ -8,6 +8,8 @@ import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Ringtone;
@@ -23,13 +25,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.RingtonePreference;
 import android.provider.Settings;
-import android.view.ContextMenu;
-import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.View.OnCreateContextMenuListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
 
 public class CommonSettings extends PreferenceActivity
 {
@@ -38,14 +34,30 @@ public class CommonSettings extends PreferenceActivity
   private CheckBoxPreference _UseVibro;
   private RingtonePreference _Ringtone;
   private ArrayAdapter<String> _Commands;
+  private PreferenceCategory _AccountsCategory;
   
   private OnPreferenceClickListener accountClickListener = new OnPreferenceClickListener()
   {
     @Override
-    public boolean onPreferenceClick(Preference preference)
+    public boolean onPreferenceClick(final Preference preference)
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(CommonSettings.this);
-      dialog.setAdapter(_Commands, null);
+      dialog.setAdapter(_Commands, new OnClickListener()
+      {
+        @Override
+        public void onClick(DialogInterface dialog, int which)
+        {
+          switch(which)
+          {
+            case 0:
+              EditPreference(preference);
+              break;
+            case 1:
+              DeletePreference(preference);
+              break;
+          }
+        }
+      });
       dialog.setCancelable(true);
       dialog.show();
       return(true);
@@ -75,7 +87,7 @@ public class CommonSettings extends PreferenceActivity
 
   private void InitializeAccounts()
   {
-    PreferenceCategory category = (PreferenceCategory)findPreference("accounts");
+    _AccountsCategory = (PreferenceCategory)findPreference("accounts");
     AddAccount add_account = new AddAccount(this);
     add_account.setOnPreferenceClickListener(new OnPreferenceClickListener()
     {
@@ -83,11 +95,11 @@ public class CommonSettings extends PreferenceActivity
       public boolean onPreferenceClick(Preference preference)
       {
         Intent intent = new Intent(CommonSettings.this, AddAccountActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent,0);
         return false;
       }
     });
-    category.addPreference(add_account);
+    _AccountsCategory.addPreference(add_account);
 ////////
     AccountsStorage storage = AccountsStorage.Instance();
     if(!storage.isEmpty())
@@ -95,12 +107,25 @@ public class CommonSettings extends PreferenceActivity
       {
         AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
         accountPreference.setOnPreferenceClickListener(accountClickListener);
-        category.addPreference(accountPreference);
+        _AccountsCategory.addPreference(accountPreference);
       }
 //////// Команды управления
     _Commands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
     _Commands.add(getString(R.string.edit));
     _Commands.add(getString(R.string.delete));
+  }
+  
+  protected void onActivityResult (int requestCode, int resultCode, Intent data)
+  {
+    if(requestCode==0 && resultCode==RESULT_OK)
+    {
+      long accountId = data.getLongExtra(Consts.EXTRA_ACCOUNTID, 0);
+      Account account = AccountsStorage.Instance().Find(accountId);
+      
+      AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
+      accountPreference.setOnPreferenceClickListener(accountClickListener);
+      _AccountsCategory.addPreference(accountPreference);
+    }
   }
   
   private void InitializeSound(String sound_uri)
@@ -252,5 +277,19 @@ public class CommonSettings extends PreferenceActivity
       return(true);
     }
     return(false);
+  }
+  
+  private void EditPreference(Preference preference)
+  {
+    
+  }
+  
+  private void DeletePreference(Preference preference)
+  {
+    // TODO: Спросить надо ли
+    AccountsStorage.Instance().Delete(((AccountPreference)preference).Id());
+    // TODO: Почистить агентов и терминалы
+    AccountsStorage.Instance().Serialize(this);
+    _AccountsCategory.removePreference(preference);    
   }
 }

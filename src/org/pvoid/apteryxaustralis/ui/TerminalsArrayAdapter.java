@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 
 import android.content.Context;
 import android.text.Html;
@@ -18,7 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
+public class TerminalsArrayAdapter extends ArrayAdapter<TerminalInfoOld>
 {
   private Context _Context;
   
@@ -38,7 +38,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       view = inflater.inflate(R.layout.terminal, null);
     }
     
-    Terminal terminal = getItem(position);
+    TerminalInfoOld terminal = getItem(position);
     if(terminal!=null)
     {
       TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
@@ -97,10 +97,10 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
         int icon_id;
         switch(terminal.State())
         {
-          case Terminal.STATE_OK:
+          case TerminalInfoOld.STATE_OK:
             icon_id = R.drawable.terminal_active;
             break;
-          case Terminal.STATE_WARRNING:
+          case TerminalInfoOld.STATE_WARRNING:
             icon_id = R.drawable.terminal_pending;
             SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
             TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");

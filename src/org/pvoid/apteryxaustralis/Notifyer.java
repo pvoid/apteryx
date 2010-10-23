@@ -14,7 +14,7 @@ import android.text.Html;
 import android.widget.RemoteViews;
 
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifyer
@@ -41,13 +41,13 @@ public class Notifyer
     }
   }
   
-  public static void ShowNotification(Context context, List<Terminal> terminals)
+  public static void ShowNotification(Context context, List<TerminalInfoOld> terminals)
   {
     Notification notification = GetIcon(context);
     notification.icon = R.drawable.terminal_inactive;
     
     StringBuilder bulder = new StringBuilder(2000);
-    for(Terminal terminal : terminals)
+    for(TerminalInfoOld terminal : terminals)
     {
       bulder.append("<b>");
       bulder.append(terminal.Address());

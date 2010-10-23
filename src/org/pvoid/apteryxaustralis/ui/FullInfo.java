@@ -1,7 +1,7 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -14,7 +14,7 @@ public class FullInfo extends Activity
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    Terminal terminal = getIntent().getParcelableExtra("terminal");
+    TerminalInfoOld terminal = getIntent().getParcelableExtra("terminal");
     if(terminal!=null)
     {
       setTitle(terminal.Address());

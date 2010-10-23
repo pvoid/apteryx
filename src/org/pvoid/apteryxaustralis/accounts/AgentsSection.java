@@ -17,7 +17,7 @@ public class AgentsSection implements IResponseParser
   private final int STATE_AGENTSINFO = 2;
   
   private int _CurrentState;
-  private ArrayList<Agent> _Agents;
+  private ArrayList<Agent> _Agents = null;
   private Agent _CurrentAgent;
   
   public static AgentsSection getParser()
@@ -28,19 +28,19 @@ public class AgentsSection implements IResponseParser
   @Override
   public void ElementStart(String tagName, Attributes attributes)
   {
-    if(tagName.equalsIgnoreCase("getAgentInfo"))
+    if(tagName.equals("getAgentInfo"))
     {
       _CurrentState = STATE_AGENTINFO;
       return;
     }
 ////////
-    if(tagName.equalsIgnoreCase("getAgents"))
+    if(tagName.equals("getAgents"))
     {
       _CurrentState = STATE_AGENTSINFO;
       return;
     }
 ////////
-    if(tagName.equalsIgnoreCase("agent"))
+    if(tagName.equals("agent"))
     {
       String id = attributes.getValue("id");
       String name = attributes.getValue("name");
@@ -57,7 +57,7 @@ public class AgentsSection implements IResponseParser
       return;
     }
 /////////
-    if(tagName.equalsIgnoreCase("row") && _CurrentState == STATE_AGENTSINFO)
+    if(tagName.equals("row") && _CurrentState == STATE_AGENTSINFO)
     {
       String id = attributes.getValue("agt_id");
       String name = attributes.getValue("agt_name");
@@ -79,7 +79,7 @@ public class AgentsSection implements IResponseParser
   }
 
   @Override
-  public void ElementEnd(String innerText)
+  public void ElementEnd(String name, String innerText)
   {
     // TODO Auto-generated method stub
   }

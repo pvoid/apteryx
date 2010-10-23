@@ -13,7 +13,7 @@ import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Accounts;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
 import org.pvoid.apteryxaustralis.net.StatesRequestTask;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
@@ -68,10 +68,10 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   };
   
   // TODO: Перетащить сортировку и наполнение в AsyncTask 
-  private static final Comparator<Terminal> _TerminalComparer = new Comparator<Terminal>()
+  private static final Comparator<TerminalInfoOld> _TerminalComparer = new Comparator<TerminalInfoOld>()
   {
     @Override
-    public int compare(Terminal object1, Terminal object2)
+    public int compare(TerminalInfoOld object1, TerminalInfoOld object2)
     {
       int result = (int)(object1.agentId - object2.agentId);
       
@@ -337,7 +337,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   @Override
   public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
   {
-    Terminal terminal = _TerminalsAdapter.getItem(position);
+    TerminalInfoOld terminal = _TerminalsAdapter.getItem(position);
     if(terminal!=null && terminal.id()!=null)
     {
       /*Intent intent = new Intent(this, FullInfo.class);

@@ -15,6 +15,7 @@ public class Request
 {
   private StringBuffer _Request = new StringBuffer();
   private StringBuffer _AgentInterface = new StringBuffer();
+  private StringBuffer _TerminalsInterface = new StringBuffer();
   @SuppressWarnings("unused")
   private static final SSLInitializer _Initializer = new SSLInitializer();
   
@@ -48,6 +49,11 @@ public class Request
     _AgentInterface.append("<getAgents/>");
   }
   
+  public void getTerminals()
+  {
+    _TerminalsInterface.append("<getTerminals />");
+  }
+  
   public Response getResponse()
   {
     if(_AgentInterface.length()>0)
@@ -55,6 +61,12 @@ public class Request
       _Request.append("<agents>");
       _Request.append(_AgentInterface);
       _Request.append("</agents>");
+    }
+    if(_TerminalsInterface.length()>0)
+    {
+      _Request.append("<terminals>");
+      _Request.append(_TerminalsInterface);
+      _Request.append("</terminals>");
     }
     _Request.append("</request>");
     try

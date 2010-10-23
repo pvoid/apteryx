@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Accounts;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.StatesRequestWorker;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
@@ -26,7 +26,7 @@ public class StatesReceiver extends BroadcastReceiver
   public void onReceive(Context context, Intent intent)
   {
     TerminalsProcessData terminals = new TerminalsProcessData();
-    ArrayList<Terminal> inactive_terminals = new ArrayList<Terminal>();
+    ArrayList<TerminalInfoOld> inactive_terminals = new ArrayList<TerminalInfoOld>();
 
     Accounts accounts_storage = new Accounts(context);
     ArrayList<Account> accounts = new ArrayList<Account>();

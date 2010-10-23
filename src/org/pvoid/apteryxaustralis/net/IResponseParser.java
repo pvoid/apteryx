@@ -7,5 +7,5 @@ public interface IResponseParser
   void SectionStart();
   void SectionEnd();
   void ElementStart(String name, Attributes attributes); 
-  void ElementEnd(String innerText);
+  void ElementEnd(String name, String innerText);
 }

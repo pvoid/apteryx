@@ -1,8 +1,15 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-public abstract class Preserved implements Comparable<Preserved>
+import java.io.Serializable;
+
+public abstract class Preserved implements Comparable<Preserved>, Serializable
 {
+  private static final long serialVersionUID = -2369111070886521999L;
   private long _Id;
+  
+  protected Preserved()
+  {
+  }
   
   public Preserved(long id)
   {
@@ -17,7 +24,7 @@ public abstract class Preserved implements Comparable<Preserved>
   @Override
   public int compareTo(Preserved another)
   {
-    return((int)(_Id - another.Id()));
+    return((int)(another.Id() - _Id));
   }
   
   public abstract <T extends Preserved> void Copy(T another);

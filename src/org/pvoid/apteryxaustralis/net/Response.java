@@ -12,6 +12,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.pvoid.apteryxaustralis.accounts.AgentsSection;
+import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -23,6 +24,7 @@ public class Response extends DefaultHandler
   private int _OsmpCode;
   private IResponseParser _Parser = null;
   private AgentsSection _Agents;
+  private TerminalsSection _Terminals;
   
   public Response(HttpsURLConnection connection) throws UnsupportedEncodingException, IOException
   {
@@ -92,7 +94,7 @@ public class Response extends DefaultHandler
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException
   {
-    if(localName.equalsIgnoreCase("response"))
+    if(localName.equals("response"))
     {
       String code = attributes.getValue("result");
       if(code!=null)
@@ -100,10 +102,16 @@ public class Response extends DefaultHandler
         _OsmpCode = Integer.parseInt(code);
       }
     }
-    else if(localName.equalsIgnoreCase("agents"))
+    else if(localName.equals("agents"))
     {
       _Agents = AgentsSection.getParser();
       _Parser = _Agents;
+      _Parser.SectionStart();
+    }
+    else if(localName.equals("terminals"))
+    {
+      _Terminals = TerminalsSection.getParser();
+      _Parser = _Terminals;
       _Parser.SectionStart();
     }
     else if(_Parser!=null)
@@ -121,7 +129,12 @@ public class Response extends DefaultHandler
   @Override
   public void endElement(String uri, String localName, String qName)
   {
-    if(localName.equalsIgnoreCase("agents"))
+    if(localName.equals("agents"))
+    {
+      _Parser.SectionEnd();
+      _Parser = null;
+    }
+    else if(localName.equals("terminals"))
     {
       _Parser.SectionEnd();
       _Parser = null;
@@ -131,6 +144,11 @@ public class Response extends DefaultHandler
   public AgentsSection Agents()
   {
     return(_Agents);
+  }
+  
+  public TerminalsSection Terminals()
+  {
+    return(_Terminals);
   }
   
   public int OsmpCode()

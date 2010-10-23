@@ -12,7 +12,10 @@ public class AccountPreference extends Preference
     super(context);
     setTitle(agentName);
     _Id = agentId;
-    
-    
+  }
+  
+  public long Id()
+  {
+    return(_Id);
   }
 }

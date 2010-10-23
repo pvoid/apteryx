@@ -1,11 +1,9 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import java.io.Serializable;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Agent extends Preserved implements Parcelable, Serializable
+public class Agent extends Preserved implements Parcelable
 {
   private static final long serialVersionUID = 5056483544575722367L;
   private String _Name;

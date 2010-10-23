@@ -33,6 +33,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   public boolean Add(Iterable<T> items)
   {
     boolean result = false;
+    
     for(T item : items)
       if(!(result = _Items.add(item)))
         break;
@@ -58,6 +59,9 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
  */
   public void AddUnique(Iterable<T> items)
   {
+    if(items==null)
+      return;
+/////////
     for(T item : items)
     {
       int index = Arrays.binarySearch(_Items.toArray(), item); 
@@ -72,8 +76,10 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
       else
       {
         _Items.get(index).<T>Copy(item);
-      } 
+      }
     }
+/////////
+    Arrays.sort(_Items.toArray());
   }
   
   public boolean Delete(T item)
@@ -91,6 +97,15 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   {
     T item = EmptyItem(id);
     return(Delete(item));
+  }
+  
+  public T Find(long id)
+  {
+    T needle = EmptyItem(id);
+    int index = Arrays.binarySearch(_Items.toArray(), needle);
+    if(index>-1)
+      return(_Items.get(index));
+    return(null);
   }
 /**
  * Итератор для перебора записей в хранилище. Записи отсортированы по Id

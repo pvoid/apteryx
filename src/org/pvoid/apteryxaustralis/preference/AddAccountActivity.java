@@ -12,6 +12,9 @@ import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
+import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
+import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.RequestTask;
@@ -21,6 +24,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -118,14 +122,16 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     showDialog(0);
     Request request = new Request(_Login, _Password, _TerminalId);
     request.getAgentInfo();
+    request.getAgents();
+    request.getTerminals();
     (new RequestTask(this)).execute(request);
   }
   
   public void onResponse(Response response)
   {
+    dismissDialog(0);    
     if(response==null)
     {
-      dismissDialog(0);
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(getString(R.string.network_error))
              .setPositiveButton("Ok",null)
@@ -133,7 +139,17 @@ public class AddAccountActivity extends Activity implements IResponseHandler
              .show();
       return;
     }
-    dismissDialog(0);
+    
+    if(response.OsmpCode()!=0)
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setMessage(ErrorCodes.Message(response.OsmpCode()))
+             .setPositiveButton("Ok",null)
+             .setTitle(R.string.add_account)
+             .show();
+      return;
+    }
+    
     Agent agent = response.Agents().GetAgentInfo();
     if(agent!=null)
     {
@@ -144,7 +160,14 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       List<Agent> agents = response.Agents().getAgents();
       AgentsStorage.Instance().AddUnique(agents);
       AgentsStorage.Instance().Serialize(this);
+      
+      List<Terminal> terminals = response.Terminals().getTerminals();
+      TerminalsStorage.Instance().AddUnique(terminals);
+      TerminalsStorage.Instance().Serialize(this);
 
+      Intent result = new Intent();
+      result.putExtra(Consts.EXTRA_ACCOUNTID, agent.Id());
+      setResult(RESULT_OK, result);
       finish();
     }
   }

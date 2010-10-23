@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -23,7 +23,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private final int EXTRA_BALANCE  = 1;
   private final int EXTRA_OVERDRAFT  = 2;
   
-  private HashMap<String,Terminal> _Terminals;
+  private HashMap<String,TerminalInfoOld> _Terminals;
   private int _Status;
   private long _AgentId;
   private HashMap<Long,Double> _Balances;
@@ -41,7 +41,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   
   public TerminalsProcessData()
   {
-    _Terminals = new HashMap<String,Terminal>();
+    _Terminals = new HashMap<String,TerminalInfoOld>();
     _Balances = new HashMap<Long, Double>();
     _Overdrafts = new HashMap<Long, Double>();
     _Cash = new HashMap<Long, Integer>();
@@ -219,7 +219,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Terminals.keySet().iterator());
   }
   
-  public Terminal at(String index)
+  public TerminalInfoOld at(String index)
   {
     return _Terminals.get(index);
   }
@@ -282,7 +282,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(!_IsEmpty);
   }
   
-  public void add(Terminal terminal)
+  public void add(TerminalInfoOld terminal)
   {
     _Terminals.put(terminal.id(), terminal);
     _Agents.put(terminal.agentId, terminal.agentName);

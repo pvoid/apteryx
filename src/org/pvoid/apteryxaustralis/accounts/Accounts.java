@@ -150,7 +150,7 @@ public class Accounts
     db.delete(Consts.TERMINALS_TABLE, null, null);    
     for(String terminal_id : terminals)
     {
-      Terminal terminal = terminals.at(terminal_id);
+      TerminalInfoOld terminal = terminals.at(terminal_id);
       
       values.put(Consts.COLUMN_ID, terminal.id());
       values.put(Consts.COLUMN_ADDRESS, terminal.Address());
@@ -305,7 +305,7 @@ public class Accounts
     _database.close();
   }
   
-  public boolean CheckStates(final TerminalsProcessData terminals,List<Terminal> states)
+  public boolean CheckStates(final TerminalsProcessData terminals,List<TerminalInfoOld> states)
   {
     Boolean result = false;
     SQLiteDatabase db = OpenRead();
@@ -319,10 +319,10 @@ public class Accounts
         {
           String terminal_id = cursor.getString(0);
           int terminal_state = cursor.getInt(1);
-          Terminal terminal = terminals.at(terminal_id);
+          TerminalInfoOld terminal = terminals.at(terminal_id);
           if(terminal!=null)
           {
-            if(terminal.State() != Terminal.STATE_OK && terminal_state==Terminal.STATE_OK)
+            if(terminal.State() != TerminalInfoOld.STATE_OK && terminal_state==TerminalInfoOld.STATE_OK)
             {
               result = true;
               states.add(terminal);

@@ -1,10 +1,8 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import java.io.Serializable;
-
 import org.pvoid.apteryxaustralis.Utils;
 
-public class Account extends Preserved implements Serializable
+public class Account extends Preserved
 {
   private static final long serialVersionUID = 3074352127412133550L;
 ////////
