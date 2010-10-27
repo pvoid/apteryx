@@ -45,20 +45,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
+public class MainActivity extends Activity// implements IStatesRespnseHandler, OnItemClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
   
-  private TerminalsProcessData _Terminals;
+  /*private TerminalsProcessData _Terminals;
   private ListView _TerminalsList;
   private TerminalsArrayAdapter _TerminalsAdapter;
   private Accounts _Accounts;
   
   private boolean _Refreshing;
-  private Object _RefreshLock;
+  private Object _RefreshLock;*/
   
-  public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
+  /*public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
     @Override
     public void onReceive(Context context, Intent intent)
@@ -302,7 +302,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       terminal.agentName = agents.get(agentId);
       terminal.cash = _Terminals.AgentCash(agentId);
       terminal.State(0);
-      _TerminalsAdapter.add(terminal);*/
+      _TerminalsAdapter.add(terminal);*//*
     }
     
     _TerminalsAdapter.sort(_TerminalComparer);
@@ -342,7 +342,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     {
       /*Intent intent = new Intent(this, FullInfo.class);
       intent.putExtra("terminal", terminal);
-      startActivity(intent);*/
+      startActivity(intent);*//*
     }
   }
   
@@ -375,5 +375,5 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       flipper.startFlipping();
     else
       flipper.stopFlipping();
-  }
+  }*/
 }

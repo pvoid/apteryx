@@ -15,7 +15,7 @@ import android.content.Context;
 
 public abstract class Storage<T extends Preserved> implements Iterable<T>
 {
-  private ArrayList<T> _Items = new ArrayList<T>();
+  protected ArrayList<T> _Items = new ArrayList<T>();
 /**
  * Добавляет к хранилищу элементы. Записи не производит, добавление только в памяти
  * @param items Добавляемые элементы
@@ -81,7 +81,11 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
 /////////
     Arrays.sort(_Items.toArray());
   }
-  
+/**
+ * Удаляет элемент из хранилища
+ * @param item  будет сравниватся с текущим элементом, при равенстве удален
+ * @return
+ */
   public boolean Delete(T item)
   {
     int index = Arrays.binarySearch(_Items.toArray(),item);
@@ -92,13 +96,21 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
     }
     return(false);
   }
-  
+/**
+ * Удаляет элемент их хранилища
+ * @param id идентификатор удаляемого элемента
+ * @return
+ */
   public boolean Delete(long id)
   {
     T item = EmptyItem(id);
     return(Delete(item));
   }
-  
+/**
+ * Возвращает элемент из хранилища по его id
+ * @param id
+ * @return
+ */
   public T Find(long id)
   {
     T needle = EmptyItem(id);

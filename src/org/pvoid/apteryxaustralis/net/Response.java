@@ -12,6 +12,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.pvoid.apteryxaustralis.accounts.AgentsSection;
+import org.pvoid.apteryxaustralis.accounts.ReportsSection;
 import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -25,6 +26,7 @@ public class Response extends DefaultHandler
   private IResponseParser _Parser = null;
   private AgentsSection _Agents;
   private TerminalsSection _Terminals;
+  private ReportsSection _Reports;
   
   public Response(HttpsURLConnection connection) throws UnsupportedEncodingException, IOException
   {
@@ -112,6 +114,12 @@ public class Response extends DefaultHandler
     {
       _Terminals = TerminalsSection.getParser();
       _Parser = _Terminals;
+      _Parser.SectionStart();
+    }
+    else if(localName.equals("reports"))
+    {
+      _Reports = ReportsSection.getParser();
+      _Parser = _Reports;
       _Parser.SectionStart();
     }
     else if(_Parser!=null)
