@@ -159,6 +159,11 @@ public class Response extends DefaultHandler
     return(_Terminals);
   }
   
+  public ReportsSection Reports()
+  {
+    return(_Reports);
+  }
+  
   public int OsmpCode()
   {
     return(_OsmpCode);

@@ -49,6 +49,5 @@ public class Terminal extends Preserved
     Terminal terminal = (Terminal)another;
     _Address = terminal.Address();
     _DisplayName = terminal.DisplayName();
-  }
-
+  } 
 }

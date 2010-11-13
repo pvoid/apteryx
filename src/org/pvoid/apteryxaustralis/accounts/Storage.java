@@ -9,7 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 import android.content.Context;
 
@@ -39,7 +42,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
         break;
 ///////
     if(result)
-      Arrays.sort(_Items.toArray());
+      Collections.sort(_Items,comparator());
 ///////
     return(result);
   }
@@ -64,7 +67,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
 /////////
     for(T item : items)
     {
-      int index = Arrays.binarySearch(_Items.toArray(), item); 
+      int index = Collections.binarySearch(_Items, item,comparator()); 
       if(index<0)
       {
         index = -index;
@@ -79,7 +82,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
       }
     }
 /////////
-    Arrays.sort(_Items.toArray());
+    Collections.sort(_Items,comparator());
   }
 /**
  * Удаляет элемент из хранилища
@@ -88,7 +91,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
  */
   public boolean Delete(T item)
   {
-    int index = Arrays.binarySearch(_Items.toArray(),item);
+    int index = Collections.binarySearch(_Items,item,comparator());
     if(index>=0)
     {
       _Items.remove(index);
@@ -114,7 +117,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   public T Find(long id)
   {
     T needle = EmptyItem(id);
-    int index = Arrays.binarySearch(_Items.toArray(), needle);
+    int index = Collections.binarySearch(_Items, needle, comparator());
     if(index>-1)
       return(_Items.get(index));
     return(null);
@@ -141,6 +144,8 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
  * @return Имя файла куда должно записываться хранилище
  */
   protected abstract String FileName();
+  
+  protected abstract Comparator<T> comparator();
 /**
  * Записывает хранилище в память телефона, в приватную зону данных
  * @param context
@@ -206,5 +211,23 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
       e.printStackTrace();
     }
     return(result);
+  }
+  
+  public List<T> Fill(Comparable<T> comparator)
+  {
+    ArrayList<T> result = new ArrayList<T>();
+///////////
+    for(T item : _Items)
+    {
+      if(comparator.compareTo(item)==0)
+        result.add(item);
+    }
+///////////
+    return(result);
+  }
+  
+  public int Size()
+  {
+    return(_Items.size());
   }
 }

@@ -1,7 +1,10 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
 import org.xml.sax.Attributes;
@@ -12,7 +15,15 @@ public class ReportsSection implements IResponseParser
   private final int STATE_TERMINALS_STATUSES = 1;
   
   private int _CurrentState;
+  private SimpleDateFormat _DateFormat;  
   private ArrayList<TerminalStatus> _Statuses = null;
+  
+  public ReportsSection()
+  {
+    _DateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+    _DateFormat.setTimeZone(timezone);
+  }
   
   @Override
   public void SectionStart()
@@ -43,7 +54,7 @@ public class ReportsSection implements IResponseParser
 ////////
     if(name.equals("row") && _CurrentState == STATE_TERMINALS_STATUSES)
     {
-      String value = attributes.getValue("trm_id");
+      String value = attributes.getValue("trmId");
       if(value==null || value.length()==0)
         return;
 /////////////
@@ -58,7 +69,7 @@ public class ReportsSection implements IResponseParser
         return;
       }
 /////////////
-      value = attributes.getValue("agt_id");
+      value = attributes.getValue("agtId");
       if(value!=null && value.length()>0)
         try
         {
@@ -68,6 +79,15 @@ public class ReportsSection implements IResponseParser
         {
           e.printStackTrace();
         }
+/////////////
+      try
+      {
+        status.setLastActivityDate(_DateFormat.parse(attributes.getValue("lastActivityTime")));
+      }
+      catch (ParseException e)
+      {
+        e.printStackTrace();
+      }
 /////////////
       status.setPrinterErrorId(attributes.getValue("printerErrorId"));
 /////////////

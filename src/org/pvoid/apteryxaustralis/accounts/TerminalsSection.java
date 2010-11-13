@@ -1,7 +1,10 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
 import org.xml.sax.Attributes;
@@ -17,6 +20,11 @@ public class TerminalsSection implements IResponseParser
   public static TerminalsSection getParser()
   {
     return(new TerminalsSection());
+  }
+  
+  public TerminalsSection()
+  {
+    
   }
   
   @Override
@@ -42,15 +50,22 @@ public class TerminalsSection implements IResponseParser
 ////////
     if(name.equals("row") && _State==STATE_TERMINALS)
     {
-      String id = attributes.getValue("trm_id");
-      String agent_id = attributes.getValue("agt_id");
-      Terminal terminal = new Terminal(Long.parseLong(id));
-      terminal.setAgentId(Long.parseLong(agent_id));
-      terminal.setAddress(attributes.getValue("full_address"));
-      terminal.setDisplayName(attributes.getValue("trm_display"));
-      if(_Terminals==null)
-        _Terminals = new ArrayList<Terminal>();
-      _Terminals.add(terminal);
+      try
+      {
+        String id = attributes.getValue("trm_id");
+        String agent_id = attributes.getValue("agt_id");
+        Terminal terminal = new Terminal(Long.parseLong(id));
+        terminal.setAgentId(Long.parseLong(agent_id));
+        terminal.setAddress(attributes.getValue("full_address"));
+        terminal.setDisplayName(attributes.getValue("trm_display"));
+        if(_Terminals==null)
+          _Terminals = new ArrayList<Terminal>();
+        _Terminals.add(terminal);
+      }
+      catch(NumberFormatException e)
+      {
+        
+      }
     }
   }
 

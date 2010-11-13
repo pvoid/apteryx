@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
 
 import android.content.Context;
@@ -18,7 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class TerminalsArrayAdapter extends ArrayAdapter<TerminalInfoOld>
+public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
 {
   private Context _Context;
   
@@ -38,11 +39,16 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalInfoOld>
       view = inflater.inflate(R.layout.terminal, null);
     }
     
-    TerminalInfoOld terminal = getItem(position);
+    Terminal terminal = getItem(position);
     if(terminal!=null)
     {
-      TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
       TextView name = (TextView)view.findViewById(R.id.list_title);
+      name.setText(terminal.DisplayName());
+      
+      TextView status = (TextView) view.findViewById(R.id.status);
+      status.setVisibility(View.GONE);
+      /*TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
+      
       TextView printer_status = (TextView)view.findViewById(R.id.printer_status);
       TextView cashbin_status = (TextView)view.findViewById(R.id.cachebin_status);
       TextView cash = (TextView)view.findViewById(R.id.terminal_cash);
@@ -51,7 +57,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalInfoOld>
       
       lastActivity.setVisibility(View.GONE);
       
-      if(terminal.id()==null)
+      if(terminal.Id()==null)
       {
         agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b> ("+terminal.cash+")"));
         agent_name.setVisibility(View.VISIBLE);
@@ -121,7 +127,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalInfoOld>
             icon_id = R.drawable.terminal_inactive;
         }
         icon.setImageResource(icon_id);
-      }
+      }*/
     }
      
     return(view);

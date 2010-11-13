@@ -11,8 +11,13 @@ import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.AgentsSection;
 import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
+import org.pvoid.apteryxaustralis.accounts.ReportsSection;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
+import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
 import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
@@ -117,13 +122,13 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
       return;
     }
-    
 ////////
     showDialog(0);
     Request request = new Request(_Login, _Password, _TerminalId);
     request.getAgentInfo();
     request.getAgents();
     request.getTerminals();
+    request.getTerminalsStatus();
     (new RequestTask(this)).execute(request);
   }
   
@@ -150,20 +155,33 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       return;
     }
     
-    Agent agent = response.Agents().GetAgentInfo();
-    if(agent!=null)
+    AgentsSection agentsSection = response.Agents(); 
+    Agent agent;
+    if(agentsSection!=null && (agent = agentsSection.GetAgentInfo())!=null)
     {
       Account account = new Account(agent.Id(), agent.getName(), _Login, _Password, Long.parseLong(_TerminalId));
       AccountsStorage.Instance().AddUnique(account);
       AccountsStorage.Instance().Serialize(this);
       
-      List<Agent> agents = response.Agents().getAgents();
+      List<Agent> agents = agentsSection.getAgents();
       AgentsStorage.Instance().AddUnique(agents);
       AgentsStorage.Instance().Serialize(this);
       
-      List<Terminal> terminals = response.Terminals().getTerminals();
-      TerminalsStorage.Instance().AddUnique(terminals);
-      TerminalsStorage.Instance().Serialize(this);
+      TerminalsSection terminalsSection = response.Terminals();
+      if(terminalsSection!=null)
+      {
+        List<Terminal> terminals = terminalsSection.getTerminals();
+        TerminalsStorage.Instance().AddUnique(terminals);
+        TerminalsStorage.Instance().Serialize(this);
+      }
+      
+      ReportsSection reportsSection = response.Reports();
+      if(reportsSection!=null)
+      {
+      	List<TerminalStatus> status = reportsSection.getTerminalsStatus();
+      	TerminalsStatusesStorage.Instance().AddUnique(status);
+      	TerminalsStatusesStorage.Instance().Serialize(this);
+      }
 
       Intent result = new Intent();
       result.putExtra(Consts.EXTRA_ACCOUNTID, agent.Id());

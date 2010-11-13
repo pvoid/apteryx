@@ -1,22 +1,25 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.util.Date;
+
 public class TerminalStatus extends Preserved
 {
   private static final long serialVersionUID = 8845327592559909478L;
 //////
-  private final static int WDT_SENSORALARM = 0x01;
-  private final static int WDT_DOORALARM = 0x02;
-  private final static int WDT_DOOROPENED = 0x04;
-  private final static int WDT_LOCKOPENED = 0x08;
-  private final static int WDT_NO220POWER = 0x10;
-  private final static int WDT_220POWERRESUMED = 0x20;
-  private final static int WDT_SCHEDULEDPOWEROFF = 0x40;    
-  private final static int WDT_SCHEDULEDPOWERON = 0x80;   
-  private final static int WDT_UPSLOWBATTAREY = 0x100; 
-  private final static int WDT_NO12VOLTSFROMCOMPUTER = 0x200;
-  private final static int WDT_SECURITYALARMMODE = 0x400;    
+  public final static int WDT_SENSORALARM = 0x01;
+  public final static int WDT_DOORALARM = 0x02;
+  public final static int WDT_DOOROPENED = 0x04;
+  public final static int WDT_LOCKOPENED = 0x08;
+  public final static int WDT_NO220POWER = 0x10;
+  public final static int WDT_220POWERRESUMED = 0x20;
+  public final static int WDT_SCHEDULEDPOWEROFF = 0x40;    
+  public final static int WDT_SCHEDULEDPOWERON = 0x80;   
+  public final static int WDT_UPSLOWBATTAREY = 0x100; 
+  public final static int WDT_NO12VOLTSFROMCOMPUTER = 0x200;
+  public final static int WDT_SECURITYALARMMODE = 0x400;    
 //////
   private long _AgentId;
+  private long _LastActivityDate;
   private String _PrinterErrorId;
   private String _NoteErrorId;
   private int _SignalLevel;
@@ -88,6 +91,7 @@ public class TerminalStatus extends Preserved
 
   public void setMachineStatus(String machineStatus)
   {
+    // TODO: Реализовать как узнаешь тайну флагов
     //_MachineStatus = machineStatus;
   }
 
@@ -136,4 +140,8 @@ public class TerminalStatus extends Preserved
     return _NoteErrorId;
   }
 
+  public void setLastActivityDate(Date date)
+  {
+    _LastActivityDate = date.getTime();
+  }
 }

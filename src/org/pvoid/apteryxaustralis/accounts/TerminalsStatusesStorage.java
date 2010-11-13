@@ -1,8 +1,19 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import java.util.Comparator;
+
 public class TerminalsStatusesStorage extends Storage<TerminalStatus>
 {
   private static TerminalsStatusesStorage _Storage = new TerminalsStatusesStorage();
+  
+  private final static Comparator<TerminalStatus> _Comparator = new Comparator<TerminalStatus>()
+  {
+    @Override
+    public int compare(TerminalStatus object1, TerminalStatus object2)
+    {
+      return (int)(object1.Id() - object2.Id());
+    }
+  };
   
   public static TerminalsStatusesStorage Instance()
   {
@@ -19,6 +30,12 @@ public class TerminalsStatusesStorage extends Storage<TerminalStatus>
   protected String FileName()
   {
     return("states.data");
+  }
+
+  @Override
+  protected Comparator<TerminalStatus> comparator()
+  {
+    return _Comparator;
   }
 
 }

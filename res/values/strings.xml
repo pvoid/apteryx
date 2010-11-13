@@ -81,4 +81,5 @@
     
     <string name="service_starte">Запущена автоматическая проверка</string>
     <string name="update_service">Проверка терминалов</string>
+    <string name="data_restore">Восстановление данных</string>
 </resources>

@@ -1,54 +1,188 @@
 package org.pvoid.apteryxaustralis.ui;
 
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 
-import org.pvoid.apteryxaustralis.R;
+import java.util.List;
+
 import org.pvoid.apteryxaustralis.Consts;
-import org.pvoid.apteryxaustralis.Notifyer;
-import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
-import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
-import org.pvoid.apteryxaustralis.net.StatesRequestTask;
-import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
-import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
+import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
+import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
+import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.common.views.SlideBand;
+import org.pvoid.common.views.SlideBand.OnCurrentViewChangeListner;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Html;
-import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
-import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ViewFlipper;
 
-public class MainActivity extends Activity// implements IStatesRespnseHandler, OnItemClickListener
+public class MainActivity extends Activity implements OnCurrentViewChangeListner// implements IStatesRespnseHandler, OnItemClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
+  
+  private static final int DIALOG_RESTORE = 0;
+  
+  private AgentListView _AgentView;
+  private SlideBand _Band;
+  private TextView _AgentName;
+  
+  private class RestoreTask extends AsyncTask<Void, Integer, Boolean>
+  {
+    private String _AgentNameValue = null;
+    @Override
+    protected Boolean doInBackground(Void... params)
+    {
+      AccountsStorage.Instance().Restore(MainActivity.this);
+      AgentsStorage.Instance().Restore(MainActivity.this);
+      TerminalsStorage.Instance().Restore(MainActivity.this);
+      TerminalsStatusesStorage.Instance().Restore(MainActivity.this);
+/////////////
+      for(Agent agent : AgentsStorage.Instance())
+      {
+        if(_AgentNameValue==null)
+          _AgentNameValue = agent.getName();
+        
+        List<Terminal> terminals = TerminalsStorage.Instance().TerminalsForAgent(agent);
+        if(terminals.size()==0)
+          continue;
+        
+        _AgentView = new AgentListView(MainActivity.this, agent.Id());          
+        TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
+        for(Terminal terminal : terminals)
+        {
+          items.add(terminal);
+        }
+        
+        _AgentView.setAdapter(items);
+        _Band.addView(_AgentView);
+      }
+/////////////
+      return(true);
+    }
+    
+    @Override
+    protected void onPostExecute(Boolean result)
+    {
+      LinearLayout layout = (LinearLayout) findViewById(R.id.mainscreen);
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0);
+      params.weight=1;
+/////////////
+      if(_AgentNameValue!=null)
+      {
+        _AgentName.setText(_AgentNameValue);
+      }
+/////////////
+      layout.addView(_Band,params);
+      dismissDialog(DIALOG_RESTORE);
+    }
+  };
+  
+  public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
+  {
+    @Override
+    public void onReceive(Context context, Intent intent)
+    {
+      //MainActivity.this.RefreshStates();
+    }
+  };
+  
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    
+    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
+    registerReceiver(UpdateMessageReceiver, filter);
+  }
+  
+  @Override
+  public void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+////////
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+    setContentView(R.layout.main);
+////////
+    _AgentName = (TextView)findViewById(R.id.agent_name);
+    _Band = new SlideBand(this);
+    _Band.setOnCurrentViewChangeListner(this);
+    showDialog(DIALOG_RESTORE);
+    (new RestoreTask()).execute();
+  }
+  
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
+    boolean result = super.onCreateOptionsMenu(menu);
+    if(result)
+    {
+      MenuItem item = menu.add(Menu.NONE, REFRESH_MENU_ID, Menu.NONE, R.string.refresh);
+      item.setIcon(R.drawable.menu_refresh);
+      
+      item = menu.add(Menu.NONE, SETTINGS_MENU_ID, Menu.NONE, R.string.settings);
+      item.setIcon(android.R.drawable.ic_menu_preferences);
+    }
+    return(result);
+  }
+  
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
+    switch(item.getItemId())
+    {
+      case SETTINGS_MENU_ID:
+        Intent intent = new Intent(this,CommonSettings.class);
+        startActivityForResult(intent, 0);
+        break;
+      case REFRESH_MENU_ID:
+        //RefreshStates();
+        break;
+    }
+    return(super.onOptionsItemSelected(item));
+  }
+  
+  @Override
+  protected Dialog onCreateDialog(int id)
+  {
+    final ProgressDialog dialog = new ProgressDialog(this);
+    switch(id)
+    {
+      case DIALOG_RESTORE:
+        dialog.setMessage(getText(R.string.data_restore));
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        break;
+    }
+    return(dialog);
+  }
+
+  @Override
+  public void CurrentViewChanged(View v)
+  {
+    Agent agent = AgentsStorage.Instance().Find(((AgentListView)v).getAgentId());
+    if(agent!=null)
+      _AgentName.setText(agent.getName());
+    /*else
+      _AgentName.setText("");*/
+  }
+  
   
   /*private TerminalsProcessData _Terminals;
   private ListView _TerminalsList;
@@ -58,14 +192,7 @@ public class MainActivity extends Activity// implements IStatesRespnseHandler, O
   private boolean _Refreshing;
   private Object _RefreshLock;*/
   
-  /*public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
-  {
-    @Override
-    public void onReceive(Context context, Intent intent)
-    {
-      MainActivity.this.RefreshStates();
-    }
-  };
+  /*
   
   // TODO: Перетащить сортировку и наполнение в AsyncTask 
   private static final Comparator<TerminalInfoOld> _TerminalComparer = new Comparator<TerminalInfoOld>()
@@ -127,15 +254,7 @@ public class MainActivity extends Activity// implements IStatesRespnseHandler, O
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
       startService(serviceIntent);
     }
-  }
-  
-  @Override
-  public void onResume()
-  {
-    super.onResume();
-    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
-    registerReceiver(UpdateMessageReceiver, filter);
-  }
+  }  
   
   @Override
   public void onPause()
@@ -152,25 +271,11 @@ public class MainActivity extends Activity// implements IStatesRespnseHandler, O
     Notifyer.HideNotification(this);
   }
   
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu)
-  {
-    boolean result = super.onCreateOptionsMenu(menu);
-    if(result)
-    {
-      MenuItem item = menu.add(Menu.NONE, REFRESH_MENU_ID, Menu.NONE, R.string.refresh);
-      item.setIcon(R.drawable.menu_refresh);
-      
-      item = menu.add(Menu.NONE, SETTINGS_MENU_ID, Menu.NONE, R.string.settings);
-      item.setIcon(android.R.drawable.ic_menu_preferences);
-    }
-    return(result);
-  }
+  
   
   private void ShowPreferencesActivity()
   {
-    Intent intent = new Intent(this,CommonSettings.class);
-    startActivityForResult(intent, 0); 
+     
   }
   
   private void RefreshStates()
@@ -264,19 +369,7 @@ public class MainActivity extends Activity// implements IStatesRespnseHandler, O
     ShowStateInfo();
   }
   
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
-    switch(item.getItemId())
-    {
-      case SETTINGS_MENU_ID:
-        ShowPreferencesActivity();
-        break;
-      case REFRESH_MENU_ID:
-        RefreshStates();
-        break;
-    }
-    return(super.onOptionsItemSelected(item));
-  }
+  
   @Override
   public void onActivityResult(int requestCode,int resultCode, Intent intent)
   {
