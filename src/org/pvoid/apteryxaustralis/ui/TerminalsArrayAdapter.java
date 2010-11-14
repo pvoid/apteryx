@@ -1,25 +1,18 @@
 package org.pvoid.apteryxaustralis.ui;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalInfoOld;
+import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
+import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 
 import android.content.Context;
-import android.text.Html;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
+public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 {
   private Context _Context;
   
@@ -39,95 +32,23 @@ public class TerminalsArrayAdapter extends ArrayAdapter<Terminal>
       view = inflater.inflate(R.layout.terminal, null);
     }
     
-    Terminal terminal = getItem(position);
+    TerminalListRecord terminal = getItem(position);
     if(terminal!=null)
     {
       TextView name = (TextView)view.findViewById(R.id.list_title);
-      name.setText(terminal.DisplayName());
-      
-      TextView status = (TextView) view.findViewById(R.id.status);
-      status.setVisibility(View.GONE);
-      /*TextView agent_name = (TextView)view.findViewById(R.id.agent_name);
-      
-      TextView printer_status = (TextView)view.findViewById(R.id.printer_status);
-      TextView cashbin_status = (TextView)view.findViewById(R.id.cachebin_status);
-      TextView cash = (TextView)view.findViewById(R.id.terminal_cash);
-      TextView lastActivity = (TextView)view.findViewById(R.id.last_activity);
-      ImageView icon = (ImageView)view.findViewById(R.id.icon);
-      
-      lastActivity.setVisibility(View.GONE);
-      
-      if(terminal.Id()==null)
+      name.setText(terminal.toString());
+
+      TextView status = (TextView) view.findViewById(R.id.status);      
+      TerminalStatus status_record = terminal.getStatus();
+      if(status_record==null)
       {
-        agent_name.setText(Html.fromHtml("<b>"+terminal.agentName+"</b> ("+terminal.cash+")"));
-        agent_name.setVisibility(View.VISIBLE);
-        name.setVisibility(View.GONE);
-        printer_status.setVisibility(View.GONE);
-        cashbin_status.setVisibility(View.GONE);
-        cash.setVisibility(View.GONE);
-        icon.setVisibility(View.GONE);
-        view.setEnabled(false);
+      	status.setVisibility(View.GONE);
       }
       else
       {
-        agent_name.setVisibility(View.GONE);
-        name.setVisibility(View.VISIBLE);
-        cash.setVisibility(View.VISIBLE);
-        icon.setVisibility(View.VISIBLE);
-        view.setEnabled(true);
-        
-        name.setText(terminal.Address());
-        String state;
-        
-        if(!terminal.printer_state.equalsIgnoreCase("OK"))
-        {
-          state = "<b>"+_Context.getString(R.string.printer)+": </b>" + terminal.printer_state; 
-          printer_status.setText(Html.fromHtml(state));
-          printer_status.setVisibility(View.VISIBLE);
-        }
-        else
-          printer_status.setVisibility(View.GONE);
-        
-        if(!terminal.cashbin_state.equalsIgnoreCase("OK"))
-        {
-          state = "<b>"+_Context.getString(R.string.cachebin)+": </b>" + terminal.cashbin_state;
-          cashbin_status.setText(Html.fromHtml(state));
-          cashbin_status.setVisibility(View.VISIBLE);
-        }
-        else
-          cashbin_status.setVisibility(View.GONE);
-        
-        cash.setText(Html.fromHtml("<b>"+_Context.getString(R.string.fullinfo_cash)+" </b>"+terminal.cash));
-        
-  
-        int icon_id;
-        switch(terminal.State())
-        {
-          case TerminalInfoOld.STATE_OK:
-            icon_id = R.drawable.terminal_active;
-            break;
-          case TerminalInfoOld.STATE_WARRNING:
-            icon_id = R.drawable.terminal_pending;
-            SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-            TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
-            format.setTimeZone(timezone);
-            Date dt;
-            try
-            {
-              dt = format.parse(terminal.lastActivity);
-              lastActivity.setText(DateUtils.getRelativeTimeSpanString(dt.getTime(),System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE));
-              lastActivity.setVisibility(View.VISIBLE);
-            }
-            catch (ParseException e)
-            {
-              e.printStackTrace();
-            }
-            break;
-          default:
-            icon_id = R.drawable.terminal_inactive;
-        }
-        icon.setImageResource(icon_id);
-      }*/
+      	status.setText(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),System.currentTimeMillis(), 0, DateUtils.FORMAT_ABBREV_RELATIVE));
+      	status.setVisibility(View.VISIBLE);
+      }
     }
      
     return(view);

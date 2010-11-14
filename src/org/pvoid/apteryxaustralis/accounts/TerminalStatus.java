@@ -144,4 +144,9 @@ public class TerminalStatus extends Preserved
   {
     _LastActivityDate = date.getTime();
   }
+  
+  public long getLastActivityDate()
+  {
+  	return(_LastActivityDate);
+  }
 }

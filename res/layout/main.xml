@@ -22,6 +22,9 @@
                 android:layout_alignParentTop="true"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
+                android:onClick="agentsListClick"
+                android:focusable="true"
+                android:clickable="true"
                 android:src="@drawable/menu_refresh"
                 />
   </RelativeLayout>

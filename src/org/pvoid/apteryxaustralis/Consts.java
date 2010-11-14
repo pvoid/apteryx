@@ -19,6 +19,9 @@ public class Consts
   
   public static final int ACTIVITY_ADD_ACCOUNT = 1;
   public static final int ACTIVITY_EDIT_ACCOUNT = 2;
+  public static final int ACTIVITY_SELECT_AGENT = 3;
+  
+  public static final String RESULT_AGENT_POSITION = "agent-position";
   
   public static final String DB_NAME = "apteryx";
   public static final int DB_VERSION = 2;

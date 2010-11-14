@@ -9,6 +9,8 @@ import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
+import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
 import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
@@ -24,6 +26,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,20 +57,21 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
       TerminalsStorage.Instance().Restore(MainActivity.this);
       TerminalsStatusesStorage.Instance().Restore(MainActivity.this);
 /////////////
-      for(Agent agent : AgentsStorage.Instance())
+      for(Agent agent : AgentsStorage.Instance().getAgentsByName())
       {
         if(_AgentNameValue==null)
           _AgentNameValue = agent.getName();
         
         List<Terminal> terminals = TerminalsStorage.Instance().TerminalsForAgent(agent);
-        if(terminals.size()==0)
-          continue;
+        /*if(terminals.size()==0)
+          continue;*/
         
         _AgentView = new AgentListView(MainActivity.this, agent.Id());          
         TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
         for(Terminal terminal : terminals)
         {
-          items.add(terminal);
+        	TerminalStatus status = TerminalsStatusesStorage.Instance().Find(terminal.Id());
+          items.add(new TerminalListRecord(terminal, status));
         }
         
         _AgentView.setAdapter(items);
@@ -116,8 +120,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-////////
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
     setContentView(R.layout.main);
 ////////
     _AgentName = (TextView)findViewById(R.id.agent_name);
@@ -183,6 +185,23 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
       _AgentName.setText("");*/
   }
   
+  public void agentsListClick(View v)
+  {
+  	Intent intent = new Intent(this, AgentsList.class);
+  	startActivityForResult(intent, Consts.ACTIVITY_SELECT_AGENT);
+  }
+  
+  public void onActivityResult(int requestCode,int resultCode, Intent intent)
+  {
+    if(resultCode==Consts.ACTIVITY_SELECT_AGENT)
+    {
+      int position = intent.getIntExtra(Consts.RESULT_AGENT_POSITION, -1);
+      if(position>-1)
+      {
+      	_Band.setCurrentView(position);
+      }
+    }
+  }
   
   /*private TerminalsProcessData _Terminals;
   private ListView _TerminalsList;
