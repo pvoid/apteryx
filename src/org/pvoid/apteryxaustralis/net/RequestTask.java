@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 
 public class RequestTask extends AsyncTask<Request, Integer, Response>
 {
-  public static final String DATA = "RequestTask.data";
   protected IResponseHandler _handler;
   
   public RequestTask(IResponseHandler handler)

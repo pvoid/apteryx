@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
@@ -13,6 +14,7 @@ import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
 import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
+import org.pvoid.apteryxaustralis.net.StatusRefreshTask;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.common.views.SlideBand;
 import org.pvoid.common.views.SlideBand.OnCurrentViewChangeListner;
@@ -26,12 +28,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -41,6 +41,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
   
   private static final int DIALOG_RESTORE = 0;
+  private static final int DIALOG_REFRESH = 1;
   
   private AgentListView _AgentView;
   private SlideBand _Band;
@@ -95,6 +96,36 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
 /////////////
       layout.addView(_Band,params);
       dismissDialog(DIALOG_RESTORE);
+    }
+  };
+  
+  private Thread _RefreshThread = new Thread()
+  {
+		@Override
+    public void run()
+    {
+			boolean refreshed = false;
+			for(Account account : AccountsStorage.Instance())
+			{
+				List<TerminalStatus> statuses = StatusRefreshTask.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
+				if(statuses!=null)
+				{
+					TerminalsStatusesStorage.Instance().Add(statuses);
+					refreshed = true;
+				}
+			}
+/////////////
+			if(refreshed)
+				TerminalsStatusesStorage.Instance().Serialize(MainActivity.this);
+/////////////
+			for(int index=0,length=_Band.getChildCount();index<length;++index)
+			{
+				View view = _Band.getChildAt(index);
+				if(view!=null)
+					view.postInvalidate();
+			}
+/////////////
+			dismissDialog(DIALOG_REFRESH);
     }
   };
   
@@ -154,7 +185,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
         startActivityForResult(intent, 0);
         break;
       case REFRESH_MENU_ID:
-        //RefreshStates();
+        RefreshStatuses();
         break;
     }
     return(super.onOptionsItemSelected(item));
@@ -171,6 +202,11 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);
         break;
+      case DIALOG_REFRESH:
+      	dialog.setMessage(getText(R.string.status_refresh));
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        break;
     }
     return(dialog);
   }
@@ -181,8 +217,8 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
     Agent agent = AgentsStorage.Instance().Find(((AgentListView)v).getAgentId());
     if(agent!=null)
       _AgentName.setText(agent.getName());
-    /*else
-      _AgentName.setText("");*/
+    else
+      _AgentName.setText("");
   }
   
   public void agentsListClick(View v)
@@ -191,6 +227,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   	startActivityForResult(intent, Consts.ACTIVITY_SELECT_AGENT);
   }
   
+  @Override
   public void onActivityResult(int requestCode,int resultCode, Intent intent)
   {
     if(resultCode==Consts.ACTIVITY_SELECT_AGENT)
@@ -201,6 +238,16 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
       	_Band.setCurrentView(position);
       }
     }
+  }
+  
+  public void RefreshStatuses()
+  {
+  	Thread.State state = _RefreshThread.getState();
+  	if(state == Thread.State.NEW || state == Thread.State.TERMINATED)
+  	{
+  		showDialog(DIALOG_REFRESH);
+  		_RefreshThread.start();
+  	}
   }
   
   /*private TerminalsProcessData _Terminals;

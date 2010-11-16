@@ -19,6 +19,7 @@ import android.content.Context;
 public abstract class Storage<T extends Preserved> implements Iterable<T>
 {
   protected ArrayList<T> _Items = new ArrayList<T>();
+  private boolean _Restored = false;
 /**
  * Добавляет к хранилищу элементы. Записи не производит, добавление только в памяти
  * @param items Добавляемые элементы
@@ -177,6 +178,9 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
   @SuppressWarnings("unchecked")
   public boolean Restore(Context context)
   {
+  	if(_Restored)
+  		return true;
+////////
     boolean result = false;
     try 
     {
@@ -210,6 +214,7 @@ public abstract class Storage<T extends Preserved> implements Iterable<T>
     {
       e.printStackTrace();
     }
+    _Restored = true;
     return(result);
   }
   

@@ -16,7 +16,6 @@
                 android:gravity="center_vertical"
                 android:textColor="?android:attr/panelColorForeground"
                 android:id="@+id/agent_name"/>
-                
      <ImageView android:layout_height="fill_parent"
                 android:layout_width="wrap_content"
                 android:layout_alignParentTop="true"
@@ -25,7 +24,19 @@
                 android:onClick="agentsListClick"
                 android:focusable="true"
                 android:clickable="true"
+                android:id="@+id/agent_list_button"
                 android:src="@drawable/menu_refresh"
                 />
+     <!-- ImageView android:layout_height="fill_parent"
+                android:layout_width="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_toLeftOf="@id/agent_list_button"                
+                android:focusable="true"
+                android:clickable="true"
+                android:id="@+id/agent_list_button"
+                android:src="@drawable/icon"
+                /-->
   </RelativeLayout>
 </LinearLayout>
