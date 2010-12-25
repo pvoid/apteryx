@@ -13,5 +13,6 @@
              android:layout_marginTop="2dip"/>
   <TextView android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="?android:attr/panelColorForeground"            
             android:id="@+id/notify_text" />
 </LinearLayout>

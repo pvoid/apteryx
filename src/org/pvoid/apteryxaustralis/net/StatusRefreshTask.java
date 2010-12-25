@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.pvoid.apteryxaustralis.accounts.ReportsSection;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
 
 import android.os.AsyncTask;
 
@@ -34,7 +33,7 @@ public class StatusRefreshTask extends AsyncTask<String, Integer, Boolean>
 		List<TerminalStatus> statuses = GetStatuses(args[0], args[1], args[2]);
 		if(statuses==null)
 			return Boolean.FALSE;
-  	TerminalsStatusesStorage.Instance().Add(statuses);
+  	// TODO: TerminalsStatusesStorage.Instance().Add(statuses);
 ////////
 		return Boolean.TRUE;
 	}

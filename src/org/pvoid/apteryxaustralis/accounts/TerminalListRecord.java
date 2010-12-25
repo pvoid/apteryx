@@ -7,7 +7,7 @@ public class TerminalListRecord
 	
 	public TerminalListRecord(Terminal terminal, TerminalStatus status)
 	{
-		_Name = terminal.DisplayName();
+		_Name = terminal.getDisplayName();
 		_Status = status;
 	}
 	

@@ -11,8 +11,8 @@ import org.xml.sax.Attributes;
 
 public class TerminalsSection implements IResponseParser
 {
-  private final int STATE_NONE = 0;
-  private final int STATE_TERMINALS = 1;
+  private static final int STATE_NONE = 0;
+  private static final int STATE_TERMINALS = 1;
   
   private int _State;
   private ArrayList<Terminal> _Terminals = null;
@@ -54,10 +54,10 @@ public class TerminalsSection implements IResponseParser
       {
         String id = attributes.getValue("trm_id");
         String agent_id = attributes.getValue("agt_id");
-        Terminal terminal = new Terminal(Long.parseLong(id));
-        terminal.setAgentId(Long.parseLong(agent_id));
-        terminal.setAddress(attributes.getValue("full_address"));
-        terminal.setDisplayName(attributes.getValue("trm_display"));
+        Terminal terminal = new Terminal(Long.parseLong(id),
+                                         attributes.getValue("full_address"),
+                                         attributes.getValue("trm_display"),
+                                         Long.parseLong(agent_id));
         if(_Terminals==null)
           _Terminals = new ArrayList<Terminal>();
         _Terminals.add(terminal);

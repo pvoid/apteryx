@@ -1,93 +1,80 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import android.os.Parcel;
 import org.pvoid.apteryxaustralis.Utils;
 
-public class Account extends Preserved
+public class Account
 {
-  private static final long serialVersionUID = 3074352127412133550L;
-////////
-  private String _Title;
-  private String _Login;
-  private String _PasswordHash;
-  private long _Terminal;
-  
-  public Account(long id)
-  {
-    super(id);
-  }
+  private long _mId;
+  private String _mTitle;
+  private String _mLogin;
+  private String _mPasswordHash;
+  private long _mTerminal;
   
   public Account(long id, String title, String login,String password,long terminal)
   {
-    super(id);
-    _Title = title;
-    _Login = login;
-    _PasswordHash = password;
-    _Terminal = terminal;
+    _mId = id;
+    _mTitle = title;
+    _mLogin = login;
+    _mPasswordHash = password;
+    _mTerminal = terminal;
   }
-  
+
+  public Account(long id, String title)
+  {
+    _mId = id;
+    _mTitle = title;
+  }
+
+  public long getId()
+  {
+    return _mId;
+  }
+
   public String getTitle()
   {
-    return(_Title);
+    return(_mTitle);
   }
   
   public void setTitle(String title)
   {
-    _Title = title;
+    _mTitle = title;
   }
   
   public String getLogin()
   {
-    return(_Login);
+    return(_mLogin);
   }
   
   public void setLogin(String login)
   {
-    _Login = login;
+    _mLogin = login;
   }
   
   public String getPassword()
   {
-    return(_PasswordHash);
+    return(_mPasswordHash);
   }
   
   public void setPassword(String password)
   {
-    _PasswordHash = password;
+    _mPasswordHash = password;
   }
   
   public long getTerminalId()
   {
-    return(_Terminal);
+    return(_mTerminal);
   }
   
   public void setTerminalId(long terminal)
   {
-    _Terminal = terminal;
+    _mTerminal = terminal;
   }
   
   public String toString()
   {
-    if(Utils.isEmptyString(_Title))
-      return(_Login);
-    return(_Title);      
-  }
-
-  @Override
-  public <T extends Preserved> void Copy(T another)
-  {
-    Account item;
-    try
-    {
-      item = (Account)another;
-    }
-    catch(ClassCastException e)
-    {
-      e.printStackTrace();
-      return;
-    }
-    ///////
-    _Login = item.getLogin();
-    _PasswordHash = item.getPassword();
-    _Terminal = item.getTerminalId();
+    if(Utils.isEmptyString(_mTitle))
+      return(_mLogin);
+    return(_mTitle);
   }
 }

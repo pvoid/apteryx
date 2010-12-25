@@ -3,22 +3,15 @@ package org.pvoid.apteryxaustralis.preference;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.AgentsSection;
-import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
 import org.pvoid.apteryxaustralis.accounts.ReportsSection;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
-import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
-import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
@@ -35,9 +28,13 @@ import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
+import org.pvoid.apteryxaustralis.storage.Storage;
 
 public class AddAccountActivity extends Activity implements IResponseHandler
 {
+  public static final String EXTRA_ACCOUNT_ID = "id";
+  public static final String EXTRA_ACCOUNT_TITLE = "title";
+
   private String _Login;
   private String _Password;
   private String _TerminalId;
@@ -134,7 +131,9 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   
   public void onResponse(Response response)
   {
-    dismissDialog(0);    
+    dismissDialog(0);
+    removeDialog(0);
+
     if(response==null)
     {
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -154,39 +153,34 @@ public class AddAccountActivity extends Activity implements IResponseHandler
              .show();
       return;
     }
-    
+    // TODO: утащить это в отдельный поток, так как запись в БД длительна
     AgentsSection agentsSection = response.Agents(); 
     Agent agent;
     if(agentsSection!=null && (agent = agentsSection.GetAgentInfo())!=null)
     {
-      Account account = new Account(agent.Id(), agent.getName(), _Login, _Password, Long.parseLong(_TerminalId));
-      AccountsStorage.Instance().AddUnique(account);
-      AccountsStorage.Instance().Serialize(this);
-      
-      List<Agent> agents = agentsSection.getAgents();
-      AgentsStorage.Instance().AddUnique(agents);
-      AgentsStorage.Instance().Serialize(this);
-      
-      TerminalsSection terminalsSection = response.Terminals();
-      if(terminalsSection!=null)
+      Account account = new Account(agent.getId(), agent.getName(), _Login, _Password, Long.parseLong(_TerminalId));
+      if(Storage.addAccount(this,account))
       {
-        List<Terminal> terminals = terminalsSection.getTerminals();
-        TerminalsStorage.Instance().AddUnique(terminals);
-        TerminalsStorage.Instance().Serialize(this);
-      }
-      
-      ReportsSection reportsSection = response.Reports();
-      if(reportsSection!=null)
-      {
-      	List<TerminalStatus> status = reportsSection.getTerminalsStatus();
-      	TerminalsStatusesStorage.Instance().AddUnique(status);
-      	TerminalsStatusesStorage.Instance().Serialize(this);
-      }
+        Storage.addAgents(this,agentsSection.getAgents());
 
-      Intent result = new Intent();
-      result.putExtra(Consts.EXTRA_ACCOUNTID, agent.Id());
-      setResult(RESULT_OK, result);
-      finish();
+        TerminalsSection terminalsSection = response.Terminals();
+        if(terminalsSection!=null)
+        {
+          Storage.addTerminals(this,terminalsSection.getTerminals());
+        }
+
+        ReportsSection reportsSection = response.Reports();
+        if(reportsSection!=null)
+        {
+          Storage.addStatuses(this,reportsSection.getTerminalsStatus());
+        }
+
+        Intent result = new Intent();
+        result.putExtra(EXTRA_ACCOUNT_ID,account.getId());
+        result.putExtra(EXTRA_ACCOUNT_TITLE,account.getTitle());
+        setResult(RESULT_OK, result);
+        finish();
+      }
     }
   }
 }

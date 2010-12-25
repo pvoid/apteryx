@@ -54,8 +54,8 @@ public class StatesRequestWorker
 //////
     /*for(Account account : accounts)
     {
-      _Terminals.SetAgent(account.Id);
-      _Terminals.SetAgentsFilter(_Filter.get(account.Id));
+      _Terminals.SetAgent(account.getId);
+      _Terminals.SetAgentsFilter(_Filter.get(account.getId));
       String response = DataTransfer.RefreshStates(account.Login, account.PasswordHash, account.Terminal);
       if(response==null)
         continue;

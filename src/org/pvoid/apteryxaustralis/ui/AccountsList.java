@@ -15,13 +15,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 public class AccountsList extends Activity
 {
@@ -98,7 +96,7 @@ public class AccountsList extends Activity
         switch (which)
         {
           case DialogInterface.BUTTON_POSITIVE:
-            _Accounts.DeleteAccount(account.Id());
+            _Accounts.DeleteAccount(account.getId());
             _Adapter.remove(account);
             if(!isChild())
               setResult(Consts.RESULT_RELOAD);
@@ -120,7 +118,7 @@ public class AccountsList extends Activity
   private void EditAccount(final Account account)
   {
     Intent intent = new Intent(this,AddAccountActivity.class);
-    intent.putExtra(Consts.COLUMN_ID, account.Id());
+    intent.putExtra(Consts.COLUMN_ID, account.getId());
     intent.putExtra(Consts.COLUMN_LOGIN, account.getLogin());
     intent.putExtra(Consts.COLUMN_TERMINAL, account.getTerminalId());
     intent.putExtra(Consts.COLUMN_PASSWORD, account.getPassword());

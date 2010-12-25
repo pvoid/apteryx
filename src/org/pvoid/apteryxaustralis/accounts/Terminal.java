@@ -1,53 +1,54 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-public class Terminal extends Preserved
+import android.os.Parcel;
+
+public class Terminal
 {
-  private static final long serialVersionUID = -3170367640652692520L;
-  /////////
-  private String _Address;
-  private String _DisplayName;
-  private long   _AgentId;
-  
-  public Terminal(long id)
+  private long _mId;
+  private String _mAddress;
+  private String _mDisplayName;
+  private long _mAgentId;
+
+  public Terminal(long id, String address, String name,long agent)
   {
-    super(id);
+    _mId = id;
+    _mAddress = address;
+    _mDisplayName = name;
+    _mAgentId = agent;
   }
 
-  public String Address()
+  public long getId()
   {
-    return(_Address);
+    return _mId;
+  }
+
+  public String getAddress()
+  {
+    return(_mAddress);
   }
   
   public void setAddress(String address)
   {
-    _Address = address;
+    _mAddress = address;
   }
   
-  public String DisplayName()
+  public String getDisplayName()
   {
-    return(_DisplayName);
+    return(_mDisplayName);
   }
   
   public void setDisplayName(String name)
   {
-    _DisplayName = name;
+    _mDisplayName = name;
   }
   
   public long getAgentId()
   {
-    return(_AgentId);
+    return(_mAgentId);
   }
   
   public void setAgentId(long agent)
   {
-    _AgentId = agent;
+    _mAgentId = agent;
   }
-  
-  @Override
-  public <T extends Preserved> void Copy(T another)
-  {
-    Terminal terminal = (Terminal)another;
-    _Address = terminal.Address();
-    _DisplayName = terminal.DisplayName();
-  } 
 }

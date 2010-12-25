@@ -345,7 +345,7 @@ public class Accounts
     
     for(Agent agent : agents)
     {
-      values.put(Consts.COLUMN_AGENTID, agent.Id());
+      values.put(Consts.COLUMN_AGENTID, agent.getId());
       db.insert(Consts.AGENTS_TABLE, null, values);
     }
     _database.close();
@@ -361,6 +361,7 @@ public class Accounts
   
   public void GetAgents(long account, List<Agent> agents)
   {
+    /*
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(Consts.AGENTS_TABLE, new String[] {Consts.COLUMN_AGENTID}, null, null, Consts.COLUMN_ACCOUNT+"="+account, null, null);
     if(cursor!=null)
@@ -377,5 +378,6 @@ public class Accounts
       cursor.close();
     }
     _database.close();
+    */
   }
 }

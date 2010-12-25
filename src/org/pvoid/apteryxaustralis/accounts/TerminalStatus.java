@@ -1,11 +1,11 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import android.os.Parcel;
+
 import java.util.Date;
 
-public class TerminalStatus extends Preserved
+public class TerminalStatus
 {
-  private static final long serialVersionUID = 8845327592559909478L;
-//////
   public final static int WDT_SENSORALARM = 0x01;
   public final static int WDT_DOORALARM = 0x02;
   public final static int WDT_DOOROPENED = 0x04;
@@ -16,137 +16,159 @@ public class TerminalStatus extends Preserved
   public final static int WDT_SCHEDULEDPOWERON = 0x80;   
   public final static int WDT_UPSLOWBATTAREY = 0x100; 
   public final static int WDT_NO12VOLTSFROMCOMPUTER = 0x200;
-  public final static int WDT_SECURITYALARMMODE = 0x400;    
+  public final static int WDT_SECURITYALARMMODE = 0x400;
+  
+  public final static int STATE_PRINTER_ERROR = 0x01;
+  public final static int STATE_UNKNOWN1 = 0x02;
+  public final static int STATE_UPLOADING_UPDATES = 0x04;
+  public final static int STATE_UNKNOWN2 = 0x08;
+  public final static int STATE_STORAGE_TIMER = 0x10;
+  public final static int STATE_UNKNOWN3 = 0x20;
+  public final static int STATE_STACKER_REMOVED = 0x40;
+  public final static int STATE_ESSENTIAL_ELEMENTS_ERROR = 0x80;
+  public final static int STATE_UNKNOWN4 = 0x100;
+  public final static int STATE_STOPED_DUE_BALANCE = 0x200;
+  public final static int STATE_UNKNOWN5  = 0x400;
+  public final static int STATE_UNKNOWN6  = 0x800;
+  public final static int STATE_UNKNOWN7  = 0x1000;
+  public final static int STATE_UNKNOWN8  = 0x2000;
+  public final static int STATE_UNKNOWN9  = 0x4000;
+  public final static int STATE_UNKNOWN10 = 0x8000;
+  public final static int STATE_UNKNOWN11 = 0x10000;
+  public final static int STATE_REFRESH_PROVIDERS = 0x20000;
+  public final static int STATE_REFRESH_PLAYLIST  = 0x40000;
+  public final static int STATE_REFRESH_FILES     = 0x80000;
+  public final static int STATE_UNKNOWN12 = 0x100000;
+  public final static int STATE_UNKNOWN13 = 0x200000;
+  public final static int STATE_UNKNOWN14 = 0x400000;
 //////
-  private long _AgentId;
-  private long _LastActivityDate;
-  private String _PrinterErrorId;
-  private String _NoteErrorId;
-  private int _SignalLevel;
-  private float _SimProviderBalance;
-  private int _MachineStatus;
-  private short _WdtDoorOpenCount;
-  private short _WdtDoorAlarmCount;
-  private short _WdtEvent;
+  private long _mId;
+  private long _mAgentId;
+  private long _mLastActivityDate;
+  private String _mPrinterErrorId;
+  private String _mNoteErrorId;
+  private int _mSignalLevel;
+  private float _mSimProviderBalance;
+  private int _mMachineStatus;
+  private short _mWdtDoorOpenCount;
+  private short _mWdtDoorAlarmCount;
+  private short _mWdtEvent;
 
   public TerminalStatus(long id)
   {
-    super(id);
+    _mId = id;
   }
-  
-  @Override
-  public <T extends Preserved> void Copy(T another)
+
+  public long getId()
   {
-    TerminalStatus status = (TerminalStatus)another;
-    _AgentId = status.getAgentId();
-    _PrinterErrorId = status.getPrinterErrorId();
-    _NoteErrorId = status.getNoteErrorId();
-    _SignalLevel = status.getSignalLevel();
-    _SimProviderBalance = status.getSimProviderBalance();
-    _MachineStatus = status.getMachineStatus();
-    _WdtDoorOpenCount = status.getWdtDoorOpenCount();
-    _WdtDoorAlarmCount = status.getWdtDoorAlarmCount();
-    _WdtEvent = status.getWdtEvent();
+    return _mId;
   }
 
   public void setAgentId(long agentId)
   {
-    _AgentId = agentId;
+    _mAgentId = agentId;
   }
 
   public long getAgentId()
   {
-    return(_AgentId);
+    return(_mAgentId);
   }
 
   public void setPrinterErrorId(String printerErrorId)
   {
-    _PrinterErrorId = printerErrorId;
+    _mPrinterErrorId = printerErrorId;
   }
 
   public String getPrinterErrorId()
   {
-    return(_PrinterErrorId);
+    return(_mPrinterErrorId);
   }
 
   public void setSignalLevel(int SignalLevel)
   {
-    _SignalLevel = SignalLevel;
+    _mSignalLevel = SignalLevel;
   }
 
   public int getSignalLevel()
   {
-    return _SignalLevel;
+    return _mSignalLevel;
   }
 
   public void setSimProviderBalance(float simProviderBalance)
   {
-    _SimProviderBalance = simProviderBalance;
+    _mSimProviderBalance = simProviderBalance;
   }
 
   public float getSimProviderBalance()
   {
-    return _SimProviderBalance;
+    return _mSimProviderBalance;
   }
 
   public void setMachineStatus(String machineStatus)
   {
-    // TODO: Реализовать как узнаешь тайну флагов
-    //_MachineStatus = machineStatus;
+  	int flag = 1;
+  	int result = 0;
+  	for(int index = machineStatus.length()-1;index>=0;--index)
+  	{
+  		if(machineStatus.charAt(index)=='1')
+  			result|=flag;
+  		flag*=2;
+  	}
+    _mMachineStatus = result;
   }
 
   public int getMachineStatus()
   {
-    return _MachineStatus;
+    return _mMachineStatus;
   }
 
   public void setWdtDoorOpenCount(short wdtDoorOpenCount)
   {
-    _WdtDoorOpenCount = wdtDoorOpenCount;
+    _mWdtDoorOpenCount = wdtDoorOpenCount;
   }
 
   public short getWdtDoorOpenCount()
   {
-    return _WdtDoorOpenCount;
+    return _mWdtDoorOpenCount;
   }
 
   public void setWdtDoorAlarmCount(short wdtDoorAlarmCount)
   {
-    _WdtDoorAlarmCount = wdtDoorAlarmCount;
+    _mWdtDoorAlarmCount = wdtDoorAlarmCount;
   }
 
   public short getWdtDoorAlarmCount()
   {
-    return _WdtDoorAlarmCount;
+    return _mWdtDoorAlarmCount;
   }
 
   public void setWdtEvent(short wdtEvent)
   {
-    _WdtEvent = wdtEvent;
+    _mWdtEvent = wdtEvent;
   }
 
   public short getWdtEvent()
   {
-    return _WdtEvent;
+    return _mWdtEvent;
   }
 
   public void setNoteErrorId(String noteErrorId)
   {
-    _NoteErrorId = noteErrorId;
+    _mNoteErrorId = noteErrorId;
   }
 
   public String getNoteErrorId()
   {
-    return _NoteErrorId;
+    return _mNoteErrorId;
   }
 
   public void setLastActivityDate(Date date)
   {
-    _LastActivityDate = date.getTime();
+    _mLastActivityDate = date.getTime();
   }
   
   public long getLastActivityDate()
   {
-  	return(_LastActivityDate);
+  	return(_mLastActivityDate);
   }
 }

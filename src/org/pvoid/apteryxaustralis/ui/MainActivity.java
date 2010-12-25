@@ -5,19 +5,16 @@ import java.util.List;
 
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.AgentsStorage;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.accounts.TerminalsStatusesStorage;
-import org.pvoid.apteryxaustralis.accounts.TerminalsStorage;
 import org.pvoid.apteryxaustralis.net.StatusRefreshTask;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.common.views.SlideBand;
-import org.pvoid.common.views.SlideBand.OnCurrentViewChangeListner;
+import org.pvoid.common.views.SlideBand.OnCurrentViewChangeListener;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -26,16 +23,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements OnCurrentViewChangeListner// implements IStatesRespnseHandler, OnItemClickListener
+public class MainActivity extends Activity implements OnCurrentViewChangeListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -43,7 +43,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   private static final int DIALOG_RESTORE = 0;
   private static final int DIALOG_REFRESH = 1;
   
-  private AgentListView _AgentView;
   private SlideBand _Band;
   private TextView _AgentName;
   
@@ -53,31 +52,24 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
     @Override
     protected Boolean doInBackground(Void... params)
     {
-      AccountsStorage.Instance().Restore(MainActivity.this);
-      AgentsStorage.Instance().Restore(MainActivity.this);
-      TerminalsStorage.Instance().Restore(MainActivity.this);
-      TerminalsStatusesStorage.Instance().Restore(MainActivity.this);
-/////////////
-      for(Agent agent : AgentsStorage.Instance().getAgentsByName())
+      /*for(Agent agent : AgentsStorage.Instance().getAgentsByName())
       {
         if(_AgentNameValue==null)
           _AgentNameValue = agent.getName();
         
         List<Terminal> terminals = TerminalsStorage.Instance().TerminalsForAgent(agent);
-        /*if(terminals.size()==0)
-          continue;*/
-        
-        _AgentView = new AgentListView(MainActivity.this, agent.Id());          
+
+        AgentListView agentView = new AgentListView(MainActivity.this, agent.getId());
         TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
         for(Terminal terminal : terminals)
         {
-        	TerminalStatus status = TerminalsStatusesStorage.Instance().Find(terminal.Id());
+        	TerminalStatus status = TerminalsStatusesStorage.Instance().Find(terminal.getId());
           items.add(new TerminalListRecord(terminal, status));
         }
         
-        _AgentView.setAdapter(items);
-        _Band.addView(_AgentView);
-      }
+        agentView.setAdapter(items);
+        _Band.addView(agentView);
+      }*/
 /////////////
       return(true);
     }
@@ -95,37 +87,65 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
       }
 /////////////
       layout.addView(_Band,params);
+      SharedPreferences preferences = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+      if(preferences.getBoolean(Consts.PREF_AUTOCHECK, false))
+      {
+        Intent serviceIntent = new Intent(MainActivity.this,UpdateStatusService.class);
+        startService(serviceIntent);
+      }
       dismissDialog(DIALOG_RESTORE);
     }
-  };
+  }
   
-  private Thread _RefreshThread = new Thread()
+  private Handler _Handler = new Handler();
+  
+  private Runnable _RefreshListView = new Runnable()
+	{
+		public void run()
+		{
+			for(int index=0,length=_Band.getChildCount();index<length;++index)
+			{
+				View view = _Band.getCurrentView();
+				if(view!=null)
+				{
+					try
+					{
+						ListAdapter adapter = ((AgentListView)view).getAdapter();
+						((TerminalsArrayAdapter)adapter).notifyDataSetChanged();
+					}
+					catch(ClassCastException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	};
+  
+  private Runnable _RefreshRunnable = new Runnable()
   {
 		@Override
     public void run()
     {
 			boolean refreshed = false;
-			for(Account account : AccountsStorage.Instance())
+			/*TODO: for(Account account : AccountsStorage.Instance())
 			{
 				List<TerminalStatus> statuses = StatusRefreshTask.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
 				if(statuses!=null)
 				{
-					TerminalsStatusesStorage.Instance().Add(statuses);
+					TerminalsStatusesStorage.Instance().UpdateStatuses(statuses);
 					refreshed = true;
 				}
 			}
 /////////////
 			if(refreshed)
-				TerminalsStatusesStorage.Instance().Serialize(MainActivity.this);
-/////////////
-			for(int index=0,length=_Band.getChildCount();index<length;++index)
 			{
-				View view = _Band.getChildAt(index);
-				if(view!=null)
-					view.postInvalidate();
-			}
+				TerminalsStatusesStorage.Instance().Serialize(MainActivity.this);
+				_Handler.post(_RefreshListView);
+			}*/
 /////////////
 			dismissDialog(DIALOG_REFRESH);
+      removeDialog(DIALOG_REFRESH);
     }
   };
   
@@ -139,15 +159,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   };
   
   @Override
-  public void onResume()
-  {
-    super.onResume();
-    
-    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
-    registerReceiver(UpdateMessageReceiver, filter);
-  }
-  
-  @Override
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
@@ -155,11 +166,22 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
 ////////
     _AgentName = (TextView)findViewById(R.id.agent_name);
     _Band = new SlideBand(this);
-    _Band.setOnCurrentViewChangeListner(this);
+    _Band.setOnCurrentViewChangeListener(this);
     showDialog(DIALOG_RESTORE);
     (new RestoreTask()).execute();
+///////
+    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
+    registerReceiver(UpdateMessageReceiver, filter);
   }
-  
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
+    unregisterReceiver(UpdateMessageReceiver);
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
@@ -211,14 +233,13 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
     return(dialog);
   }
 
-  @Override
   public void CurrentViewChanged(View v)
   {
-    Agent agent = AgentsStorage.Instance().Find(((AgentListView)v).getAgentId());
+    /*TODO: Agent agent = AgentsStorage.Instance().Find(((AgentListView)v).getAgentId());
     if(agent!=null)
       _AgentName.setText(agent.getName());
     else
-      _AgentName.setText("");
+      _AgentName.setText("");*/
   }
   
   public void agentsListClick(View v)
@@ -242,12 +263,8 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   
   public void RefreshStatuses()
   {
-  	Thread.State state = _RefreshThread.getState();
-  	if(state == Thread.State.NEW || state == Thread.State.TERMINATED)
-  	{
-  		showDialog(DIALOG_REFRESH);
-  		_RefreshThread.start();
-  	}
+  	showDialog(DIALOG_REFRESH);
+  	(new Thread(_RefreshRunnable)).start();
   }
   
   /*private TerminalsProcessData _Terminals;
@@ -260,7 +277,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
   
   /*
   
-  // TODO: Перетащить сортировку и наполнение в AsyncTask 
   private static final Comparator<TerminalInfoOld> _TerminalComparer = new Comparator<TerminalInfoOld>()
   {
     @Override
@@ -271,13 +287,13 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
       if(result!=0)
         return(result);
       
-      if(object1.Address()==null)
+      if(object1.getAddress()==null)
         return(-1);
-      if(object2.Address()==null)
+      if(object2.getAddress()==null)
         return(1);
       
       if(object1.State() == object2.State())
-        return object1.Address().compareToIgnoreCase(object2.Address());
+        return object1.getAddress().compareToIgnoreCase(object2.getAddress());
 
       if(object1.State()==0)
         return(1);
@@ -358,9 +374,9 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
         for(Account account : accounts)
         {
           ArrayList<Agent> agents_line = new ArrayList<Agent>();
-          _Accounts.GetAgents(account.Id(), agents_line);
+          _Accounts.GetAgents(account.getId(), agents_line);
           if(agents_line.size()>0)
-            agents.put(account.Id(), agents_line);
+            agents.put(account.getId(), agents_line);
         }
         
         Account[] ac = new Account[accounts.size()];
@@ -445,28 +461,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
     }
   }
   
-  private void DrawTerminals()
-  {
-    _TerminalsAdapter.clear();
-    for(String terminal_key : _Terminals)
-    {
-      _TerminalsAdapter.add(_Terminals.at(terminal_key));
-    }
-    
-    HashMap<Long, String> agents = _Terminals.Agents();
-    for(Long agentId : agents.keySet())
-    {
-      /*Terminal terminal = new Terminal(null, null);
-      terminal.agentId = agentId;
-      terminal.agentName = agents.get(agentId);
-      terminal.cash = _Terminals.AgentCash(agentId);
-      terminal.State(0);
-      _TerminalsAdapter.add(terminal);*//*
-    }
-    
-    _TerminalsAdapter.sort(_TerminalComparer);
-  }
-  
   @Override
   public void onSuccessRequest()
   {
@@ -527,7 +521,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListner
         flipper.addView(view, LayoutParams.WRAP_CONTENT);
       }
 
-      view.setText(Html.fromHtml("<b>"+account.getTitle()+"</b><br>"+_Terminals.Balance(account.Id())));
+      view.setText(Html.fromHtml("<b>"+account.getTitle()+"</b><br>"+_Terminals.Balance(account.getId())));
     }
     
     if(accounts.size()>1)

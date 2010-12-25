@@ -5,7 +5,6 @@ import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.AccountsStorage;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -26,6 +25,7 @@ import android.preference.PreferenceCategory;
 import android.preference.RingtonePreference;
 import android.provider.Settings;
 import android.widget.ArrayAdapter;
+import org.pvoid.apteryxaustralis.storage.Storage;
 
 public class CommonSettings extends PreferenceActivity
 {
@@ -101,14 +101,13 @@ public class CommonSettings extends PreferenceActivity
     });
     _AccountsCategory.addPreference(add_account);
 ////////
-    AccountsStorage storage = AccountsStorage.Instance();
-    if(!storage.isEmpty())
-      for(Account account : storage)
-      {
-        AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
-        accountPreference.setOnPreferenceClickListener(accountClickListener);
-        _AccountsCategory.addPreference(accountPreference);
-      }
+    Iterable<Account> accounts = Storage.getAccounts(this);
+    for(Account account : accounts)
+    {
+      AccountPreference accountPreference = new AccountPreference(this, account.getId(), account.getTitle());
+      accountPreference.setOnPreferenceClickListener(accountClickListener);
+      _AccountsCategory.addPreference(accountPreference);
+    }
 //////// Команды управления
     _Commands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
     _Commands.add(getString(R.string.edit));
@@ -119,10 +118,10 @@ public class CommonSettings extends PreferenceActivity
   {
     if(requestCode==0 && resultCode==RESULT_OK)
     {
-      long accountId = data.getLongExtra(Consts.EXTRA_ACCOUNTID, 0);
-      Account account = AccountsStorage.Instance().Find(accountId);
+      long id = data.getLongExtra(AddAccountActivity.EXTRA_ACCOUNT_ID, 0);
+      String title = data.getStringExtra(AddAccountActivity.EXTRA_ACCOUNT_TITLE);
       
-      AccountPreference accountPreference = new AccountPreference(this, account.Id(), account.getTitle());
+      AccountPreference accountPreference = new AccountPreference(this, id, title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
       _AccountsCategory.addPreference(accountPreference);
     }
@@ -287,9 +286,9 @@ public class CommonSettings extends PreferenceActivity
   private void DeletePreference(Preference preference)
   {
     // TODO: Спросить надо ли
-    AccountsStorage.Instance().Delete(((AccountPreference)preference).Id());
+    //AccountsStorage.Instance().Delete(((AccountPreference)preference).Id());
     // TODO: Почистить агентов и терминалы
-    AccountsStorage.Instance().Serialize(this);
+    //AccountsStorage.Instance().Serialize(this);
     _AccountsCategory.removePreference(preference);    
   }
 }

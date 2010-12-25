@@ -12,9 +12,9 @@ import android.util.Log;
 
 public class AgentsSection implements IResponseParser
 {
-  private final int STATE_NONE = 0;
-  private final int STATE_AGENTINFO = 1;
-  private final int STATE_AGENTSINFO = 2;
+  private static final int STATE_NONE = 0;
+  private static final int STATE_AGENT_INFO = 1;
+  private static final int STATE_AGENTS_INFO = 2;
   
   private int _CurrentState;
   private ArrayList<Agent> _Agents = null;
@@ -30,13 +30,13 @@ public class AgentsSection implements IResponseParser
   {
     if(tagName.equals("getAgentInfo"))
     {
-      _CurrentState = STATE_AGENTINFO;
+      _CurrentState = STATE_AGENT_INFO;
       return;
     }
 ////////
     if(tagName.equals("getAgents"))
     {
-      _CurrentState = STATE_AGENTSINFO;
+      _CurrentState = STATE_AGENTS_INFO;
       return;
     }
 ////////
@@ -57,7 +57,7 @@ public class AgentsSection implements IResponseParser
       return;
     }
 /////////
-    if(tagName.equals("row") && _CurrentState == STATE_AGENTSINFO)
+    if(tagName.equals("row") && _CurrentState == STATE_AGENTS_INFO)
     {
       String id = attributes.getValue("agt_id");
       String name = attributes.getValue("agt_name");
@@ -66,7 +66,7 @@ public class AgentsSection implements IResponseParser
       try
       {
         Agent agent = new Agent(Long.parseLong(id),name,null);
-        agent.setAccount(_CurrentAgent.Id());
+        agent.setAccount(_CurrentAgent.getId());
         _Agents.add(agent);
       }
       catch(NumberFormatException e)
@@ -99,7 +99,7 @@ public class AgentsSection implements IResponseParser
           @Override
           public int compare(Object object1, Object object2)
           {
-            return((int)( ((Agent)object1).Id() - ((Agent)object2).Id()) );
+            return((int)( ((Agent)object1).getId() - ((Agent)object2).getId()) );
           }
         });
   }
