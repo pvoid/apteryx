@@ -1,6 +1,5 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import android.os.Parcel;
 import org.pvoid.apteryxaustralis.Utils;
 
 public class Account
@@ -24,6 +23,14 @@ public class Account
   {
     _mId = id;
     _mTitle = title;
+  }
+
+  public Account(String login, String password, long terminal)
+  {
+    _mId = -1;
+    _mLogin = login;
+    _mPasswordHash = password;
+    _mTerminal = terminal;
   }
 
   public long getId()

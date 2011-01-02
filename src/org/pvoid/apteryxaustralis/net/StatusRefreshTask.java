@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 
 public class StatusRefreshTask extends AsyncTask<String, Integer, Boolean>
 {
-	public static List<TerminalStatus> GetStatuses(String login, String passwordHash, String terminal)
+	public static Iterable<TerminalStatus> GetStatuses(String login, String passwordHash, String terminal)
 	{
 		Request request = new Request(login, passwordHash, terminal);
 		request.getTerminalsStatus();
@@ -30,7 +30,7 @@ public class StatusRefreshTask extends AsyncTask<String, Integer, Boolean>
 		if(args.length!=3)
 			return Boolean.FALSE;
 ////////
-		List<TerminalStatus> statuses = GetStatuses(args[0], args[1], args[2]);
+		Iterable<TerminalStatus> statuses = GetStatuses(args[0], args[1], args[2]);
 		if(statuses==null)
 			return Boolean.FALSE;
   	// TODO: TerminalsStatusesStorage.Instance().Add(statuses);

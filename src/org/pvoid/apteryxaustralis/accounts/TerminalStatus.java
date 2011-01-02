@@ -181,4 +181,19 @@ public class TerminalStatus
   {
   	return(_mLastActivityDate);
   }
+
+  public void update(TerminalStatus status)
+  {
+    _mId = status.getId();
+    _mAgentId = status.getAgentId();
+    _mLastActivityDate = status.getLastActivityDate();
+    _mPrinterErrorId = status.getPrinterErrorId();
+    _mNoteErrorId = status.getNoteErrorId();
+    _mSignalLevel = status.getSignalLevel();
+    _mSimProviderBalance = status.getSimProviderBalance();
+    _mMachineStatus = status.getMachineStatus();
+    _mWdtDoorOpenCount = status.getWdtDoorOpenCount();
+    _mWdtDoorAlarmCount = status.getWdtDoorAlarmCount();
+    _mWdtEvent = status.getWdtEvent();
+  }
 }

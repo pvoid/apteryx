@@ -101,7 +101,7 @@ public class CommonSettings extends PreferenceActivity
     });
     _AccountsCategory.addPreference(add_account);
 ////////
-    Iterable<Account> accounts = Storage.getAccounts(this);
+    Iterable<Account> accounts = Storage.getAccountsInfo(this);
     for(Account account : accounts)
     {
       AccountPreference accountPreference = new AccountPreference(this, account.getId(), account.getTitle());

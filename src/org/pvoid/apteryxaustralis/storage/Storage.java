@@ -34,6 +34,10 @@ public class Storage
 
     static final int COLUMN_ID = 0;
     static final int COLUMN_TITLE = 1;
+
+    static final int COLUMN_LOGIN = 0;
+    static final int COLUMN_PASSWORD = 1;
+    static final int COLUMN_TERMINAL = 2;
   }
 
   private static final String ACCOUNT_TABLE = "CREATE TABLE "+AccountTable.TABLE_NAME+" ("+
@@ -140,7 +144,11 @@ public class Storage
 
   private static final String STATUS_INDEX_AGENT = "CREATE INDEX idx_statuses_agent ON "+
                                     StatusesTable.TABLE_NAME+"("+StatusesTable.AGENT+");";
-
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Сама база данных                                                   |
+//|                                                                    |
+//+--------------------------------------------------------------------+
   private static class DataBase extends SQLiteOpenHelper
   {
     public DataBase(Context context)
@@ -173,7 +181,11 @@ public class Storage
       // nope
     }
   }
-
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечесление аккаунтов для отображения из курсора                  |
+//|                                                                    |
+//+--------------------------------------------------------------------+
   private static class AccountsIterable extends IterableCursor<Account>
   {
     public AccountsIterable(Cursor cursor, SQLiteDatabase db)
@@ -184,10 +196,34 @@ public class Storage
     @Override
     protected Account getItem(Cursor cursor)
     {
-      return new Account(cursor.getLong(0),cursor.getString(1));
+      return new Account(cursor.getLong(AccountTable.COLUMN_ID),cursor.getString(AccountTable.COLUMN_TITLE));
     }
   }
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечесление аккаунтов для авторизации из курсора                  |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private static class AuthsIterable extends IterableCursor<Account>
+  {
+    public AuthsIterable(Cursor cursor, SQLiteDatabase db)
+    {
+      super(cursor, db);
+    }
 
+    @Override
+    protected Account getItem(Cursor cursor)
+    {
+      return new Account(cursor.getString(AccountTable.COLUMN_LOGIN),
+                         cursor.getString(AccountTable.COLUMN_PASSWORD),
+                         cursor.getLong(AccountTable.COLUMN_TERMINAL));
+    }
+  }
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечисление агентов из курсора                                    |
+//|                                                                    |
+//+--------------------------------------------------------------------+
   private static class AgentsIterable extends IterableCursor<Agent>
   {
     public AgentsIterable(Cursor cursor, SQLiteDatabase db)
@@ -201,7 +237,11 @@ public class Storage
       return new Agent(cursor.getLong(0),cursor.getString(1));
     }
   }
-
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечисление терминалов из курсора                                 |
+//|                                                                    |
+//+--------------------------------------------------------------------+
   private static class TerminalsIterable extends  IterableCursor<Terminal>
   {
     public TerminalsIterable(Cursor cursor, SQLiteDatabase db)
@@ -215,7 +255,11 @@ public class Storage
       return new Terminal(cursor.getLong(0),cursor.getString(2),cursor.getString(1),cursor.getLong(3));
     }
   }
-
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечисление статусов из курсора                                   |
+//|                                                                    |
+//+--------------------------------------------------------------------+
   private static class StatusIterable extends IterableCursor<TerminalStatus>
   {
     public StatusIterable(Cursor cursor, SQLiteDatabase db)
@@ -254,10 +298,16 @@ public class Storage
     return db.getWritableDatabase();
   }
 
-  public static Iterable<Account> getAccounts(Context context)
+  public static Iterable<Account> getAccountsInfo(Context context)
   {
     SQLiteDatabase db = read(context);
     return new AccountsIterable(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null),db);
+  }
+
+  public static Iterable<Account> getAccounts(Context context)
+  {
+    SQLiteDatabase db = read(context);
+    return new AuthsIterable(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_AUTH,null,null,null,null,null),db);
   }
 
   public static Iterable<Agent> getAgents(Context context, String order)
@@ -389,6 +439,60 @@ public class Storage
         values.put(StatusesTable.EVENT,status.getWdtEvent());
         db.insert(StatusesTable.TABLE_NAME,null,values);
       }
+    }
+    finally
+    {
+      if(db!=null)
+        db.close();
+    }
+    return true;
+  }
+
+  public static boolean addStatus(Context context, TerminalStatus status)
+  {
+    SQLiteDatabase db = write(context);
+    try
+    {
+      ContentValues values = new ContentValues();
+      values.put(StatusesTable.ID,status.getId());
+      values.put(StatusesTable.AGENT,status.getAgentId());
+      values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
+      values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
+      values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
+      values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
+      values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
+      values.put(StatusesTable.STATUS,status.getMachineStatus());
+      values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
+      values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
+      values.put(StatusesTable.EVENT,status.getWdtEvent());
+      db.insert(StatusesTable.TABLE_NAME, null, values);
+    }
+    finally
+    {
+      if(db!=null)
+        db.close();
+    }
+    return true;
+  }
+
+  public static boolean updateStatus(Context context, TerminalStatus status)
+  {
+    SQLiteDatabase db = write(context);
+    try
+    {
+      ContentValues values = new ContentValues();
+      values.put(StatusesTable.ID,status.getId());
+      values.put(StatusesTable.AGENT,status.getAgentId());
+      values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
+      values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
+      values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
+      values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
+      values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
+      values.put(StatusesTable.STATUS,status.getMachineStatus());
+      values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
+      values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
+      values.put(StatusesTable.EVENT,status.getWdtEvent());
+      db.replace(StatusesTable.TABLE_NAME, null, values);
     }
     finally
     {

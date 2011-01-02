@@ -6,10 +6,8 @@ import java.util.TreeMap;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.accounts.*;
+import org.pvoid.apteryxaustralis.net.StatusRefreshTask;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
@@ -42,29 +40,30 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   private static final int DIALOG_RESTORE = 0;
   private static final int DIALOG_REFRESH = 1;
   
-  private SlideBand _Band;
-  private TextView _AgentName;
+  private SlideBand _mBand;
+  private TextView _mAgentName;
+  private final TreeMap<Long, TerminalStatus> _mStatuses;
   
   private class RestoreTask extends AsyncTask<Void, Integer, Boolean>
   {
-    private String _AgentNameValue = null;
+    private String _mAgentNameValue = null;
+
     @Override
     protected Boolean doInBackground(Void... params)
     {
       Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
-      TreeMap<Long, TerminalStatus> map = new TreeMap<Long,TerminalStatus>();
       if(statuses!=null)
         for(TerminalStatus status : statuses)
         {
-          map.put(status.getId(),status);
+          _mStatuses.put(status.getId(), status);
         }
 
       Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
       if(agents!=null)
         for(Agent agent : agents)
         {
-          if(_AgentNameValue==null)
-            _AgentNameValue = agent.getName();
+          if(_mAgentNameValue ==null)
+            _mAgentNameValue = agent.getName();
 
           AgentListView agentView = new AgentListView(MainActivity.this, agent);
           TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
@@ -74,13 +73,13 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
             for(Terminal terminal : terminals)
             {
               TerminalStatus status = null;
-              if(map.containsKey(terminal.getId()))
-                status = map.get(terminal.getId());
+              if(_mStatuses.containsKey(terminal.getId()))
+                status = _mStatuses.get(terminal.getId());
               items.add(new TerminalListRecord(terminal, status));
             }
 
           agentView.setAdapter(items);
-          _Band.addView(agentView);
+          _mBand.addView(agentView);
         }
 /////////////
       return(true);
@@ -93,12 +92,12 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
       LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0);
       params.weight=1;
 /////////////
-      if(_AgentNameValue!=null)
+      if(_mAgentNameValue !=null)
       {
-        _AgentName.setText(_AgentNameValue);
+        _mAgentName.setText(_mAgentNameValue);
       }
 /////////////
-      layout.addView(_Band,params);
+      layout.addView(_mBand,params);
       SharedPreferences preferences = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
       if(preferences.getBoolean(Consts.PREF_AUTOCHECK, false))
       {
@@ -109,15 +108,15 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
     }
   }
   
-  private Handler _Handler = new Handler();
+  private Handler _mHandler = new Handler();
   
-  private Runnable _RefreshListView = new Runnable()
+  private Runnable _mRefreshListView = new Runnable()
 	{
 		public void run()
 		{
-			for(int index=0,length=_Band.getChildCount();index<length;++index)
+			for(int index=0,length= _mBand.getChildCount();index<length;++index)
 			{
-				View view = _Band.getCurrentView();
+				View view = _mBand.getCurrentView();
 				if(view!=null)
 				{
 					try
@@ -134,27 +133,42 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
 		}
 	};
   
-  private Runnable _RefreshRunnable = new Runnable()
+  private Runnable _mRefreshRunnable = new Runnable()
   {
 		@Override
     public void run()
     {
 			boolean refreshed = false;
-			/*TODO: for(Account account : AccountsStorage.Instance())
-			{
-				List<TerminalStatus> statuses = StatusRefreshTask.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
-				if(statuses!=null)
-				{
-					TerminalsStatusesStorage.Instance().UpdateStatuses(statuses);
-					refreshed = true;
-				}
-			}
-/////////////
-			if(refreshed)
-			{
-				TerminalsStatusesStorage.Instance().Serialize(MainActivity.this);
-				_Handler.post(_RefreshListView);
-			}*/
+      Iterable<Account> accounts = Storage.getAccounts(MainActivity.this);
+      if(accounts!=null)
+      {
+        for(Account account : accounts)
+        {
+          Iterable<TerminalStatus> statuses = StatusRefreshTask.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
+          if(statuses!=null)
+          {
+            for(TerminalStatus status : statuses)
+            {
+              if(_mStatuses.containsKey(status.getId()))
+              {
+                _mStatuses.get(status.getId()).update(status);
+                Storage.updateStatus(MainActivity.this,status);
+              }
+              else
+              {
+                _mStatuses.put(status.getId(),status);
+                Storage.addStatus(MainActivity.this, status);
+              }
+            }
+            refreshed = true;
+          }
+        }
+  /////////////
+        if(refreshed)
+        {
+          _mHandler.post(_mRefreshListView);
+        }
+      }
 /////////////
 			dismissDialog(DIALOG_REFRESH);
       removeDialog(DIALOG_REFRESH);
@@ -169,16 +183,21 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
       //MainActivity.this.RefreshStates();
     }
   };
-  
+
+  public MainActivity()
+  {
+    _mStatuses = new TreeMap<Long,TerminalStatus>();
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 ////////
-    _AgentName = (TextView)findViewById(R.id.agent_name);
-    _Band = new SlideBand(this);
-    _Band.setOnCurrentViewChangeListener(this);
+    _mAgentName = (TextView)findViewById(R.id.agent_name);
+    _mBand = new SlideBand(this);
+    _mBand.setOnCurrentViewChangeListener(this);
     showDialog(DIALOG_RESTORE);
     (new RestoreTask()).execute();
 ///////
@@ -250,7 +269,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
     try
     {
       AgentListView agentView = (AgentListView)v;
-      _AgentName.setText(agentView.getAgent().getName());
+      _mAgentName.setText(agentView.getAgent().getName());
     }
     catch(ClassCastException e)
     {
@@ -272,7 +291,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
       int position = intent.getIntExtra(Consts.RESULT_AGENT_POSITION, -1);
       if(position>-1)
       {
-      	_Band.setCurrentView(position);
+      	_mBand.setCurrentView(position);
       }
     }
   }
@@ -280,7 +299,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   public void RefreshStatuses()
   {
   	showDialog(DIALOG_REFRESH);
-  	(new Thread(_RefreshRunnable)).start();
+  	(new Thread(_mRefreshRunnable)).start();
   }
   
   /*private TerminalsProcessData _Terminals;
