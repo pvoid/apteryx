@@ -16,6 +16,12 @@ public class Agent
     _mPhone = phone;
   }
 
+  public Agent(long id, String name)
+  {
+    _mId = id;
+    _mName = name;
+  }
+
   public long getId()
   {
     return _mId;

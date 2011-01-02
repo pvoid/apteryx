@@ -10,8 +10,6 @@ import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 
-import java.util.Iterator;
-
 public class Storage
 {
   private static final String DB_NAME = "apx_storage";
@@ -54,18 +52,21 @@ public class Storage
 //| Агенты                                                             |
 //|                                                                    |
 //+--------------------------------------------------------------------+
-  private interface AgentsTable
+  public interface AgentsTable
   {
     static final String TABLE_NAME = "agents";
 
-    static final String _ID = "id";
+    static final String ID = "id";
     static final String NAME = "name";
     static final String PHONE = "phone";
     static final String ACCOUNT = "account";
+
+    static final String[] COLUMNS_SHORT = new String[] {ID,NAME};
+    static final String[] COLUMNS_FULL = new String[] {ID,NAME,PHONE,ACCOUNT};
   }
 
   private static final String AGENT_TABLE = "CREATE TABLE "+AgentsTable.TABLE_NAME+" ("+
-                                    AgentsTable._ID+" INTEGER PRIMARY KEY,"+
+                                    AgentsTable.ID +" INTEGER PRIMARY KEY,"+
                                     AgentsTable.NAME+" TEXT NOT NULL,"+
                                     AgentsTable.PHONE+" TEXT NOT NULL,"+
                                     AgentsTable.ACCOUNT+" INTEGER NOT NULL);";
@@ -82,14 +83,16 @@ public class Storage
   {
     static final String TABLE_NAME = "terminals";
 
-    static final String _ID = "id";
+    static final String ID = "id";
     static final String ADDRESS = "address";
     static final String NAME = "name";
     static final String AGENT = "agent";
+
+    static final String[] COLUMNS_FULL = new String[] {ID,NAME,ADDRESS,AGENT};
   }
 
   private static final String TERMINAL_TABLE = "CREATE TABLE "+TerminalsTable.TABLE_NAME+" ("+
-                                    TerminalsTable._ID+" INTEGER PRIMARY KEY,"+
+                                    TerminalsTable.ID +" INTEGER PRIMARY KEY,"+
                                     TerminalsTable.ADDRESS+" TEXT NOT NULL,"+
                                     TerminalsTable.NAME+" TEXT NOT NULL,"+
                                     TerminalsTable.AGENT+" INTEGER NOT NULL);";
@@ -117,6 +120,9 @@ public class Storage
     static final String DOOR_OPEN = "door_open";
     static final String DOOR_ALARM = "door_alarm";
     static final String EVENT = "event";
+
+    static final String[] COLUMNS_FULL = new String[] {ID,AGENT,LAST_ACTIVITY,PRINTER_ERROR,
+                                                       NOTE_ERROR,SIGNAL_LEVEL,BALANCE,STATUS,DOOR_OPEN,DOOR_ALARM,EVENT};
   }
 
   private static final String STATUS_TABLE = "CREATE TABLE "+StatusesTable.TABLE_NAME+" ("+
@@ -168,53 +174,71 @@ public class Storage
     }
   }
 
-  private static class AccountsEnumarator implements Iterable<Account>
+  private static class AccountsIterable extends IterableCursor<Account>
   {
-    private final Cursor _mCursor;
-    private final SQLiteDatabase _mDB;
-
-    public AccountsEnumarator(Cursor cursor,SQLiteDatabase db)
+    public AccountsIterable(Cursor cursor, SQLiteDatabase db)
     {
-      _mCursor = cursor;
-      _mDB = db;
+      super(cursor, db);
     }
 
     @Override
-    public Iterator<Account> iterator()
+    protected Account getItem(Cursor cursor)
     {
-      return new Iterator<Account>()
-      {
-        @Override
-        public boolean hasNext()
-        {
-          if(_mCursor.isClosed())
-            return false;
+      return new Account(cursor.getLong(0),cursor.getString(1));
+    }
+  }
 
-          if(_mCursor.isLast())
-          {
-            _mCursor.close();
-            _mDB.close();
-            return false;
-          }
-          return true;
-        }
+  private static class AgentsIterable extends IterableCursor<Agent>
+  {
+    public AgentsIterable(Cursor cursor, SQLiteDatabase db)
+    {
+      super(cursor, db);
+    }
 
-        @Override
-        public Account next()
-        {
-          if(!_mCursor.moveToNext())
-          {
-            throw new RuntimeException("Don't call next after hasNext return false!");
-          }
+    @Override
+    protected Agent getItem(Cursor cursor)
+    {
+      return new Agent(cursor.getLong(0),cursor.getString(1));
+    }
+  }
 
-          return new Account(_mCursor.getLong(AccountTable.COLUMN_ID),_mCursor.getString(AccountTable.COLUMN_TITLE));
-        }
+  private static class TerminalsIterable extends  IterableCursor<Terminal>
+  {
+    public TerminalsIterable(Cursor cursor, SQLiteDatabase db)
+    {
+      super(cursor, db);
+    }
 
-        @Override
-        public void remove()
-        {
-        }
-      };
+    @Override
+    protected Terminal getItem(Cursor cursor)
+    {
+      return new Terminal(cursor.getLong(0),cursor.getString(2),cursor.getString(1),cursor.getLong(3));
+    }
+  }
+
+  private static class StatusIterable extends IterableCursor<TerminalStatus>
+  {
+    public StatusIterable(Cursor cursor, SQLiteDatabase db)
+    {
+      super(cursor, db);
+    }
+
+    @Override
+    protected TerminalStatus getItem(Cursor cursor)
+    {
+      final TerminalStatus status = new TerminalStatus(cursor.getLong(0));
+      status.setAgentId(cursor.getLong(1));
+      status.setLastActivityDate(cursor.getLong(2));
+      status.setPrinterErrorId(cursor.getString(3));
+      status.setNoteErrorId(cursor.getString(4));
+      status.setSignalLevel(cursor.getInt(5));
+      status.setSimProviderBalance(cursor.getFloat(6));
+      status.setMachineStatus(cursor.getInt(7));
+      status.setWdtDoorOpenCount(cursor.getShort(8));
+      status.setWdtDoorAlarmCount(cursor.getShort(9));
+      status.setWdtEvent(cursor.getShort(10));
+
+      return status;
     }
   }
 
@@ -233,7 +257,48 @@ public class Storage
   public static Iterable<Account> getAccounts(Context context)
   {
     SQLiteDatabase db = read(context);
-    return new AccountsEnumarator(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null),db);
+    return new AccountsIterable(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null),db);
+  }
+
+  public static Iterable<Agent> getAgents(Context context, String order)
+  {
+    SQLiteDatabase db = read(context);
+    return new AgentsIterable(db.query(AgentsTable.TABLE_NAME,AgentsTable.COLUMNS_SHORT,null,null,null,null,order),db);
+  }
+
+  public static Iterable<Agent> getAgents(Context context)
+  {
+    return getAgents(context,null);
+  }
+
+  public static Iterable<Terminal> getTerminals(Context context, long agentId)
+  {
+    String selection = null;
+    String[] clause = null;
+
+    if(agentId>-1)
+    {
+      selection = TerminalsTable.AGENT+"=?";
+      clause = new String[] { Long.toString(agentId) };
+    }
+
+    SQLiteDatabase db = read(context);
+    final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,TerminalsTable.COLUMNS_FULL,selection,clause,null,null,null);
+    if(cursor.isAfterLast())
+      return null;
+
+    return new TerminalsIterable(cursor,db);
+  }
+
+  public static Iterable<Terminal> getTerminals(Context context)
+  {
+    return getTerminals(context,-1);
+  }
+
+  public static Iterable<TerminalStatus> getStatuses(Context context)
+  {
+    SQLiteDatabase db = read(context);
+    return new StatusIterable(db.query(StatusesTable.TABLE_NAME,StatusesTable.COLUMNS_FULL,null,null,null,null,null),db);
   }
 
   public static boolean addAccount(Context context, Account account)
@@ -264,7 +329,7 @@ public class Storage
       ContentValues values = new ContentValues();
       for(Agent agent : agents)
       {
-        values.put(AgentsTable._ID,agent.getId());
+        values.put(AgentsTable.ID,agent.getId());
         values.put(AgentsTable.NAME,agent.getName());
         String phone = agent.getPhone();
         values.put(AgentsTable.PHONE,phone==null?"":phone);
@@ -288,7 +353,7 @@ public class Storage
       ContentValues values = new ContentValues();
       for(Terminal terminal : terminals)
       {
-        values.put(TerminalsTable._ID,terminal.getId());
+        values.put(TerminalsTable.ID,terminal.getId());
         values.put(TerminalsTable.NAME,terminal.getDisplayName());
         values.put(TerminalsTable.ADDRESS,terminal.getAddress());
         values.put(TerminalsTable.AGENT,terminal.getAgentId());

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import org.pvoid.apteryxaustralis.storage.Storage;
 
 public class AgentsList extends ListActivity
 {
@@ -18,10 +19,10 @@ public class AgentsList extends ListActivity
 		super.onCreate(savedInstanceState);
 ////////
 		ArrayAdapter<Agent> agents = new ArrayAdapter<Agent>(this, android.R.layout.simple_list_item_1);
-		/*TODO:for(Agent agent : AgentsStorage.Instance().getAgentsByName())
+		for(Agent agent : Storage.getAgents(this,Storage.AgentsTable.NAME) )
 		{
 			agents.add(agent);
-		}*/
+		}
 ////////
 		setListAdapter(agents);
 	}

@@ -3,31 +3,32 @@ package org.pvoid.apteryxaustralis.ui;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ListView;
+import org.pvoid.apteryxaustralis.accounts.Agent;
 
 public class AgentListView extends ListView
 {
-  private long _AgentId;
+  private Agent _mAgent;
   
-  public AgentListView(Context context, long agentId)
+  public AgentListView(Context context, Agent agent)
   {
     super(context);
-    _AgentId = agentId;
+    _mAgent = agent;
   }
   
-  public AgentListView(Context context, long agentId, AttributeSet attrs)
+  public AgentListView(Context context, Agent agent, AttributeSet attrs)
   {
     super(context, attrs);
-    _AgentId = agentId;
+    _mAgent = agent;
   }
   
-  public AgentListView(Context context, long agentId, AttributeSet attrs, int defStyle)
+  public AgentListView(Context context, Agent agent, AttributeSet attrs, int defStyle)
   {
     super(context, attrs, defStyle);
-    _AgentId = agentId;
+    _mAgent = agent;
   }
 
-  public long getAgentId()
+  public Agent getAgent()
   {
-    return(_AgentId);
+    return(_mAgent);
   }
 }

@@ -117,6 +117,11 @@ public class TerminalStatus
     _mMachineStatus = result;
   }
 
+  public void setMachineStatus(int machineStatus)
+  {
+    _mMachineStatus = machineStatus;
+  }
+
   public int getMachineStatus()
   {
     return _mMachineStatus;
@@ -165,6 +170,11 @@ public class TerminalStatus
   public void setLastActivityDate(Date date)
   {
     _mLastActivityDate = date.getTime();
+  }
+
+  public void setLastActivityDate(long date)
+  {
+    _mLastActivityDate = date;
   }
   
   public long getLastActivityDate()

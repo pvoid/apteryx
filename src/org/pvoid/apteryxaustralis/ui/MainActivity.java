@@ -1,18 +1,17 @@
 package org.pvoid.apteryxaustralis.ui;
 
 
-import java.util.List;
+import java.util.TreeMap;
 
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.net.StatusRefreshTask;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
 import org.pvoid.common.views.SlideBand.OnCurrentViewChangeListener;
 
@@ -52,24 +51,37 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
     @Override
     protected Boolean doInBackground(Void... params)
     {
-      /*for(Agent agent : AgentsStorage.Instance().getAgentsByName())
-      {
-        if(_AgentNameValue==null)
-          _AgentNameValue = agent.getName();
-        
-        List<Terminal> terminals = TerminalsStorage.Instance().TerminalsForAgent(agent);
-
-        AgentListView agentView = new AgentListView(MainActivity.this, agent.getId());
-        TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
-        for(Terminal terminal : terminals)
+      Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
+      TreeMap<Long, TerminalStatus> map = new TreeMap<Long,TerminalStatus>();
+      if(statuses!=null)
+        for(TerminalStatus status : statuses)
         {
-        	TerminalStatus status = TerminalsStatusesStorage.Instance().Find(terminal.getId());
-          items.add(new TerminalListRecord(terminal, status));
+          map.put(status.getId(),status);
         }
-        
-        agentView.setAdapter(items);
-        _Band.addView(agentView);
-      }*/
+
+      Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+      if(agents!=null)
+        for(Agent agent : agents)
+        {
+          if(_AgentNameValue==null)
+            _AgentNameValue = agent.getName();
+
+          AgentListView agentView = new AgentListView(MainActivity.this, agent);
+          TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
+          Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,agent.getId());
+
+          if(terminals!=null)
+            for(Terminal terminal : terminals)
+            {
+              TerminalStatus status = null;
+              if(map.containsKey(terminal.getId()))
+                status = map.get(terminal.getId());
+              items.add(new TerminalListRecord(terminal, status));
+            }
+
+          agentView.setAdapter(items);
+          _Band.addView(agentView);
+        }
 /////////////
       return(true);
     }
@@ -235,11 +247,15 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
 
   public void CurrentViewChanged(View v)
   {
-    /*TODO: Agent agent = AgentsStorage.Instance().Find(((AgentListView)v).getAgentId());
-    if(agent!=null)
-      _AgentName.setText(agent.getName());
-    else
-      _AgentName.setText("");*/
+    try
+    {
+      AgentListView agentView = (AgentListView)v;
+      _AgentName.setText(agentView.getAgent().getName());
+    }
+    catch(ClassCastException e)
+    {
+      e.printStackTrace();
+    }
   }
   
   public void agentsListClick(View v)
