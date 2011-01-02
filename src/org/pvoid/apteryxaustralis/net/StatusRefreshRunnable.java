@@ -1,13 +1,9 @@
 package org.pvoid.apteryxaustralis.net;
 
-import java.util.List;
-
 import org.pvoid.apteryxaustralis.accounts.ReportsSection;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 
-import android.os.AsyncTask;
-
-public class StatusRefreshTask extends AsyncTask<String, Integer, Boolean>
+public class StatusRefreshRunnable implements Runnable
 {
 	public static Iterable<TerminalStatus> GetStatuses(String login, String passwordHash, String terminal)
 	{
@@ -25,16 +21,7 @@ public class StatusRefreshTask extends AsyncTask<String, Integer, Boolean>
 	}
 	
 	@Override
-	protected Boolean doInBackground(String... args)
+	public void run()
 	{
-		if(args.length!=3)
-			return Boolean.FALSE;
-////////
-		Iterable<TerminalStatus> statuses = GetStatuses(args[0], args[1], args[2]);
-		if(statuses==null)
-			return Boolean.FALSE;
-  	// TODO: TerminalsStatusesStorage.Instance().Add(statuses);
-////////
-		return Boolean.TRUE;
 	}
 }

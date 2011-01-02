@@ -7,7 +7,7 @@ import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.*;
-import org.pvoid.apteryxaustralis.net.StatusRefreshTask;
+import org.pvoid.apteryxaustralis.net.StatusRefreshRunnable;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
@@ -144,7 +144,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
       {
         for(Account account : accounts)
         {
-          Iterable<TerminalStatus> statuses = StatusRefreshTask.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
+          Iterable<TerminalStatus> statuses = StatusRefreshRunnable.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
           if(statuses!=null)
           {
             for(TerminalStatus status : statuses)
@@ -174,15 +174,39 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
       removeDialog(DIALOG_REFRESH);
     }
   };
-  
+
+  private final Runnable _mReloadRunnable = new Runnable()
+  {
+    @Override
+    public void run()
+    {
+      Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
+      if(statuses!=null)
+      {
+        for(TerminalStatus status : statuses)
+        {
+          if(_mStatuses.containsKey(status.getId()))
+            _mStatuses.get(status.getId()).update(status);
+        }
+
+        _mHandler.post(_mRefreshListView);
+      }
+    }
+  };
+
   public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      //MainActivity.this.RefreshStates();
+      MainActivity.this.RefreshStates();
     }
   };
+
+  private void RefreshStates()
+  {
+    (new Thread(_mReloadRunnable)).start();
+  }
 
   public MainActivity()
   {
@@ -209,7 +233,6 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   protected void onDestroy()
   {
     super.onDestroy();
-    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
     unregisterReceiver(UpdateMessageReceiver);
   }
 

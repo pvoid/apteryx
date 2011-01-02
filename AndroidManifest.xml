@@ -27,9 +27,9 @@
         </intent-filter>
       </receiver>
     </application>
-    <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
-    <uses-permission android:name="android.permission.VIBRATE" ></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"></uses-sdk>
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"/>
     <supports-screens android:normalScreens="true" />
 </manifest> 

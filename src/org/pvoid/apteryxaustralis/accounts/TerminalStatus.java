@@ -1,7 +1,5 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import android.os.Parcel;
-
 import java.util.Date;
 
 public class TerminalStatus
@@ -76,7 +74,10 @@ public class TerminalStatus
 
   public void setPrinterErrorId(String printerErrorId)
   {
-    _mPrinterErrorId = printerErrorId;
+    if(printerErrorId==null)
+      _mPrinterErrorId = "";
+    else
+      _mPrinterErrorId = printerErrorId;
   }
 
   public String getPrinterErrorId()
@@ -159,7 +160,10 @@ public class TerminalStatus
 
   public void setNoteErrorId(String noteErrorId)
   {
-    _mNoteErrorId = noteErrorId;
+    if(noteErrorId==null)
+      _mNoteErrorId = "";
+    else
+      _mNoteErrorId = noteErrorId;
   }
 
   public String getNoteErrorId()

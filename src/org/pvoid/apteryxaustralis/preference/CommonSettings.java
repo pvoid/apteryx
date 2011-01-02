@@ -68,7 +68,7 @@ public class CommonSettings extends PreferenceActivity
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    addPreferencesFromResource(R.layout.settings);
+    addPreferencesFromResource(R.xml.settings);
     
     _Autocheck = (CheckBoxPreference)findPreference("autocheck");
     _Intervals = (ListPreference)findPreference("interval");

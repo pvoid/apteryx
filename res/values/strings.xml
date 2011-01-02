@@ -1,86 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Apteryx australis</string>
-    
-    <string name="last_update">Последнее обновление</string>
-    <string name="balance">Баланс</string>
-    <string name="overdraft">Овердрафт</string>
-    <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
-    
-    <string name="add_account">Новый аккаунт</string>
-    <string name="settings">Настройки</string>
-    <string name="refresh">Обновить статусы</string>
-    <string name="title">Отображамое имя</string>
-    <string name="login">Логин</string>
-    <string name="empty_login">Укажите логин</string>
-    <string name="password">Пароль</string>
-    <string name="empty_password">Укажите пароль</string>
-    <string name="terminal_id">ID терминала</string>
-    <string name="empty_terminal">Укажите id терминала</string>
-    <string name="add_account_auth_title">Укажите данные учетной записи</string>
-    <string name="next">Дальше</string>
-    <string name="done">Готово</string>
-    
-    <string name="select_main_agent">Укажите основного агента</string>
-    <string name="select_active_agents">Укажите агентов за терминалами которых надо следить</string>
-    
-    <string name="accounts_list">Список аккаунтов</string>
-    <string name="accounts">Аккаунты</string>
-    <string name="add">Добавить аккаунт</string>
-    <string name="edit">Изменить</string>
-    <string name="delete">Удалить</string>
-    <string name="cancel">Отмена</string>
-    <string name="delete_confirm">Вы уверены что хотите удалить аккаунт</string>
-    
-    <string name="auth_process">Проверка аккаунта</string>
-    <string name="network_error">Не могу проверить аккаунт. Ошибка сети.</string>
-    <string name="auth_error">Неверные учетные данные</string>
-    
-    <string name="printer">Принтер</string>
-    <string name="cachebin">Купюроприемник</string>
-    
-    <string name="fullinfo_tid">Номер терминала:</string>
-    <string name="fullinfo_aid">Номер агента:</string>
-    <string name="fullinfo_an">Наименование агента:</string>
-    <string name="fullinfo_cash">Cумма наличных:</string>
-    <string name="fullinfo_bonds">Число купюр:</string>
-    <string name="fullinfo_last_activity">Дата последнего ответа:</string>
-    <string name="fullinfo_last_payment">Дата последнего платежа:</string>
-    <string name="fullinfo_signal_level">Уровень сигнала:</string>
-    <string name="fullinfo_balance">Баланс сим карты:</string>
-    <string name="fullinfo_soft_version">Версия ПО:</string>
-    <string name="fullinfo_printer">Принтер:</string>
-    <string name="fullinfo_cashbin">Купюроприемник:</string>
-    <string name="fullinfo_bonds10">10ки:</string>
-    <string name="fullinfo_bonds50">50ки:</string>
-    <string name="fullinfo_bonds100">100ки:</string>
-    <string name="fullinfo_bonds500">500ки:</string>
-    <string name="fullinfo_bonds1000">1000е:</string>
-    <string name="fullinfo_bonds5000">5000е:</string>
-    <string name="fullinfo_pays_per_hour">Средние количество платежей в час:</string>
-    
-    <string name="doesnt_response">не отвечает</string>
-    
-    <string name="settings_autocheck_title">Автоматическая проверка</string>
-    <string name="settings_autocheck">Проверять автоматически</string>
-    <string name="settings_checksummary">Проверть состояние терминалов через заданный интервал</string>
-    <string name="settings_interval">Интервал обновления</string>
-    <string name="settings_notify">Уведомления</string>
-    <string name="settings_usevibro">Использовать вибрацию</string>
-    <string name="settings_melody">Сигнал уведомления</string>
-    
-    <string name="interval_15m">каждые 15 минут</string>
-    <string name="interval_30m">каждые 30 минут</string>
-    <string name="interval_1h">каждый час</string>
-    <string name="interval_3h">каждые 3 часа</string>
-    <string name="interval_6h">каждые 6 часов</string>
-    <string name="interval_12h">каждые 12 часов</string>
-    <string name="interval_1d">раз в день</string>
-    <string name="no_sound">Без звука</string>
-    <string name="default_sound">Звук по умолчанию</string>
-    
-    <string name="service_starte">Запущена автоматическая проверка</string>
-    <string name="update_service">Проверка терминалов</string>
-    <string name="data_restore">Восстановление данных</string>
-    <string name="status_refresh">Обновление статусов</string>
+  <string name="app_name">Apteryx australis</string>
+
+  <string name="last_update">Последнее обновление</string>
+  <string name="balance">Баланс</string>
+  <string name="overdraft">Овердрафт</string>
+  <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
+
+  <string name="add_account">Новый аккаунт</string>
+  <string name="settings">Настройки</string>
+  <string name="refresh">Обновить статусы</string>
+  <string name="title">Отображамое имя</string>
+  <string name="login">Логин</string>
+  <string name="empty_login">Укажите логин</string>
+  <string name="password">Пароль</string>
+  <string name="empty_password">Укажите пароль</string>
+  <string name="terminal_id">ID терминала</string>
+  <string name="empty_terminal">Укажите id терминала</string>
+  <string name="add_account_auth_title">Укажите данные учетной записи</string>
+  <string name="next">Дальше</string>
+  <string name="done">Готово</string>
+
+  <string name="select_main_agent">Укажите основного агента</string>
+  <string name="select_active_agents">Укажите агентов за терминалами которых надо следить</string>
+
+  <string name="accounts_list">Список аккаунтов</string>
+  <string name="accounts">Аккаунты</string>
+  <string name="add">Добавить аккаунт</string>
+  <string name="edit">Изменить</string>
+  <string name="delete">Удалить</string>
+  <string name="cancel">Отмена</string>
+  <string name="delete_confirm">Вы уверены что хотите удалить аккаунт</string>
+
+  <string name="auth_process">Проверка аккаунта</string>
+  <string name="network_error">Не могу проверить аккаунт. Ошибка сети.</string>
+  <string name="auth_error">Неверные учетные данные</string>
+
+  <string name="printer">Принтер</string>
+  <string name="cachebin">Купюроприемник</string>
+
+  <string name="fullinfo_tid">Номер терминала:</string>
+  <string name="fullinfo_aid">Номер агента:</string>
+  <string name="fullinfo_an">Наименование агента:</string>
+  <string name="fullinfo_cash">Cумма наличных:</string>
+  <string name="fullinfo_bonds">Число купюр:</string>
+  <string name="fullinfo_last_activity">Дата последнего ответа:</string>
+  <string name="fullinfo_last_payment">Дата последнего платежа:</string>
+  <string name="fullinfo_signal_level">Уровень сигнала:</string>
+  <string name="fullinfo_balance">Баланс сим карты:</string>
+  <string name="fullinfo_soft_version">Версия ПО:</string>
+  <string name="fullinfo_printer">Принтер:</string>
+  <string name="fullinfo_cashbin">Купюроприемник:</string>
+  <string name="fullinfo_bonds10">10ки:</string>
+  <string name="fullinfo_bonds50">50ки:</string>
+  <string name="fullinfo_bonds100">100ки:</string>
+  <string name="fullinfo_bonds500">500ки:</string>
+  <string name="fullinfo_bonds1000">1000е:</string>
+  <string name="fullinfo_bonds5000">5000е:</string>
+  <string name="fullinfo_pays_per_hour">Средние количество платежей в час:</string>
+
+  <string name="doesnt_response">не отвечает</string>
+
+  <string name="settings_autocheck_title">Автоматическая проверка</string>
+  <string name="settings_autocheck">Проверять автоматически</string>
+  <string name="settings_checksummary">Проверть состояние терминалов через заданный интервал</string>
+  <string name="settings_interval">Интервал обновления</string>
+  <string name="settings_notify">Уведомления</string>
+  <string name="settings_usevibro">Использовать вибрацию</string>
+  <string name="settings_melody">Сигнал уведомления</string>
+
+  <string name="interval_15m">каждые 15 минут</string>
+  <string name="interval_30m">каждые 30 минут</string>
+  <string name="interval_1h">каждый час</string>
+  <string name="interval_3h">каждые 3 часа</string>
+  <string name="interval_6h">каждые 6 часов</string>
+  <string name="interval_12h">каждые 12 часов</string>
+  <string name="interval_1d">раз в день</string>
+  <string name="no_sound">Без звука</string>
+  <string name="default_sound">Звук по умолчанию</string>
+
+  <string name="service_starte">Запущена автоматическая проверка</string>
+  <string name="update_service">Проверка терминалов</string>
+  <string name="data_restore">Восстановление данных</string>
+  <string name="status_refresh">Обновление статусов</string>
+
+  <string name="terminals_errors">Возникли проблемы с терминалом</string>
 </resources>
