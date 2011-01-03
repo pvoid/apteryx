@@ -1,0 +1,7 @@
+/default.properties
+/assets
+bin
+gen
+*~
+.*
+*.iml
