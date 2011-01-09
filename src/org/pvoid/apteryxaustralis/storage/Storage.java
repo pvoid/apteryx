@@ -301,19 +301,40 @@ public class Storage
   public static Iterable<Account> getAccountsInfo(Context context)
   {
     SQLiteDatabase db = read(context);
-    return new AccountsIterable(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null),db);
+    final Cursor cursor = db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null);
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+    return new AccountsIterable(cursor,db);
   }
 
   public static Iterable<Account> getAccounts(Context context)
   {
     SQLiteDatabase db = read(context);
-    return new AuthsIterable(db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_AUTH,null,null,null,null,null),db);
+    final Cursor cursor = db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_AUTH,null,null,null,null,null);
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+    return new AuthsIterable(cursor,db);
   }
 
   public static Iterable<Agent> getAgents(Context context, String order)
   {
     SQLiteDatabase db = read(context);
-    return new AgentsIterable(db.query(AgentsTable.TABLE_NAME,AgentsTable.COLUMNS_SHORT,null,null,null,null,order),db);
+    final Cursor cursor = db.query(AgentsTable.TABLE_NAME,AgentsTable.COLUMNS_SHORT,null,null,null,null,order);
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+    return new AgentsIterable(cursor,db);
   }
 
   public static Iterable<Agent> getAgents(Context context)
@@ -335,8 +356,12 @@ public class Storage
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,TerminalsTable.COLUMNS_FULL,selection,clause,null,null,null);
     if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
       return null;
-
+    }
+////////
     return new TerminalsIterable(cursor,db);
   }
 
@@ -348,7 +373,15 @@ public class Storage
   public static Iterable<TerminalStatus> getStatuses(Context context)
   {
     SQLiteDatabase db = read(context);
-    return new StatusIterable(db.query(StatusesTable.TABLE_NAME,StatusesTable.COLUMNS_FULL,null,null,null,null,null),db);
+    Cursor cursor = db.query(StatusesTable.TABLE_NAME,StatusesTable.COLUMNS_FULL,null,null,null,null,null);
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+////////
+    return new StatusIterable(cursor,db);
   }
 
   public static boolean addAccount(Context context, Account account)
@@ -394,6 +427,28 @@ public class Storage
     }
     return true;
   }
+
+  public static boolean addAgent(Context context, Agent agent)
+  {
+    SQLiteDatabase db = write(context);
+    try
+    {
+      ContentValues values = new ContentValues();
+      values.put(AgentsTable.ID,agent.getId());
+      values.put(AgentsTable.NAME,agent.getName());
+      String phone = agent.getPhone();
+      values.put(AgentsTable.PHONE,phone==null?"":phone);
+      values.put(AgentsTable.ACCOUNT,agent.getAccount());
+      db.insert(AgentsTable.TABLE_NAME,null,values);
+    }
+    finally
+    {
+      if(db!=null)
+        db.close();
+    }
+    return true;
+  }
+
 
   public static boolean addTerminals(Context context, Iterable<Terminal> terminals)
   {

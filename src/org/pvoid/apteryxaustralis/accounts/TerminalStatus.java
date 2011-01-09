@@ -1,5 +1,8 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import android.content.Context;
+import org.pvoid.apteryxaustralis.R;
+
 import java.util.Date;
 
 public class TerminalStatus
@@ -16,29 +19,39 @@ public class TerminalStatus
   public final static int WDT_NO12VOLTSFROMCOMPUTER = 0x200;
   public final static int WDT_SECURITYALARMMODE = 0x400;
   
-  public final static int STATE_PRINTER_ERROR = 0x01;
-  public final static int STATE_UNKNOWN1 = 0x02;
-  public final static int STATE_UPLOADING_UPDATES = 0x04;
-  public final static int STATE_UNKNOWN2 = 0x08;
-  public final static int STATE_STORAGE_TIMER = 0x10;
-  public final static int STATE_UNKNOWN3 = 0x20;
-  public final static int STATE_STACKER_REMOVED = 0x40;
-  public final static int STATE_ESSENTIAL_ELEMENTS_ERROR = 0x80;
-  public final static int STATE_UNKNOWN4 = 0x100;
-  public final static int STATE_STOPED_DUE_BALANCE = 0x200;
-  public final static int STATE_UNKNOWN5  = 0x400;
-  public final static int STATE_UNKNOWN6  = 0x800;
-  public final static int STATE_UNKNOWN7  = 0x1000;
-  public final static int STATE_UNKNOWN8  = 0x2000;
-  public final static int STATE_UNKNOWN9  = 0x4000;
-  public final static int STATE_UNKNOWN10 = 0x8000;
-  public final static int STATE_UNKNOWN11 = 0x10000;
-  public final static int STATE_REFRESH_PROVIDERS = 0x20000;
-  public final static int STATE_REFRESH_PLAYLIST  = 0x40000;
-  public final static int STATE_REFRESH_FILES     = 0x80000;
-  public final static int STATE_UNKNOWN12 = 0x100000;
-  public final static int STATE_UNKNOWN13 = 0x200000;
-  public final static int STATE_UNKNOWN14 = 0x400000;
+  public final static int STATE_PRINTER_STACKER_ERROR = 0x01; // автомат остановлен из-за ошибок купюроприемника или принтера
+  public final static int STATE_INTERFACE_ERROR = 0x02; // автомат остановлен из-за ошибки в конфигурации интерфейса. новый интерфейс загружается с сервера.
+  public final static int STATE_UPLOADING_UPDATES = 0x04; // автомат загружает с сервера обновление приложения
+  public final static int STATE_DEVICES_ABSENT = 0x08; // автомат остановлен из-за того, что при старте не обнаружено оборудование (купюроприемник или принтер)
+  public final static int STATE_STORAGE_TIMER = 0x10; // работает сторожевой таймер
+  public final static int STATE_PAPER_COMING_TO_END = 0x20; // в принтере скоро закончится бумага
+  public final static int STATE_STACKER_REMOVED = 0x40; // C автомата был снят купюроприемник
+  public final static int STATE_ESSENTIAL_ELEMENTS_ERROR = 0x80; // Отсутствуют или неверно заполнены один или несколько реквизитов для терминала
+  public final static int STATE_HARDDRIVE_PROBLEMS = 0x100; // Проблемы с жестким диском!!!
+  public final static int STATE_STOPPED_DUE_BALANCE = 0x200; // Остановлен по сигналу сервера или из-за отсутствия денег на счету агента!
+  public final static int STATE_HARDWARE_OR_SOFTWARE_PROBLEM  = 0x400; // Остановлен из-за проблем с железом или интерфейса.
+  public final static int STATE_HAS_SECOND_MONITOR  = 0x800; // Автомат оснащен вторым монитором.
+  public final static int STATE_DOOR_ID_OPENED  = 0x1000; // Открыта дверь терминала.
+  public final static int STATE_UNAUTHORIZED_SOFTWARE  = 0x2000; // Обнаружено стороннее ПО, которое может вызывать сбой модемного соединения.
+  public final static int STATE_PROXY_SERVER  = 0x4000; // Автомат соединен через прокси-сервер.
+  public final static int STATE_EMPTY1 = 0x8000;
+  public final static int STATE_UPDATING_CONFIGURATION = 0x10000; // Терминал обновляет конфигурацию
+  public final static int STATE_UPDATING_NUMBERS = 0x20000; // Терминал обновляет номерные емкости.
+  public final static int STATE_UPDATING_PROVIDERS  = 0x40000; // Терминал обновляет список провайдеров.
+  public final static int STATE_UPDATING_ADVERT     = 0x80000; // Терминал проверяет и обновляет рекламный плэйлист.
+  public final static int STATE_UPDATING_FILES = 0x100000; // Терминал проверяет и обновляет файлы.
+  public final static int STATE_EMPTY2 = 0x200000;
+  public final static int STATE_ASO_MODIFIED = 0x400000; // Модифицировано приложение АСО.
+  public final static int STATE_EMPTY3 = 0x800000;
+  public final static int STATE_ASO_ENABLED = 0x1000000; // Монитор АСО выключен.
+  public final static int STATE_EMPTY4 = 0x2000000;
+  public final static int STATE_EMPTY5 = 0x4000000;
+  public final static int STATE_EMPTY6 = 0x8000000;
+  public final static int STATE_INTERFACE_OVERLAPPED = 0x10000000; //Обнаружено перекрытие платежного интерфейса окном стороннего приложения.
+
+  public final static int STATE_COMMON_OK = 0;
+  public final static int STATE_COMMON_WARNING = 1;
+  public final static int STATE_COMMON_ERROR = 2;
 //////
   private long _mId;
   private long _mAgentId;
@@ -109,6 +122,7 @@ public class TerminalStatus
   {
   	int flag = 1;
   	int result = 0;
+    machineStatus = machineStatus.trim();
   	for(int index = machineStatus.length()-1;index>=0;--index)
   	{
   		if(machineStatus.charAt(index)=='1')
@@ -199,5 +213,94 @@ public class TerminalStatus
     _mWdtDoorOpenCount = status.getWdtDoorOpenCount();
     _mWdtDoorAlarmCount = status.getWdtDoorAlarmCount();
     _mWdtEvent = status.getWdtEvent();
+  }
+
+  public int getCommonState()
+  {
+    if((_mMachineStatus&STATE_PRINTER_STACKER_ERROR)!=0 ||
+       (_mMachineStatus&STATE_INTERFACE_ERROR)!=0 || (_mMachineStatus&STATE_DEVICES_ABSENT)!=0 ||
+       (_mMachineStatus&STATE_STACKER_REMOVED)!=0 || (_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0 ||
+       (_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0 || (_mMachineStatus&STATE_HARDWARE_OR_SOFTWARE_PROBLEM)!=0 ||
+       (_mMachineStatus&STATE_DOOR_ID_OPENED)!=0 || (_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
+    {
+      return STATE_COMMON_ERROR;
+    }
+
+    if((_mMachineStatus&STATE_PAPER_COMING_TO_END)!=0 || (_mMachineStatus&STATE_UNAUTHORIZED_SOFTWARE)!=0 ||
+        (_mMachineStatus&STATE_HARDDRIVE_PROBLEMS)!=0)
+    {
+      return STATE_COMMON_WARNING;
+    }
+    return STATE_COMMON_OK;
+  }
+
+  public String getErrorText(Context context, boolean full)
+  {
+    StringBuffer buffer = new StringBuffer();
+
+    if((_mMachineStatus&STATE_PRINTER_STACKER_ERROR)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_PRINTER_STACKER_ERROR);
+      buffer.append(context.getString(R.string.STATE_PRINTER_STACKER_ERROR));
+    }
+////////
+    if((_mMachineStatus&STATE_INTERFACE_ERROR)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_INTERFACE_ERROR);
+      buffer.append(context.getString(R.string.STATE_INTERFACE_ERROR));
+    }
+////////
+    if((_mMachineStatus&STATE_DEVICES_ABSENT)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_DEVICES_ABSENT);
+      buffer.append(context.getString(R.string.STATE_DEVICES_ABSENT));
+    }
+////////
+    if((_mMachineStatus&STATE_STACKER_REMOVED)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_STACKER_REMOVED);
+      buffer.append(context.getString(R.string.STATE_STACKER_REMOVED));
+    }
+////////
+    if((_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR);
+      buffer.append(context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR));
+    }
+////////
+    if((_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_STOPPED_DUE_BALANCE);
+      buffer.append(context.getString(R.string.STATE_STOPPED_DUE_BALANCE));
+    }
+////////
+    if((_mMachineStatus&STATE_HARDWARE_OR_SOFTWARE_PROBLEM)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM);
+      buffer.append(context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM));
+    }
+////////
+    if((_mMachineStatus&STATE_DOOR_ID_OPENED)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_DOOR_ID_OPENED);
+      buffer.append(context.getString(R.string.STATE_DOOR_ID_OPENED));
+    }
+////////
+    if((_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
+    {
+      if(!full)
+        return context.getString(R.string.STATE_INTERFACE_OVERLAPPED);
+      buffer.append(context.getString(R.string.STATE_INTERFACE_OVERLAPPED));
+    }
+////////
+    return buffer.toString();
   }
 }

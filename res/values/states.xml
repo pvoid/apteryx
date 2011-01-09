@@ -1,0 +1,25 @@
+<resources>
+  <string name="STATE_PRINTER_STACKER_ERROR">Автомат остановлен из-за ошибок купюроприемника или принтера</string>
+  <string name="STATE_INTERFACE_ERROR">Автомат остановлен из-за ошибки в конфигурации интерфейса. новый интерфейс загружается с сервера.</string>
+  <string name="STATE_UPLOADING_UPDATES">Автомат загружает с сервера обновление приложения</string>
+  <string name="STATE_DEVICES_ABSENT">Автомат остановлен из-за того, что при старте не обнаружено оборудование (купюроприемник или принтер)</string>
+  <string name="STATE_STORAGE_TIMER">Работает сторожевой таймер</string>
+  <string name="STATE_PAPER_COMING_TO_END">В принтере скоро закончится бумага</string>
+  <string name="STATE_STACKER_REMOVED">C автомата был снят стеккер</string>
+  <string name="STATE_ESSENTIAL_ELEMENTS_ERROR">Отсутствуют или неверно заполнены один или несколько реквизитов для терминала</string>
+  <string name="STATE_HARDDRIVE_PROBLEMS">Проблемы с жестким диском!!!</string>
+  <string name="STATE_STOPPED_DUE_BALANCE">Остановлен по сигналу сервера или из-за отсутствия денег на счету агента!</string>
+  <string name="STATE_HARDWARE_OR_SOFTWARE_PROBLEM">Остановлен из-за проблем с железом или интерфейса.</string>
+  <string name="STATE_HAS_SECOND_MONITOR">Автомат оснащен вторым монитором.</string>
+  <string name="STATE_DOOR_ID_OPENED">Открыта дверь терминала.</string>
+  <string name="STATE_UNAUTHORIZED_SOFTWARE">Обнаружено стороннее ПО, которое может вызывать сбой модемного соединения.</string>
+  <string name="STATE_PROXY_SERVER">Автомат соединен через прокси-сервер.</string>
+  <string name="STATE_UPDATING_CONFIGURATION">Терминал обновляет конфигурацию</string>
+  <string name="STATE_UPDATING_NUMBERS">Терминал обновляет номерные емкости.</string>
+  <string name="STATE_UPDATING_PROVIDERS">Терминал обновляет список провайдеров.</string>
+  <string name="STATE_UPDATING_ADVERT">Терминал проверяет и обновляет рекламный плэйлист.</string>
+  <string name="STATE_UPDATING_FILES">Терминал проверяет и обновляет файлы.</string>
+  <string name="STATE_ASO_MODIFIED">Модифицировано приложение АСО.</string>
+  <string name="STATE_ASO_ENABLED">Монитор АСО выключен.</string>
+  <string name="STATE_INTERFACE_OVERLAPPED">Обнаружено перекрытие платежного интерфейса окном стороннего приложения.</string>
+</resources>

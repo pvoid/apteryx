@@ -1,10 +1,7 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
 import org.xml.sax.Attributes;
@@ -64,7 +61,7 @@ public class TerminalsSection implements IResponseParser
       }
       catch(NumberFormatException e)
       {
-        
+        e.printStackTrace();
       }
     }
   }

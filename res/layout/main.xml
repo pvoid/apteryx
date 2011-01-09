@@ -5,38 +5,31 @@
               android:orientation="vertical"
               android:id="@+id/mainscreen">
   <RelativeLayout android:layout_width="fill_parent"
-                  android:layout_height="30dip"
-                  android:background="?android:attr/panelColorBackground">
+                  android:background="@drawable/top_bar"
+                  android:layout_height="30dip">
      <TextView  android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentBottom="true"
                 android:layout_marginLeft="5dip"
-                android:gravity="center_vertical"
+                android:layout_centerVertical="true"
                 android:textColor="?android:attr/panelColorForeground"
                 android:id="@+id/agent_name"/>
-     <ImageView android:layout_height="fill_parent"
+     <ImageView android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
                 android:onClick="agentsListClick"
                 android:focusable="true"
                 android:clickable="true"
                 android:id="@+id/agent_list_button"
-                android:src="@drawable/menu_refresh"
-                />
-     <!-- ImageView android:layout_height="fill_parent"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_list" />
+     <ImageView android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:layout_toLeftOf="@id/agent_list_button"                
+                android:layout_toLeftOf="@id/agent_list_button"
                 android:focusable="true"
                 android:clickable="true"
-                android:id="@+id/agent_list_button"
-                android:src="@drawable/icon"
-                /-->
+                android:id="@+id/refresh_button"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_menu_refresh" />
   </RelativeLayout>
 </LinearLayout>

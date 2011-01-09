@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
-import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifyer
@@ -24,7 +23,7 @@ public class Notifyer
     {
       if(_Notification==null)
       {
-        _Notification = new Notification(R.drawable.terminal_active,context.getText(R.string.service_starte),System.currentTimeMillis());
+        _Notification = new Notification(R.drawable.ic_terminal_active,context.getText(R.string.service_starte),System.currentTimeMillis());
         /*RemoteViews view = new RemoteViews(context.getPackageName(),R.layout.notify);
         view.setTextViewText(R.id.notify_text,context.getText(R.string.update_service));*/
         _Notification.setLatestEventInfo(context,
@@ -41,7 +40,7 @@ public class Notifyer
   public static void ShowNotification(Context context)
   {
     Notification notification = GetIcon(context);
-    notification.icon = R.drawable.terminal_inactive;
+    notification.icon = R.drawable.ic_terminal_inactive;
     notification.tickerText = context.getText(R.string.terminals_errors);
     notification.contentIntent  = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
     SharedPreferences preferences = context.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
@@ -65,10 +64,10 @@ public class Notifyer
     if(UpdateStatusService.Executed())
     {
       Notification notification = GetIcon(context);
-      notification.icon = R.drawable.terminal_active;
+      notification.icon = R.drawable.ic_terminal_active;
       RemoteViews view = notification.contentView;
       view.setTextViewText(R.id.notify_text, context.getText(R.string.update_service));
-      view.setImageViewResource(R.id.notify_icon, R.drawable.terminal_active);
+      view.setImageViewResource(R.id.notify_icon, R.drawable.ic_terminal_active);
       nm.notify(Consts.NOTIFICATION_ICON, notification);
     }
     else

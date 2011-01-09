@@ -102,12 +102,13 @@ public class CommonSettings extends PreferenceActivity
     _AccountsCategory.addPreference(add_account);
 ////////
     Iterable<Account> accounts = Storage.getAccountsInfo(this);
-    for(Account account : accounts)
-    {
-      AccountPreference accountPreference = new AccountPreference(this, account.getId(), account.getTitle());
-      accountPreference.setOnPreferenceClickListener(accountClickListener);
-      _AccountsCategory.addPreference(accountPreference);
-    }
+    if(accounts!=null)
+      for(Account account : accounts)
+      {
+        AccountPreference accountPreference = new AccountPreference(this, account.getId(), account.getTitle());
+        accountPreference.setOnPreferenceClickListener(accountClickListener);
+        _AccountsCategory.addPreference(accountPreference);
+      }
 //////// Команды управления
     _Commands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
     _Commands.add(getString(R.string.edit));

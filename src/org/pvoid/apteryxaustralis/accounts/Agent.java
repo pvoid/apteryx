@@ -1,7 +1,5 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import android.os.Parcel;
-
 public class Agent
 {
   private long _mId;

@@ -3,6 +3,7 @@ package org.pvoid.apteryxaustralis.ui;
 
 import java.util.TreeMap;
 
+import android.content.res.Configuration;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
@@ -104,10 +105,12 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
         Intent serviceIntent = new Intent(MainActivity.this,UpdateStatusService.class);
         startService(serviceIntent);
       }
+/////////////
       dismissDialog(DIALOG_RESTORE);
+      removeDialog(DIALOG_RESTORE);
     }
   }
-  
+
   private Handler _mHandler = new Handler();
   
   private Runnable _mRefreshListView = new Runnable()
@@ -243,7 +246,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
     if(result)
     {
       MenuItem item = menu.add(Menu.NONE, REFRESH_MENU_ID, Menu.NONE, R.string.refresh);
-      item.setIcon(R.drawable.menu_refresh);
+      item.setIcon(R.drawable.ic_menu_refresh);
       
       item = menu.add(Menu.NONE, SETTINGS_MENU_ID, Menu.NONE, R.string.settings);
       item.setIcon(android.R.drawable.ic_menu_preferences);
@@ -324,8 +327,14 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   	showDialog(DIALOG_REFRESH);
   	(new Thread(_mRefreshRunnable)).start();
   }
-  
-  /*private TerminalsProcessData _Terminals;
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig)
+  {
+    super.onConfigurationChanged(newConfig);
+  }
+
+    /*private TerminalsProcessData _Terminals;
   private ListView _TerminalsList;
   private TerminalsArrayAdapter _TerminalsAdapter;
   private Accounts _Accounts;

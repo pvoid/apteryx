@@ -1,5 +1,6 @@
 package org.pvoid.apteryxaustralis.ui;
 
+import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
@@ -15,12 +16,12 @@ import android.widget.TextView;
 
 public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 {
-  private Context _Context;
+  private Context _mContext;
   
   public TerminalsArrayAdapter(Context context, int resource)
   {
     super(context, resource);
-    _Context = context;
+    _mContext = context;
   }
 
   @Override
@@ -29,7 +30,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
     View view = convertView;
     if(view==null)
     {
-      LayoutInflater inflater = (LayoutInflater)_Context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      LayoutInflater inflater = (LayoutInflater) _mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       view = inflater.inflate(R.layout.terminal, null);
     }
     
@@ -44,30 +45,42 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
       if(status_record==null)
       {
       	status.setVisibility(View.GONE);
-      	icon.setImageResource(R.drawable.terminal_active);
+      	icon.setImageResource(R.drawable.ic_terminal_active);
       }
       else
       {
-      	String printer_state = status_record.getPrinterErrorId();
-      	String note_state = status_record.getNoteErrorId();
-      	if(printer_state!=null && !printer_state.equalsIgnoreCase("OK"))
-      	{
-      		status.setText(printer_state);
-      		status.setVisibility(View.VISIBLE);
-      		icon.setImageResource(R.drawable.terminal_inactive);
-      	}
-      	else if(note_state!=null && !note_state.equalsIgnoreCase("OK"))
-      	{
-      		status.setText(note_state);
-      		status.setVisibility(View.VISIBLE);
-      		icon.setImageResource(R.drawable.terminal_inactive);
-      	}
-      	else
-      	{
-      		status.setText(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),System.currentTimeMillis(), 0, DateUtils.FORMAT_ABBREV_RELATIVE));
-      		status.setVisibility(View.VISIBLE);
-      		icon.setImageResource(R.drawable.terminal_active);
-      	}
+        String printer_state = status_record.getPrinterErrorId();
+        String note_state = status_record.getNoteErrorId();
+
+        if(!TextUtils.isEmpty(note_state) && !note_state.equals("OK"))
+        {
+          icon.setImageResource(R.drawable.ic_terminal_inactive);
+          status.setVisibility(View.VISIBLE);
+          status.setText(note_state);
+        }
+        else if(!TextUtils.isEmpty(printer_state) && !printer_state.equals("OK"))
+        {
+          icon.setImageResource(R.drawable.ic_terminal_printer_error);
+          status.setVisibility(View.VISIBLE);
+          status.setText(printer_state);
+        }
+        else
+          switch(status_record.getCommonState())
+          {
+            case TerminalStatus.STATE_COMMON_ERROR:
+              icon.setImageResource(R.drawable.ic_terminal_inactive);
+              status.setVisibility(View.VISIBLE);
+              status.setText(status_record.getErrorText(_mContext,false));
+              // TODO: Разные иконки для принтера и для остального
+              break;
+            case TerminalStatus.STATE_COMMON_WARNING:
+              icon.setImageResource(R.drawable.ic_terminal_pending);
+              break;
+            default:
+              status.setText(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),System.currentTimeMillis(), 0, DateUtils.FORMAT_ABBREV_RELATIVE));
+              status.setVisibility(View.VISIBLE);
+              icon.setImageResource(R.drawable.ic_terminal_active);
+          }
       }
     }
      

@@ -10,6 +10,6 @@ public class AddAccount extends Preference
   public AddAccount(Context context)
   {
     super(context);
-    setLayoutResource(R.layout.accounts);
+    setLayoutResource(R.layout.add_account);
   }
 }

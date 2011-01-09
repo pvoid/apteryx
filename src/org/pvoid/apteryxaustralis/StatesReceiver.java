@@ -26,10 +26,6 @@ public class StatesReceiver extends BroadcastReceiver
 		@Override
 		public void run()
 		{
-      Log.d("StatesReceiver","Go, go, go, and do the best!");
-			boolean refreshed = false;
-      boolean changed = false;
-///////////
       TreeMap<Long,TerminalStatus> statusMap = new TreeMap<Long,TerminalStatus>();
       Iterable<TerminalStatus> stats = Storage.getStatuses(_mContext);
       for(TerminalStatus status : stats)
@@ -40,6 +36,10 @@ public class StatesReceiver extends BroadcastReceiver
       Iterable<Account> accounts = Storage.getAccounts(_mContext);
       if(accounts!=null)
       {
+        boolean refreshed = false;
+        boolean changed = false;
+        boolean newTerminals = false;
+///////////
         ArrayList<TerminalStatus> invalidStates = new ArrayList<TerminalStatus>();
 
         for(Account account : accounts)
@@ -56,11 +56,20 @@ public class StatesReceiver extends BroadcastReceiver
                 changed = true;
                 invalidStates.add(status);
               }
+              else
+              {
+                newTerminals = true;
+              }
 //////////////////////
               Storage.updateStatus(_mContext,status);
             }
             refreshed = true;
           }
+        }
+/////////// Запрос на терминалы
+        if(newTerminals)
+        {
+
         }
 ///////////
         if(refreshed)

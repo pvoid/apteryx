@@ -1,7 +1,5 @@
 package org.pvoid.apteryxaustralis.accounts;
 
-import android.os.Parcel;
-
 public class Terminal
 {
   private long _mId;

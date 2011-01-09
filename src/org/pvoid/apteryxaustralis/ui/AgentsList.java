@@ -18,13 +18,16 @@ public class AgentsList extends ListActivity
 	{
 		super.onCreate(savedInstanceState);
 ////////
-		ArrayAdapter<Agent> agents = new ArrayAdapter<Agent>(this, android.R.layout.simple_list_item_1);
-		for(Agent agent : Storage.getAgents(this,Storage.AgentsTable.NAME) )
-		{
-			agents.add(agent);
-		}
-////////
-		setListAdapter(agents);
+    Iterable<Agent> agents = Storage.getAgents(this,Storage.AgentsTable.NAME);
+    if(agents!=null)
+    {
+      ArrayAdapter<Agent> agentsAdapter = new ArrayAdapter<Agent>(this, android.R.layout.simple_list_item_1);
+      for(Agent agent :  agents)
+      {
+        agentsAdapter.add(agent);
+      }
+  		setListAdapter(agentsAdapter);
+    }
 	}
 	
 	@Override

@@ -3,6 +3,7 @@ package org.pvoid.apteryxaustralis.preference;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
@@ -35,37 +36,36 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   public static final String EXTRA_ACCOUNT_ID = "id";
   public static final String EXTRA_ACCOUNT_TITLE = "title";
 
-  private String _Login;
-  private String _Password;
+  private String _mLogin;
+  private String _mPassword;
   private String _TerminalId;
   
-  private EditText _LoginEdit;
-  private EditText _PasswordEdit;
-  private EditText _TerminalEdit;
-  private long _Id;
+  private EditText _mLoginEdit;
+  private EditText _mPasswordEdit;
+  private EditText _mTerminalEdit;
+  private long _mId;
   
   
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-    setContentView(R.layout.addaccount);
+    setContentView(R.layout.account);
 ///////
-    _LoginEdit = (EditText)findViewById(R.id.login);
-    _PasswordEdit = (EditText)findViewById(R.id.password);
-    _TerminalEdit = (EditText)findViewById(R.id.terminal);
+    _mLoginEdit = (EditText)findViewById(R.id.login);
+    _mPasswordEdit = (EditText)findViewById(R.id.password);
+    _mTerminalEdit = (EditText)findViewById(R.id.terminal);
     
     Bundle extra = getIntent().getExtras();
     if(extra!=null && extra.containsKey(Consts.COLUMN_ID))
     {
-      _Id = extra.getLong(Consts.COLUMN_ID);
-      _LoginEdit.setText(extra.getString(Consts.COLUMN_LOGIN));
-      _TerminalEdit.setText(extra.getString(Consts.COLUMN_TERMINAL));
-      _Password = extra.getString(Consts.COLUMN_PASSWORD);
+      _mId = extra.getLong(Consts.COLUMN_ID);
+      _mLoginEdit.setText(extra.getString(Consts.COLUMN_LOGIN));
+      _mTerminalEdit.setText(extra.getString(Consts.COLUMN_TERMINAL));
+      _mPassword = extra.getString(Consts.COLUMN_PASSWORD);
     }
     else
-      _Id = 0;
+      _mId = 0;
   }
   
   @Override
@@ -81,16 +81,16 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   public void CheckAccount(View view)
   {
 ////////
-    _Login = _LoginEdit.getText().toString();
-    if(Utils.isEmptyString(_Login))
+    _mLogin = _mLoginEdit.getText().toString();
+    if(Utils.isEmptyString(_mLogin))
     {
       Toast.makeText(this, getString(R.string.empty_login), 200).show();
       return;
     }
-    String password = _PasswordEdit.getText().toString();
+    String password = _mPasswordEdit.getText().toString();
     if(Utils.isEmptyString(password))
     {
-      if(_Id==0)
+      if(_mId ==0)
       {
         Toast.makeText(this, getString(R.string.empty_password), 200).show();
         return;
@@ -104,7 +104,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
         m.reset();
         m.update(password.getBytes(),0,password.length());
         BigInteger i = new BigInteger(1,m.digest());
-        _Password = String.format("%1$032X", i).toLowerCase();
+        _mPassword = String.format("%1$032X", i).toLowerCase();
       }
       catch (NoSuchAlgorithmException e)
       { 
@@ -113,7 +113,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       }
     }
 ////////
-    _TerminalId = _TerminalEdit.getText().toString();
+    _TerminalId = _mTerminalEdit.getText().toString();
     if(Utils.isEmptyString(_TerminalId))
     {
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
@@ -121,7 +121,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     }
 ////////
     showDialog(0);
-    Request request = new Request(_Login, _Password, _TerminalId);
+    Request request = new Request(_mLogin, _mPassword, _TerminalId);
     request.getAgentInfo();
     request.getAgents();
     request.getTerminals();
@@ -158,10 +158,16 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     Agent agent;
     if(agentsSection!=null && (agent = agentsSection.GetAgentInfo())!=null)
     {
-      Account account = new Account(agent.getId(), agent.getName(), _Login, _Password, Long.parseLong(_TerminalId));
+      Account account = new Account(agent.getId(), agent.getName(), _mLogin, _mPassword, Long.parseLong(_TerminalId));
       if(Storage.addAccount(this,account))
       {
-        Storage.addAgents(this,agentsSection.getAgents());
+        List<Agent> agents = agentsSection.getAgents();
+        if(agents!=null)
+        {
+          Storage.addAgents(this,agents);
+        }
+        else
+          Storage.addAgent(this,agent);
 
         TerminalsSection terminalsSection = response.Terminals();
         if(terminalsSection!=null)
