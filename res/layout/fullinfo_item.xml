@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+  <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#252525"
+            android:layout_margin="5dip"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Заголовок"
+            android:id="@+id/item_name" />
+  <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#252525"
+            android:layout_marginRight="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/item_name"
+            android:text="Значение"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/item_value" />
+  <ImageView android:layout_width="fill_parent"
+               android:layout_height="1dip"
+               android:layout_below="@id/item_value"
+               android:src="@drawable/list_line"/>
+</RelativeLayout>

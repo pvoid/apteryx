@@ -8,12 +8,10 @@ import java.util.Iterator;
 public abstract class IterableCursor<T> implements Iterable<T>
 {
   private final Cursor _mCursor;
-  private final SQLiteDatabase _mDB;
 
-  public IterableCursor(Cursor cursor, SQLiteDatabase db)
+  public IterableCursor(Cursor cursor)
   {
     _mCursor = cursor;
-    _mDB = db;
   }
 
   protected abstract T getItem(Cursor cursor);
@@ -32,7 +30,6 @@ public abstract class IterableCursor<T> implements Iterable<T>
         if(_mCursor.isLast())
         {
           _mCursor.close();
-          _mDB.close();
           return false;
         }
         return true;

@@ -85,4 +85,6 @@
   <string name="status_refresh">Обновление статусов</string>
 
   <string name="terminals_errors">Возникли проблемы с терминалом</string>
+
+  <string name="terminal">Терминал</string>
 </resources>

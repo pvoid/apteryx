@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:minHeight="?android:attr/listPreferredItemHeight"    
@@ -7,33 +7,34 @@
 
   <ImageView android:id="@+id/icon"
 			       android:layout_margin="5dip"
-			       android:layout_centerVertical="true"
 			       android:layout_width="wrap_content"
 			       android:layout_height="fill_parent"
-             android:adjustViewBounds="true"
              android:scaleType="fitCenter"
+             android:layout_centerInParent="true"
+             android:layout_alignParentLeft="true"
 			       android:src="@drawable/ic_terminal_active" />
-
 
   <LinearLayout android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:layout_centerInParent="true"
+                android:layout_toRightOf="@id/icon"
+                android:layout_marginRight="5dip"
                 android:orientation="vertical">
 		  <TextView android:id="@+id/list_title"
 		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content"
-		            android:textColor="?android:attr/textColorPrimary"
+		            android:textColor="#252525"
 		            android:textAppearance="?android:attr/textAppearanceMedium"
 		            android:singleLine="true"
-		            android:ellipsize="marquee" />
+		            android:ellipsize="end" />
 		  
 		  <TextView android:id="@+id/status"
 		            android:layout_width="fill_parent"
-		            android:textColor="?android:attr/textColorPrimary"
+		            android:textColor="#252525"
 		            android:textAppearance="?android:attr/textAppearanceSmall"
 		            android:layout_height="wrap_content" 
 		            android:singleLine="true"
 		            android:text="Test"
-		            android:ellipsize="marquee"/>
+		            android:ellipsize="end"/>
   </LinearLayout>
-</LinearLayout>
+</RelativeLayout>

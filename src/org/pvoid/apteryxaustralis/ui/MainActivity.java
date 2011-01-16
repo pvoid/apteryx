@@ -1,9 +1,11 @@
 package org.pvoid.apteryxaustralis.ui;
 
 
+import java.util.Comparator;
 import java.util.TreeMap;
 
 import android.content.res.Configuration;
+import android.widget.AdapterView;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
@@ -33,7 +35,7 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements OnCurrentViewChangeListener
+public class MainActivity extends Activity implements OnCurrentViewChangeListener, AdapterView.OnItemClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -44,7 +46,35 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   private SlideBand _mBand;
   private TextView _mAgentName;
   private final TreeMap<Long, TerminalStatus> _mStatuses;
-  
+
+  private static final Comparator<TerminalListRecord> _mComparator = new Comparator<TerminalListRecord>()
+  {
+    private int getCommonStatus(TerminalStatus status)
+    {
+      if(!status.getPrinterErrorId().equals("OK") || !status.getNoteErrorId().equals("OK"))
+        return TerminalStatus.STATE_COMMON_ERROR;
+      return status.getCommonState();
+    }
+
+    @Override
+    public int compare(TerminalListRecord a, TerminalListRecord b)
+    {
+      TerminalStatus status;
+      int statusA = TerminalStatus.STATE_COMMON_NONE;
+      int statusB = TerminalStatus.STATE_COMMON_NONE;
+////////
+      status = a.getStatus();
+      if(status!=null)
+        statusA = getCommonStatus(status);
+////////
+      status = b.getStatus();
+      if(status!=null)
+        statusB = getCommonStatus(status);
+////////
+      return statusB - statusA;
+    }
+  };
+
   private class RestoreTask extends AsyncTask<Void, Integer, Boolean>
   {
     private String _mAgentNameValue = null;
@@ -67,10 +97,12 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
             _mAgentNameValue = agent.getName();
 
           AgentListView agentView = new AgentListView(MainActivity.this, agent);
+          agentView.setOnItemClickListener(MainActivity.this);
           TerminalsArrayAdapter items = new TerminalsArrayAdapter(MainActivity.this, R.layout.terminal);
           Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,agent.getId());
 
           if(terminals!=null)
+          {
             for(Terminal terminal : terminals)
             {
               TerminalStatus status = null;
@@ -78,6 +110,9 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
                 status = _mStatuses.get(terminal.getId());
               items.add(new TerminalListRecord(terminal, status));
             }
+
+            items.sort(_mComparator);
+          }
 
           agentView.setAdapter(items);
           _mBand.addView(agentView);
@@ -332,6 +367,16 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
   public void onConfigurationChanged(Configuration newConfig)
   {
     super.onConfigurationChanged(newConfig);
+  }
+
+  @Override
+  public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
+  {
+    TerminalsArrayAdapter adapter = (TerminalsArrayAdapter)adapterView.getAdapter();
+    TerminalListRecord record = adapter.getItem(index);
+    Intent intent = new Intent(this,TerminalInfo.class);
+    intent.putExtra("id",record.getId());
+    startActivityForResult(intent,0);
   }
 
     /*private TerminalsProcessData _Terminals;

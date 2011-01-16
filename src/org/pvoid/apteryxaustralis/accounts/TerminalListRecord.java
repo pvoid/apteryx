@@ -2,23 +2,30 @@ package org.pvoid.apteryxaustralis.accounts;
 
 public class TerminalListRecord
 {
-	private String _Name;
-	private TerminalStatus _Status;
+  private long _mId;
+	private String _mName;
+	private TerminalStatus _mStatus;
 	
 	public TerminalListRecord(Terminal terminal, TerminalStatus status)
 	{
-		_Name = terminal.getDisplayName();
-		_Status = status;
+    _mId = terminal.getId();
+		_mName = terminal.getDisplayName();
+		_mStatus = status;
 	}
-	
+
+  public long getId()
+  {
+    return _mId;
+  }
+
 	public TerminalStatus getStatus()
 	{
-		return _Status;
+		return _mStatus;
 	}
 	
 	@Override
 	public String toString()
 	{
-		return _Name;
+		return _mName;
 	}
 }

@@ -38,7 +38,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
 
   private String _mLogin;
   private String _mPassword;
-  private String _TerminalId;
+  private String _mTerminalId;
   
   private EditText _mLoginEdit;
   private EditText _mPasswordEdit;
@@ -113,15 +113,15 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       }
     }
 ////////
-    _TerminalId = _mTerminalEdit.getText().toString();
-    if(Utils.isEmptyString(_TerminalId))
+    _mTerminalId = _mTerminalEdit.getText().toString();
+    if(Utils.isEmptyString(_mTerminalId))
     {
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
       return;
     }
 ////////
     showDialog(0);
-    Request request = new Request(_mLogin, _mPassword, _TerminalId);
+    Request request = new Request(_mLogin, _mPassword, _mTerminalId);
     request.getAgentInfo();
     request.getAgents();
     request.getTerminals();
@@ -158,7 +158,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     Agent agent;
     if(agentsSection!=null && (agent = agentsSection.GetAgentInfo())!=null)
     {
-      Account account = new Account(agent.getId(), agent.getName(), _mLogin, _mPassword, Long.parseLong(_TerminalId));
+      Account account = new Account(agent.getId(), agent.getName(), _mLogin, _mPassword, Long.parseLong(_mTerminalId));
       if(Storage.addAccount(this,account))
       {
         List<Agent> agents = agentsSection.getAgents();

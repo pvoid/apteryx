@@ -9,6 +9,7 @@ import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.ui.TerminalInfo;
 
 public class Storage
 {
@@ -93,6 +94,11 @@ public class Storage
     static final String AGENT = "agent";
 
     static final String[] COLUMNS_FULL = new String[] {ID,NAME,ADDRESS,AGENT};
+
+    static final int COLUMN_ID = 0;
+    static final int COLUMN_NAME = 1;
+    static final int COLUMN_ADDRESS = 2;
+    static final int COLUMN_AGENT = 3;
   }
 
   private static final String TERMINAL_TABLE = "CREATE TABLE "+TerminalsTable.TABLE_NAME+" ("+
@@ -114,6 +120,7 @@ public class Storage
     static final String TABLE_NAME = "statuses";
 
     static final String ID = "id";
+    static final String DATE = "date";
     static final String AGENT = "agent";
     static final String LAST_ACTIVITY = "last_activity";
     static final String PRINTER_ERROR = "printer_error";
@@ -131,6 +138,7 @@ public class Storage
 
   private static final String STATUS_TABLE = "CREATE TABLE "+StatusesTable.TABLE_NAME+" ("+
                                     StatusesTable.ID +" INTEGER PRIMARY KEY,"+
+                                    StatusesTable.DATE+" INTEGER NOT NULL,"+
                                     StatusesTable.AGENT+" INTEGER NOT NULL,"+
                                     StatusesTable.LAST_ACTIVITY+" INTEGER NOT NULL,"+
                                     StatusesTable.PRINTER_ERROR+" TEXT NOT NULL,"+
@@ -144,6 +152,45 @@ public class Storage
 
   private static final String STATUS_INDEX_AGENT = "CREATE INDEX idx_statuses_agent ON "+
                                     StatusesTable.TABLE_NAME+"("+StatusesTable.AGENT+");";
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Агенты                                                             |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private static interface TerminalInfoQuery
+  {
+    static final String QUERY = "SELECT t."+TerminalsTable.ADDRESS +
+                                       ",t."+TerminalsTable.NAME +
+                                       ",t."+TerminalsTable.AGENT+
+
+                                       ",s."+StatusesTable.LAST_ACTIVITY+
+                                       ",s."+StatusesTable.PRINTER_ERROR+
+                                       ",s."+StatusesTable.NOTE_ERROR+
+                                       ",s."+StatusesTable.SIGNAL_LEVEL+
+                                       ",s."+StatusesTable.BALANCE+
+                                       ",s."+StatusesTable.STATUS+
+                                       ",s."+StatusesTable.DOOR_OPEN+
+                                       ",s."+StatusesTable.DOOR_ALARM+
+                                       ",s."+StatusesTable.EVENT+
+                                       ",s."+StatusesTable.DATE+
+                                " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+StatusesTable.TABLE_NAME+" s"+
+                                " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+
+                                " WHERE t."+TerminalsTable.ID+"=?";
+
+    static final int COLUMN_ADDRESS = 0;
+    static final int COLUMN_NAME = 1;
+    static final int COLUMN_AGENT = 2;
+    static final int COLUMN_LAST_ACTIVITY = 3;
+    static final int COLUMN_PRINTER_ERROR = 4;
+    static final int COLUMN_NOTE_ERROR = 5;
+    static final int COLUMN_SIGNAL_LEVEL = 6;
+    static final int COLUMN_BALANCE = 7;
+    static final int COLUMN_STATUS = 8;
+    static final int COLUMN_DOOR_OPEN = 9;
+    static final int COLUMN_DOOR_ALARM = 10;
+    static final int COLUMN_EVENT = 11;
+    static final int COLUMN_DATE = 12;
+  }
 //+--------------------------------------------------------------------+
 //|                                                                    |
 //| Сама база данных                                                   |
@@ -188,9 +235,9 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static class AccountsIterable extends IterableCursor<Account>
   {
-    public AccountsIterable(Cursor cursor, SQLiteDatabase db)
+    public AccountsIterable(Cursor cursor)
     {
-      super(cursor, db);
+      super(cursor);
     }
 
     @Override
@@ -206,9 +253,9 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static class AuthsIterable extends IterableCursor<Account>
   {
-    public AuthsIterable(Cursor cursor, SQLiteDatabase db)
+    public AuthsIterable(Cursor cursor)
     {
-      super(cursor, db);
+      super(cursor);
     }
 
     @Override
@@ -226,9 +273,9 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static class AgentsIterable extends IterableCursor<Agent>
   {
-    public AgentsIterable(Cursor cursor, SQLiteDatabase db)
+    public AgentsIterable(Cursor cursor)
     {
-      super(cursor, db);
+      super(cursor);
     }
 
     @Override
@@ -244,9 +291,9 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static class TerminalsIterable extends  IterableCursor<Terminal>
   {
-    public TerminalsIterable(Cursor cursor, SQLiteDatabase db)
+    public TerminalsIterable(Cursor cursor)
     {
-      super(cursor, db);
+      super(cursor);
     }
 
     @Override
@@ -262,9 +309,9 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static class StatusIterable extends IterableCursor<TerminalStatus>
   {
-    public StatusIterable(Cursor cursor, SQLiteDatabase db)
+    public StatusIterable(Cursor cursor)
     {
-      super(cursor, db);
+      super(cursor);
     }
 
     @Override
@@ -286,16 +333,27 @@ public class Storage
     }
   }
 
+  private static final Object _mDataBaseLock = new Object();
+  private static DataBase _mDatabase = null;
+
   private static SQLiteDatabase read(Context context)
   {
-    final DataBase db = new DataBase(context);
-    return db.getReadableDatabase();
+    synchronized(_mDataBaseLock)
+    {
+      if(_mDatabase==null)
+        _mDatabase = new DataBase(context);
+    }
+    return _mDatabase.getReadableDatabase();
   }
 
   private static SQLiteDatabase write(Context context)
   {
-    final DataBase db = new DataBase(context);
-    return db.getWritableDatabase();
+    synchronized(_mDataBaseLock)
+    {
+      if(_mDatabase==null)
+        _mDatabase = new DataBase(context);
+    }
+    return _mDatabase.getWritableDatabase();
   }
 
   public static Iterable<Account> getAccountsInfo(Context context)
@@ -308,7 +366,7 @@ public class Storage
       db.close();
       return null;
     }
-    return new AccountsIterable(cursor,db);
+    return new AccountsIterable(cursor);
   }
 
   public static Iterable<Account> getAccounts(Context context)
@@ -321,7 +379,7 @@ public class Storage
       db.close();
       return null;
     }
-    return new AuthsIterable(cursor,db);
+    return new AuthsIterable(cursor);
   }
 
   public static Iterable<Agent> getAgents(Context context, String order)
@@ -334,7 +392,7 @@ public class Storage
       db.close();
       return null;
     }
-    return new AgentsIterable(cursor,db);
+    return new AgentsIterable(cursor);
   }
 
   public static Iterable<Agent> getAgents(Context context)
@@ -362,7 +420,7 @@ public class Storage
       return null;
     }
 ////////
-    return new TerminalsIterable(cursor,db);
+    return new TerminalsIterable(cursor);
   }
 
   public static Iterable<Terminal> getTerminals(Context context)
@@ -381,7 +439,7 @@ public class Storage
       return null;
     }
 ////////
-    return new StatusIterable(cursor,db);
+    return new StatusIterable(cursor);
   }
 
   public static boolean addAccount(Context context, Account account)
@@ -473,6 +531,24 @@ public class Storage
     return true;
   }
 
+  private static void addStatus(SQLiteDatabase db, TerminalStatus status)
+  {
+    ContentValues values = new ContentValues();
+    values.put(StatusesTable.ID,status.getId());
+    values.put(StatusesTable.AGENT,status.getAgentId());
+    values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
+    values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
+    values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
+    values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
+    values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
+    values.put(StatusesTable.STATUS,status.getMachineStatus());
+    values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
+    values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
+    values.put(StatusesTable.EVENT,status.getWdtEvent());
+    values.put(StatusesTable.DATE,status.getRequestDate());
+    db.insert(StatusesTable.TABLE_NAME, null, values);
+  }
+
   public static boolean addStatuses(Context context, Iterable<TerminalStatus> statuses)
   {
     SQLiteDatabase db = write(context);
@@ -481,18 +557,7 @@ public class Storage
       ContentValues values = new ContentValues();
       for(TerminalStatus status : statuses)
       {
-        values.put(StatusesTable.ID,status.getId());
-        values.put(StatusesTable.AGENT,status.getAgentId());
-        values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
-        values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
-        values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
-        values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
-        values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
-        values.put(StatusesTable.STATUS,status.getMachineStatus());
-        values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
-        values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
-        values.put(StatusesTable.EVENT,status.getWdtEvent());
-        db.insert(StatusesTable.TABLE_NAME,null,values);
+        addStatus(db,status); //TODO: Может запросы вместе объединить?
       }
     }
     finally
@@ -508,19 +573,7 @@ public class Storage
     SQLiteDatabase db = write(context);
     try
     {
-      ContentValues values = new ContentValues();
-      values.put(StatusesTable.ID,status.getId());
-      values.put(StatusesTable.AGENT,status.getAgentId());
-      values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
-      values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
-      values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
-      values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
-      values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
-      values.put(StatusesTable.STATUS,status.getMachineStatus());
-      values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
-      values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
-      values.put(StatusesTable.EVENT,status.getWdtEvent());
-      db.insert(StatusesTable.TABLE_NAME, null, values);
+      addStatus(db,status);
     }
     finally
     {
@@ -547,6 +600,7 @@ public class Storage
       values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
       values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
       values.put(StatusesTable.EVENT,status.getWdtEvent());
+      values.put(StatusesTable.DATE,status.getRequestDate());
       db.replace(StatusesTable.TABLE_NAME, null, values);
     }
     finally
@@ -555,5 +609,77 @@ public class Storage
         db.close();
     }
     return true;
+  }
+
+  public static Terminal getTerminal(Context context, long id)
+  {
+    SQLiteDatabase db = read(context);
+    if(db!=null)
+    {
+      try
+      {
+        final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,
+                                       TerminalsTable.COLUMNS_FULL,
+                                       TerminalsTable.ID+"=?",
+                                       new String[] {Long.toString(id)},
+                                       null,null,null);
+        if(cursor!=null)
+          try
+          {
+            if(cursor.moveToNext())
+            {
+              return new Terminal(cursor.getLong(TerminalsTable.COLUMN_ID),
+                                  cursor.getString(TerminalsTable.COLUMN_ADDRESS),
+                                  cursor.getString(TerminalsTable.COLUMN_NAME),
+                                  cursor.getLong(TerminalsTable.COLUMN_AGENT));
+            }
+          }
+          finally
+          {
+            cursor.close();
+          }
+      }
+      finally
+      {
+        db.close();
+      }
+    }
+    return null;
+  }
+
+  public static boolean getTerminalInfo(Context context, long id, Terminal terminal, TerminalStatus status)
+  {
+    SQLiteDatabase db = read(context);
+    final Cursor cursor = db.rawQuery(TerminalInfoQuery.QUERY,new String[] {Long.toString(id)});
+    try
+    {
+      if(cursor.moveToNext())
+      {
+//////////// Заполняем терминал
+        terminal.setAddress(cursor.getString(TerminalInfoQuery.COLUMN_ADDRESS));
+        terminal.setDisplayName(cursor.getString(TerminalInfoQuery.COLUMN_NAME));
+        terminal.setAgentId(cursor.getLong(TerminalInfoQuery.COLUMN_AGENT));
+//////////// Заполняем статус
+        status.setAgentId(cursor.getLong(TerminalInfoQuery.COLUMN_AGENT));
+        status.setLastActivityDate(cursor.getLong(TerminalInfoQuery.COLUMN_LAST_ACTIVITY));
+        status.setMachineStatus(cursor.getInt(TerminalInfoQuery.COLUMN_STATUS));
+        status.setNoteErrorId(cursor.getString(TerminalInfoQuery.COLUMN_NOTE_ERROR));
+        status.setPrinterErrorId(cursor.getString(TerminalInfoQuery.COLUMN_PRINTER_ERROR));
+        status.setSimProviderBalance(cursor.getFloat(TerminalInfoQuery.COLUMN_BALANCE));
+        status.setSignalLevel(cursor.getInt(TerminalInfoQuery.COLUMN_SIGNAL_LEVEL));
+        status.setWdtDoorAlarmCount(cursor.getShort(TerminalInfoQuery.COLUMN_DOOR_ALARM));
+        status.setWdtDoorOpenCount(cursor.getShort(TerminalInfoQuery.COLUMN_DOOR_OPEN));
+        status.setWdtEvent(cursor.getShort(TerminalInfoQuery.COLUMN_EVENT));
+        status.setRequestDate(cursor.getLong(TerminalInfoQuery.COLUMN_DATE));
+//////////// Все хорошо
+        return true;
+      }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return false;
   }
 }

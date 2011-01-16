@@ -15,6 +15,11 @@ public class Terminal
     _mAgentId = agent;
   }
 
+  public Terminal(long id)
+  {
+    _mId = id;
+  }
+
   public long getId()
   {
     return _mId;

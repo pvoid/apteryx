@@ -149,6 +149,7 @@ public class ReportsSection implements IResponseParser
         {
           e.printStackTrace();
         }
+      status.setRequestDate(System.currentTimeMillis());
 /////////////
       if(_Statuses==null)
         _Statuses = new ArrayList<TerminalStatus>();

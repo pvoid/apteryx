@@ -49,9 +49,10 @@ public class TerminalStatus
   public final static int STATE_EMPTY6 = 0x8000000;
   public final static int STATE_INTERFACE_OVERLAPPED = 0x10000000; //Обнаружено перекрытие платежного интерфейса окном стороннего приложения.
 
-  public final static int STATE_COMMON_OK = 0;
-  public final static int STATE_COMMON_WARNING = 1;
-  public final static int STATE_COMMON_ERROR = 2;
+  public final static int STATE_COMMON_NONE = 0;
+  public final static int STATE_COMMON_OK = 1;
+  public final static int STATE_COMMON_WARNING = 2;
+  public final static int STATE_COMMON_ERROR = 3;
 //////
   private long _mId;
   private long _mAgentId;
@@ -64,6 +65,7 @@ public class TerminalStatus
   private short _mWdtDoorOpenCount;
   private short _mWdtDoorAlarmCount;
   private short _mWdtEvent;
+  private long _mInfoDate;
 
   public TerminalStatus(long id)
   {
@@ -198,6 +200,16 @@ public class TerminalStatus
   public long getLastActivityDate()
   {
   	return(_mLastActivityDate);
+  }
+
+  public void setRequestDate(long date)
+  {
+    _mInfoDate = date;
+  }
+
+  public long getRequestDate()
+  {
+    return _mInfoDate;
   }
 
   public void update(TerminalStatus status)
