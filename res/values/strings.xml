@@ -58,6 +58,7 @@
   <string name="fullinfo_bonds1000">1000е:</string>
   <string name="fullinfo_bonds5000">5000е:</string>
   <string name="fullinfo_pays_per_hour">Средние количество платежей в час:</string>
+  <string name="fullinfo_address">Адрес:</string>
 
   <string name="doesnt_response">не отвечает</string>
 
@@ -82,7 +83,8 @@
   <string name="service_starte">Запущена автоматическая проверка</string>
   <string name="update_service">Проверка терминалов</string>
   <string name="data_restore">Восстановление данных</string>
-  <string name="status_refresh">Обновление статусов</string>
+  <string name="statuses_refresh">Обновление статусов</string>
+  <string name="status_refresh">Обновление статуса</string>
 
   <string name="terminals_errors">Возникли проблемы с терминалом</string>
 

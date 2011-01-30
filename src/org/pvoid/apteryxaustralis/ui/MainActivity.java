@@ -317,7 +317,7 @@ public class MainActivity extends Activity implements OnCurrentViewChangeListene
         dialog.setCancelable(false);
         break;
       case DIALOG_REFRESH:
-      	dialog.setMessage(getText(R.string.status_refresh));
+      	dialog.setMessage(getText(R.string.statuses_refresh));
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);
         break;

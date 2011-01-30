@@ -3,6 +3,8 @@ package org.pvoid.apteryxaustralis.net;
 import org.pvoid.apteryxaustralis.accounts.ReportsSection;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 
+import java.util.Iterator;
+
 public class StatusRefreshRunnable implements Runnable
 {
   private final String _mLogin;
@@ -31,6 +33,28 @@ public class StatusRefreshRunnable implements Runnable
 ////////
 		return section.getTerminalsStatus();
 	}
+
+  public static TerminalStatus GetStatus(String login, String passwordHash, String terminal, long terminalId)
+  {
+    Request request = new Request(login, passwordHash, terminal);
+		request.getTerminalStatus(terminalId);
+		Response response = request.getResponse();
+		if(response==null)
+			return null;
+////////
+		ReportsSection section = response.Reports();
+		if(section==null)
+			return null;
+////////
+    Iterable<TerminalStatus> statuses = section.getTerminalsStatus();
+    if(statuses!=null)
+    {
+      Iterator<TerminalStatus> status = statuses.iterator();
+      if(status.hasNext())
+        return status.next();
+    }
+		return null;
+  }
 	
 	@Override
 	public void run()

@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:fillViewport="true">
-  <LinearLayout android:layout_width="fill_parent"
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="#d8d8d8">
+                android:orientation="vertical">
     <RelativeLayout android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/top_bar"
@@ -31,73 +27,45 @@
                 android:layout_toRightOf="@id/status_icon"
                 android:layout_below="@id/name"/>
     </RelativeLayout>
-    <TextView android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:id="@+id/status_message"
-              android:layout_margin="5dip"
-              android:textAppearance="?android:attr/textAppearanceSmall"
-              android:textColor="#252525"/>
-<!-- Последний ответ -->
-    <!--ImageView android:layout_width="fill_parent"
-               android:layout_height="1dip"
-               android:src="@drawable/list_line"/>
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_margin="5dip"
-              android:textAppearance="?android:attr/textAppearanceMedium"
-              android:text="@string/fullinfo_last_activity" />
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_marginRight="5dip"
-              android:layout_marginBottom="5dip"
-              android:layout_gravity="right"
-              android:textAppearance="?android:attr/textAppearanceSmall"
-              android:id="@+id/last_activity" /-->
-<!-- Уровень сигнала -->
-    <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content" />
-    <!--ImageView android:layout_width="fill_parent"
-               android:layout_height="1dip"
-               android:src="@drawable/list_line"/>
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_margin="5dip"
-              android:textAppearance="?android:attr/textAppearanceMedium"
-              android:text="@string/fullinfo_signal_level" />
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_marginRight="5dip"
-              android:layout_marginBottom="5dip"
-              android:layout_gravity="right"
-              android:textAppearance="?android:attr/textAppearanceSmall"
-              android:id="@+id/signal_level" />
--->
-    <!--ImageView android:layout_width="fill_parent"
-               android:layout_height="1dip"
-               android:src="@drawable/list_line"/>
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_margin="5dip"
-              android:textAppearance="?android:attr/textAppearanceMedium"
-              android:text="@string/fullinfo_balance" />
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#252525"
-              android:layout_marginRight="5dip"
-              android:layout_marginBottom="5dip"
-              android:layout_gravity="right"
-              android:textAppearance="?android:attr/textAppearanceSmall"
-              android:id="@+id/balance" />
+    <ScrollView android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:fillViewport="true">
+      <LinearLayout android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+        <LinearLayout android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:id="@+id/states"
+                      android:layout_margin="5dp"
+                      android:orientation="vertical" />
+        <ImageView android:layout_width="fill_parent"
+                   android:layout_height="1dip"
+                   android:src="@drawable/list_line"/>
+    <!-- Последний ответ -->
+        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/fullinfo_last_activity"
+                  android:id="@+id/last_activity"/>
+    <!-- Уровень сигнала -->
+        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/fullinfo_signal_level"
+                  android:id="@+id/signal_level"/>
+    <!-- Баланс -->
+        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/fullinfo_balance"
+                  android:id="@+id/balance"/>
 
-
-    <ImageView android:layout_width="fill_parent"
-               android:layout_height="1dip"
-               android:src="@drawable/list_line"/-->
-  </LinearLayout>
-</ScrollView>
+     <!-- Баланс -->
+        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/fullinfo_address"
+                  android:id="@+id/address"/>
+      </LinearLayout>
+  </ScrollView>
+</LinearLayout>

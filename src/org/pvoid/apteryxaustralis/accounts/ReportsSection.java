@@ -3,7 +3,6 @@ package org.pvoid.apteryxaustralis.accounts;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.TimeZone;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
@@ -167,7 +166,7 @@ public class ReportsSection implements IResponseParser
     }
   }
 
-  public List<TerminalStatus> getTerminalsStatus()
+  public Iterable<TerminalStatus> getTerminalsStatus()
   {
     return(_Statuses);
   }

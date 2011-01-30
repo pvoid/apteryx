@@ -3,7 +3,6 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
               android:orientation="vertical"
-              android:background="#d8d8d8"
               android:id="@+id/mainscreen">
   <RelativeLayout android:layout_width="fill_parent"
                   android:background="@drawable/top_bar"

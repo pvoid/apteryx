@@ -159,7 +159,8 @@ public class Storage
 //+--------------------------------------------------------------------+
   private static interface TerminalInfoQuery
   {
-    static final String QUERY = "SELECT t."+TerminalsTable.ADDRESS +
+    static final String
+        QUERY = "SELECT t."+TerminalsTable.ADDRESS +
                                        ",t."+TerminalsTable.NAME +
                                        ",t."+TerminalsTable.AGENT+
 
@@ -173,8 +174,16 @@ public class Storage
                                        ",s."+StatusesTable.DOOR_ALARM+
                                        ",s."+StatusesTable.EVENT+
                                        ",s."+StatusesTable.DATE+
+
+                                       ",a."+AgentsTable.NAME+
+                                       ",a."+AgentsTable.PHONE+
+                                       ",a."+AgentsTable.ACCOUNT+
+
                                 " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+StatusesTable.TABLE_NAME+" s"+
-                                " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+
+                                " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+" INNER JOIN "+AgentsTable.TABLE_NAME+
+                                " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID +
+
+
                                 " WHERE t."+TerminalsTable.ID+"=?";
 
     static final int COLUMN_ADDRESS = 0;
@@ -190,6 +199,9 @@ public class Storage
     static final int COLUMN_DOOR_ALARM = 10;
     static final int COLUMN_EVENT = 11;
     static final int COLUMN_DATE = 12;
+    static final int COLUMN_AGENT_NAME = 13;
+    static final int COLUMN_AGENT_PHONE=14;
+    static final int COLUMN_ACCOUNT=15;
   }
 //+--------------------------------------------------------------------+
 //|                                                                    |
@@ -380,6 +392,28 @@ public class Storage
       return null;
     }
     return new AuthsIterable(cursor);
+  }
+
+  public static Account getAccount(Context context, long accountId)
+  {
+    SQLiteDatabase db = read(context);
+    final Cursor cursor = db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_AUTH,
+                                   AccountTable.ID+"=?",new String[] {Long.toString(accountId)},null,null,null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToNext())
+      {
+        Account account = new Account(cursor.getString(AccountTable.COLUMN_LOGIN),
+                                      cursor.getString(AccountTable.COLUMN_PASSWORD),
+                                      cursor.getLong(AccountTable.COLUMN_TERMINAL));
+        cursor.close();
+        db.close();
+        return account;
+      }
+      cursor.close();
+    }
+    db.close();
+    return null;
   }
 
   public static Iterable<Agent> getAgents(Context context, String order)
@@ -647,7 +681,7 @@ public class Storage
     return null;
   }
 
-  public static boolean getTerminalInfo(Context context, long id, Terminal terminal, TerminalStatus status)
+  public static boolean getTerminalInfo(Context context, long id, Terminal terminal, TerminalStatus status, Agent agent)
   {
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.rawQuery(TerminalInfoQuery.QUERY,new String[] {Long.toString(id)});
@@ -671,6 +705,11 @@ public class Storage
         status.setWdtDoorOpenCount(cursor.getShort(TerminalInfoQuery.COLUMN_DOOR_OPEN));
         status.setWdtEvent(cursor.getShort(TerminalInfoQuery.COLUMN_EVENT));
         status.setRequestDate(cursor.getLong(TerminalInfoQuery.COLUMN_DATE));
+//////////// Заполняем агента
+        agent.setId(cursor.getLong(TerminalInfoQuery.COLUMN_AGENT));
+        agent.setName(cursor.getString(TerminalInfoQuery.COLUMN_AGENT_NAME));
+        agent.setPhone(cursor.getString(TerminalInfoQuery.COLUMN_AGENT_PHONE));
+        agent.setAccount(cursor.getLong(TerminalInfoQuery.COLUMN_ACCOUNT));
 //////////// Все хорошо
         return true;
       }

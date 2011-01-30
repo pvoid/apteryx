@@ -3,6 +3,7 @@ package org.pvoid.apteryxaustralis.accounts;
 import android.content.Context;
 import org.pvoid.apteryxaustralis.R;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public class TerminalStatus
@@ -31,7 +32,7 @@ public class TerminalStatus
   public final static int STATE_STOPPED_DUE_BALANCE = 0x200; // Остановлен по сигналу сервера или из-за отсутствия денег на счету агента!
   public final static int STATE_HARDWARE_OR_SOFTWARE_PROBLEM  = 0x400; // Остановлен из-за проблем с железом или интерфейса.
   public final static int STATE_HAS_SECOND_MONITOR  = 0x800; // Автомат оснащен вторым монитором.
-  public final static int STATE_DOOR_ID_OPENED  = 0x1000; // Открыта дверь терминала.
+  public final static int STATE_DOOR_IS_OPENED = 0x1000; // Открыта дверь терминала.
   public final static int STATE_UNAUTHORIZED_SOFTWARE  = 0x2000; // Обнаружено стороннее ПО, которое может вызывать сбой модемного соединения.
   public final static int STATE_PROXY_SERVER  = 0x4000; // Автомат соединен через прокси-сервер.
   public final static int STATE_EMPTY1 = 0x8000;
@@ -125,7 +126,7 @@ public class TerminalStatus
   	int flag = 1;
   	int result = 0;
     machineStatus = machineStatus.trim();
-  	for(int index = machineStatus.length()-1;index>=0;--index)
+  	for(int index = 0,length=machineStatus.length();index<length;++index)
   	{
   		if(machineStatus.charAt(index)=='1')
   			result|=flag;
@@ -233,7 +234,7 @@ public class TerminalStatus
        (_mMachineStatus&STATE_INTERFACE_ERROR)!=0 || (_mMachineStatus&STATE_DEVICES_ABSENT)!=0 ||
        (_mMachineStatus&STATE_STACKER_REMOVED)!=0 || (_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0 ||
        (_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0 || (_mMachineStatus&STATE_HARDWARE_OR_SOFTWARE_PROBLEM)!=0 ||
-       (_mMachineStatus&STATE_DOOR_ID_OPENED)!=0 || (_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
+       (_mMachineStatus& STATE_DOOR_IS_OPENED)!=0 || (_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
     {
       return STATE_COMMON_ERROR;
     }
@@ -299,7 +300,7 @@ public class TerminalStatus
       buffer.append(context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM));
     }
 ////////
-    if((_mMachineStatus&STATE_DOOR_ID_OPENED)!=0)
+    if((_mMachineStatus& STATE_DOOR_IS_OPENED)!=0)
     {
       if(!full)
         return context.getString(R.string.STATE_DOOR_ID_OPENED);
@@ -314,5 +315,132 @@ public class TerminalStatus
     }
 ////////
     return buffer.toString();
+  }
+
+  public Iterable<String> getStates(Context context)
+  {
+    ArrayList<String> items = new ArrayList<String>();
+
+    if((_mMachineStatus&STATE_PRINTER_STACKER_ERROR)!=0)
+    {
+      items.add(context.getString(R.string.STATE_PRINTER_STACKER_ERROR));
+    }
+
+    if((_mMachineStatus&STATE_INTERFACE_ERROR)!=0)
+    {
+      items.add(context.getString(R.string.STATE_INTERFACE_ERROR));
+    }
+
+    if((_mMachineStatus&STATE_UPLOADING_UPDATES)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPLOADING_UPDATES));
+    }
+
+    if((_mMachineStatus&STATE_DEVICES_ABSENT)!=0)
+    {
+      items.add(context.getString(R.string.STATE_DEVICES_ABSENT));
+    }
+
+    if((_mMachineStatus&STATE_STORAGE_TIMER)!=0)
+    {
+      items.add(context.getString(R.string.STATE_STORAGE_TIMER));
+    }
+
+    if((_mMachineStatus&STATE_PAPER_COMING_TO_END)!=0)
+    {
+      items.add(context.getString(R.string.STATE_PAPER_COMING_TO_END));
+    }
+
+    if((_mMachineStatus&STATE_STACKER_REMOVED)!=0)
+    {
+      items.add(context.getString(R.string.STATE_STACKER_REMOVED));
+    }
+
+    if((_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0)
+    {
+      items.add(context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR));
+    }
+
+    if((_mMachineStatus&STATE_HARDDRIVE_PROBLEMS)!=0)
+    {
+      items.add(context.getString(R.string.STATE_HARDDRIVE_PROBLEMS));
+    }
+
+    if((_mMachineStatus&STATE_HARDDRIVE_PROBLEMS)!=0)
+    {
+      items.add(context.getString(R.string.STATE_HARDDRIVE_PROBLEMS));
+    }
+
+    if((_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0)
+    {
+      items.add(context.getString(R.string.STATE_STOPPED_DUE_BALANCE));
+    }
+
+    if((_mMachineStatus&STATE_HARDWARE_OR_SOFTWARE_PROBLEM)!=0)
+    {
+      items.add(context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM));
+    }
+
+    if((_mMachineStatus&STATE_HAS_SECOND_MONITOR)!=0)
+    {
+      items.add(context.getString(R.string.STATE_HAS_SECOND_MONITOR));
+    }
+
+    if((_mMachineStatus& STATE_DOOR_IS_OPENED)!=0)
+    {
+      items.add(context.getString(R.string.STATE_DOOR_ID_OPENED));
+    }
+
+    if((_mMachineStatus&STATE_UNAUTHORIZED_SOFTWARE)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE));
+    }
+
+    if((_mMachineStatus&STATE_PROXY_SERVER)!=0)
+    {
+      items.add(context.getString(R.string.STATE_PROXY_SERVER));
+    }
+
+    if((_mMachineStatus&STATE_UPDATING_CONFIGURATION)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPDATING_CONFIGURATION));
+    }
+
+    if((_mMachineStatus&STATE_UPDATING_NUMBERS)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPDATING_NUMBERS));
+    }
+
+    if((_mMachineStatus&STATE_UPDATING_PROVIDERS)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPDATING_PROVIDERS));
+    }
+
+    if((_mMachineStatus&STATE_UPDATING_ADVERT)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPDATING_ADVERT));
+    }
+
+    if((_mMachineStatus&STATE_UPDATING_FILES)!=0)
+    {
+      items.add(context.getString(R.string.STATE_UPDATING_FILES));
+    }
+
+    if((_mMachineStatus&STATE_ASO_MODIFIED)!=0)
+    {
+      items.add(context.getString(R.string.STATE_ASO_MODIFIED));
+    }
+
+    if((_mMachineStatus&STATE_ASO_ENABLED)!=0)
+    {
+      items.add(context.getString(R.string.STATE_ASO_ENABLED));
+    }
+
+    if((_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
+    {
+      items.add(context.getString(R.string.STATE_INTERFACE_OVERLAPPED));
+    }
+
+    return items;
   }
 }

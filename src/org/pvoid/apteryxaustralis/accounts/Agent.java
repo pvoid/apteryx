@@ -20,9 +20,19 @@ public class Agent
     _mName = name;
   }
 
+  public Agent()
+  {
+
+  }
+
   public long getId()
   {
     return _mId;
+  }
+
+  public void setId(long id)
+  {
+    _mId = id;
   }
 
   public String getName()

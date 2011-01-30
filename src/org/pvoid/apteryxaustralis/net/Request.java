@@ -59,7 +59,14 @@ public class Request
   {
     _ReportsInterface.append("<getTerminalsStatus />");
   }
-  
+
+  public void getTerminalStatus(long id)
+  {
+    _ReportsInterface.append("<getTerminalsStatus><target-terminal>");
+    _ReportsInterface.append(id);
+    _ReportsInterface.append("</target-terminal></getTerminalsStatus>");
+  }
+
   public Response getResponse()
   {
     if(_AgentInterface.length()>0)
