@@ -1,6 +1,9 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,10 +14,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.*;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
@@ -25,12 +25,15 @@ import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeMap;
 
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener
+public class MainActivity extends Activity implements AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener, DialogInterface.OnClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
+
+  private static final int DIALOG_AGENTS = 1;
   /**
    * Компаратор для сортировки терминалов по статусу
    */
@@ -65,6 +68,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private Animation _mSpinnerAnimation;
   private SlideBand _mBand;
   private TreeMap<Long,TerminalListRecord> _mStatuses;
+  private AlertDialog _mAgentsDialog;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -82,7 +86,19 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
   public void agentsListClick(View view)
   {
-
+    if(_mAgentsDialog==null)
+    {
+      AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+      Iterable<Agent> agents = Storage.getAgents(this,Storage.AgentsTable.NAME);
+      ArrayAdapter<Agent> agentsAdapter = new ArrayAdapter<Agent>(this,android.R.layout.simple_spinner_dropdown_item);
+      for(Agent agent : agents)
+        agentsAdapter.add(agent);
+      dialog.setAdapter(agentsAdapter,this);
+      dialog.setTitle(R.string.agents_list);
+      _mAgentsDialog =  dialog.create();
+    }
+    _mAgentsDialog.getListView().setSelection(_mBand.getCurrentViewIndex());
+    _mAgentsDialog.show();
   }
 
   private void setSpinnerVisibility(boolean visible)
@@ -182,6 +198,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     return(super.onOptionsItemSelected(item));
   }
 
+  @Override
+  public void onClick(DialogInterface dialogInterface, int index)
+  {
+    _mBand.setCurrentView(index);
+  }
+
   /**
    * Создает списки для отображения терминалов агентов
    */
@@ -196,7 +218,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
       }
 
-      Iterable<Agent> agents = Storage.getAgents(MainActivity.this);
+      Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
       LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
       for(Agent agent : agents)
       {
