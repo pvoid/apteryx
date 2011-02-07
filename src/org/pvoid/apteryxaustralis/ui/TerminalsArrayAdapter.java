@@ -2,6 +2,7 @@ package org.pvoid.apteryxaustralis.ui;
 
 import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 
@@ -16,21 +17,24 @@ import android.widget.TextView;
 
 public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 {
-  private Context _mContext;
-  
-  public TerminalsArrayAdapter(Context context, int resource)
+  private long _mAgentId;
+  private String _mAgentName;
+
+  public TerminalsArrayAdapter(Context context, Agent agent, int resource, int textViewResourceId)
   {
-    super(context, resource);
-    _mContext = context;
+    super(context, resource, textViewResourceId);
+    _mAgentId = agent.getId();
+    _mAgentName = agent.getName();
   }
 
   @Override
   public View getView(int position, View convertView, ViewGroup parent)
   {
+    Context context = getContext();
     View view = convertView;
     if(view==null)
     {
-      LayoutInflater inflater = (LayoutInflater) _mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       view = inflater.inflate(R.layout.terminal, null);
     }
     
@@ -70,7 +74,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
             case TerminalStatus.STATE_COMMON_ERROR:
               icon.setImageResource(R.drawable.ic_terminal_inactive);
               status.setVisibility(View.VISIBLE);
-              status.setText(status_record.getErrorText(_mContext,false));
+              status.setText(status_record.getErrorText(context,false));
               // TODO: Разные иконки для принтера и для остального
               break;
             case TerminalStatus.STATE_COMMON_WARNING:
@@ -85,5 +89,15 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
     }
      
     return(view);
+  }
+
+  public long getAgentId()
+  {
+    return _mAgentId;
+  }
+
+  public String getAgentName()
+  {
+    return _mAgentName;
   }
 }

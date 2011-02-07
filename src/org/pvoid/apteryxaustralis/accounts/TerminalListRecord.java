@@ -1,21 +1,25 @@
 package org.pvoid.apteryxaustralis.accounts;
 
+import android.text.TextUtils;
+
 public class TerminalListRecord
 {
-  private long _mId;
-	private String _mName;
+  private Terminal _mTerminal;
 	private TerminalStatus _mStatus;
 	
 	public TerminalListRecord(Terminal terminal, TerminalStatus status)
 	{
-    _mId = terminal.getId();
-		_mName = terminal.getDisplayName();
+    _mTerminal = terminal;
 		_mStatus = status;
 	}
 
   public long getId()
   {
-    return _mId;
+    if(_mTerminal!=null)
+      return _mTerminal.getId();
+    if(_mStatus!=null)
+      return _mStatus.getId();
+    return 0;
   }
 
 	public TerminalStatus getStatus()
@@ -26,6 +30,18 @@ public class TerminalListRecord
 	@Override
 	public String toString()
 	{
-		return _mName;
+    if(_mTerminal==null)
+      return "";
+
+    String name = _mTerminal.getDisplayName();
+    if(TextUtils.isEmpty(name))
+      name = _mTerminal.getAddress();
+
+		return name;
 	}
+
+  public void setTerminal(Terminal terminal)
+  {
+    _mTerminal = terminal;
+  }
 }

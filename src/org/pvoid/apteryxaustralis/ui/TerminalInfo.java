@@ -105,12 +105,7 @@ public class TerminalInfo extends Activity
     {
       StateLine line = new StateLine(this);
       if(first)
-      {
         first=false;
-        line.setBackgroundColor(Color.RED);
-      }
-      else
-        line.setBackgroundColor(Color.RED);
       line.setText(state);
       statesContainer.addView(line,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
     }
