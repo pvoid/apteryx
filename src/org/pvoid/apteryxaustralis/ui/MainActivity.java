@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2010-2011  Dmitry Petuhov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.pvoid.apteryxaustralis.ui;
 
 import android.app.Activity;
@@ -34,6 +51,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
 
   private static final int DIALOG_AGENTS = 1;
+  private static final Object _sRefreshLock = new Object();
   /**
    * Компаратор для сортировки терминалов по статусу
    */
@@ -69,6 +87,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private SlideBand _mBand;
   private TreeMap<Long,TerminalListRecord> _mStatuses;
   private AlertDialog _mAgentsDialog;
+  private RefreshTask _mCurrentRefreshTask = null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -90,15 +109,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
       Iterable<Agent> agents = Storage.getAgents(this,Storage.AgentsTable.NAME);
-      ArrayAdapter<Agent> agentsAdapter = new ArrayAdapter<Agent>(this,android.R.layout.simple_spinner_dropdown_item);
+      ArrayAdapter<Agent> agentsAdapter = new ArrayAdapter<Agent>(this,android.R.layout.select_dialog_item);
       for(Agent agent : agents)
         agentsAdapter.add(agent);
       dialog.setAdapter(agentsAdapter,this);
       dialog.setTitle(R.string.agents_list);
       _mAgentsDialog =  dialog.create();
     }
-    _mAgentsDialog.getListView().setSelection(_mBand.getCurrentViewIndex());
     _mAgentsDialog.show();
+    _mAgentsDialog.getListView().setSelection(_mBand.getCurrentViewIndex());
   }
 
   private void setSpinnerVisibility(boolean visible)
@@ -107,7 +126,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     if(!visible)
     {
       spinner.clearAnimation();
-      spinner.setVisibility(View.INVISIBLE);
+      spinner.setVisibility(View.GONE);
     }
     else
     {
@@ -192,7 +211,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         startActivityForResult(intent, 0);
         break;
       case REFRESH_MENU_ID:
-        //RefreshStatuses();
+        refreshStatuses();
         break;
     }
     return(super.onOptionsItemSelected(item));
@@ -202,6 +221,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   public void onClick(DialogInterface dialogInterface, int index)
   {
     _mBand.setCurrentView(index);
+  }
+
+  private void refreshStatuses()
+  {
+    synchronized(_sRefreshLock)
+    {
+      if(_mCurrentRefreshTask!=null)
+        return;
+
+      _mCurrentRefreshTask = new RefreshTask();
+    }
+    _mCurrentRefreshTask.execute();
   }
 
   /**
@@ -241,6 +272,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       layout.addView(_mBand,params);
       setAgentTitle(null);
       setSpinnerVisibility(false);
+      if(_mBand.getChildCount()>1)
+      {
+        View button = findViewById(R.id.agent_list_button);
+        button.setVisibility(View.VISIBLE);
+      }
     }
   }
   /**
@@ -253,6 +289,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
 
       return false;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean aBoolean)
+    {
+      synchronized(_sRefreshLock)
+      {
+        _mCurrentRefreshTask = null;
+      }
     }
   }
 }
