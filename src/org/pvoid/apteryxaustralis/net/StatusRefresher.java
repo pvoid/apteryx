@@ -37,50 +37,54 @@ public class StatusRefresher
     }
 
     Iterable<Account> accounts = Storage.getAccounts(context);
-    for(Account account : accounts)
+    if(accounts!=null)
     {
-      Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
-      request.getTerminalsStatus();
-      Response response = request.getResponse();
-      if(response!=null)
+      for(Account account : accounts)
       {
-        ReportsSection section = response.Reports();
-        if(section!=null)
+        Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+        request.getTerminalsStatus();
+        Response response = request.getResponse();
+        if(response!=null)
         {
-          Iterable<TerminalStatus> newStatuses = section.getTerminalsStatus();
-          boolean loadTerminals = false;
-          for(TerminalStatus status : newStatuses)
+          ReportsSection section = response.Reports();
+          if(section!=null)
           {
-            if(records!=null)
+            Iterable<TerminalStatus> newStatuses = section.getTerminalsStatus();
+            boolean loadTerminals = false;
+            for(TerminalStatus status : newStatuses)
             {
-              if(!records.containsKey(status.getId()))
-                loadTerminals = true;
-              else
-                records.get(status.getId()).getStatus().update(status);
-            }
-            else if(!statuses.containsKey(status.getId()))
-            {
-              loadTerminals = true;
-            }
-
-            Storage.addStatus(context,status);
-          }
-
-          if(loadTerminals)
-          {
-            request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
-            response = request.getResponse();
-            if(response!=null)
-            {
-              TerminalsSection terminalsSection = response.Terminals();
-              if(terminalsSection!=null)
+              if(records!=null)
               {
-                Storage.addTerminals(context,terminalsSection.getTerminals());
+                if(!records.containsKey(status.getId()))
+                  loadTerminals = true;
+                else
+                  records.get(status.getId()).getStatus().update(status);
+              }
+              else if(!statuses.containsKey(status.getId()))
+              {
+                loadTerminals = true;
+              }
+
+              Storage.addStatus(context,status);
+            }
+
+            if(loadTerminals)
+            {
+              request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+              response = request.getResponse();
+              if(response!=null)
+              {
+                TerminalsSection terminalsSection = response.Terminals();
+                if(terminalsSection!=null)
+                {
+                  Storage.addTerminals(context,terminalsSection.getTerminals());
+                }
               }
             }
           }
         }
       }
+      return true;
     }
     return false;
   }

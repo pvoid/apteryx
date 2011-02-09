@@ -43,7 +43,6 @@ import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.TreeMap;
 
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener, DialogInterface.OnClickListener
@@ -51,8 +50,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
 
-  private static final int DIALOG_AGENTS = 1;
   private static final Object _sRefreshLock = new Object();
+
+  private boolean _mIsEmpty;
   /**
    * Компаратор для сортировки терминалов по статусу
    */
@@ -94,6 +94,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private TreeMap<Long,TerminalListRecord> _mStatuses;
   private AlertDialog _mAgentsDialog;
   private RefreshTask _mCurrentRefreshTask = null;
+  private static final int DIALOG_NEED_SETTINGS = 1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -109,6 +110,43 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     (new SetupUITask()).execute();
   }
 
+
+  @Override
+  protected Dialog onCreateDialog(int id)
+  {
+    if(id == DIALOG_NEED_SETTINGS)
+    {
+      AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+      dialog.setTitle(R.string.app_name);
+      dialog.setMessage(R.string.add_account_message);
+
+      dialog.setPositiveButton(R.string.settings,new DialogInterface.OnClickListener()
+      {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i)
+        {
+          Intent intent = new Intent(MainActivity.this,CommonSettings.class);
+          startActivityForResult(intent, 0);
+          dialogInterface.dismiss();
+        }
+      });
+      dialog.setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener()
+      {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i)
+        {
+          dialogInterface.dismiss();
+        }
+      });
+      return dialog.create();
+    }
+    return super.onCreateDialog(id);
+  }
+
+  /**
+   * Щелчок по кнопке со списком агентов
+   * @param view сама кнопка вызывающая список агентов
+   */
   public void agentsListClick(View view)
   {
     if(_mAgentsDialog==null)
@@ -251,21 +289,26 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     protected Boolean doInBackground(Void... voids)
     {
       Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
-      for(TerminalStatus status : statuses)
-      {
-        _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
-      }
+      if(statuses!=null)
+        for(TerminalStatus status : statuses)
+        {
+          _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
+        }
 
       Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
-      LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
-      for(Agent agent : agents)
+      _mIsEmpty = agents == null;
+      if(!_mIsEmpty)
       {
-        ListView list = new ListView(MainActivity.this);
-        list.setOnItemClickListener(MainActivity.this);
-        TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
-        fillAgentsList(adapter);
-        list.setAdapter(adapter);
-        _mBand.addView(list,params);
+        LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
+        for(Agent agent : agents)
+        {
+          ListView list = new ListView(MainActivity.this);
+          list.setOnItemClickListener(MainActivity.this);
+          TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
+          fillAgentsList(adapter);
+          list.setAdapter(adapter);
+          _mBand.addView(list,params);
+        }
       }
       return true;
     }
@@ -284,6 +327,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         View button = findViewById(R.id.agent_list_button);
         button.setVisibility(View.VISIBLE);
       }
+
+      if(_mIsEmpty)
+        showDialog(DIALOG_NEED_SETTINGS);
     }
   }
   /**
