@@ -82,6 +82,7 @@ public class TerminalInfo extends Activity
 
   private void setTerminalStatus(TerminalStatus status)
   {
+    float density = getResources().getDisplayMetrics().density;
     TextView text = (TextView)findViewById(R.id.time);
     text.setText(DateUtils.getRelativeTimeSpanString(status.getRequestDate(),
                                                      System.currentTimeMillis(),
@@ -118,14 +119,22 @@ public class TerminalInfo extends Activity
     Iterable<String> states = status.getStates(this);
     LinearLayout statesContainer = (LinearLayout)findViewById(R.id.states);
     boolean first = true;
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
+                                                                     ViewGroup.LayoutParams.WRAP_CONTENT);
+    params.topMargin = (int) (density * 4 + 0.5f);
     for(String state : states)
     {
       StateLine line = new StateLine(this);
       if(first)
         first=false;
       line.setText(state);
-      statesContainer.addView(line,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
+
+      statesContainer.addView(line,params);
     }
+
+    View line = findViewById(R.id.sep_line);
+    line.setVisibility(first?View.GONE:View.VISIBLE);
+    statesContainer.setVisibility(first?View.GONE:View.VISIBLE);
 ////////// Дата последней активности
     FullInfoItem info = (FullInfoItem)findViewById(R.id.last_activity);
     info.setText(DateUtils.getRelativeTimeSpanString(status.getLastActivityDate(),

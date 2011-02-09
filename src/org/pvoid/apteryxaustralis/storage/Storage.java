@@ -571,7 +571,7 @@ public class Storage
         values.put(TerminalsTable.NAME,terminal.getDisplayName());
         values.put(TerminalsTable.ADDRESS,terminal.getAddress());
         values.put(TerminalsTable.AGENT,terminal.getAgentId());
-        db.insert(TerminalsTable.TABLE_NAME,null,values);
+        db.replace(TerminalsTable.TABLE_NAME,null,values);
       }
     }
     finally

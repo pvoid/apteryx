@@ -35,6 +35,11 @@
                 android:textColor="#ffffff"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:layout_toRightOf="@id/status_icon"
+                android:shadowColor="#000000"
+                android:shadowRadius="2"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:textStyle="bold"
                 android:id="@+id/name" />
       <TextView android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -42,6 +47,11 @@
                 android:textColor="#d8d8d8"
                 android:id="@+id/time"
                 android:layout_toRightOf="@id/status_icon"
+                android:shadowColor="#000000"
+                android:shadowRadius="2"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:textStyle="bold"
                 android:layout_below="@id/name"/>
     </RelativeLayout>
     <ScrollView android:layout_width="fill_parent"
@@ -53,10 +63,14 @@
         <LinearLayout android:layout_width="fill_parent"
                       android:layout_height="wrap_content"
                       android:id="@+id/states"
-                      android:layout_margin="5dp"
+                      android:layout_marginTop="6dp"
+                      android:layout_marginLeft="10dp"
+                      android:layout_marginRight="10dp"
+                      android:layout_marginBottom="10dp"
                       android:orientation="vertical" />
         <ImageView android:layout_width="fill_parent"
                    android:layout_height="1dip"
+                   android:id="@+id/sep_line"
                    android:src="@drawable/list_line"/>
     <!-- Последний ответ -->
         <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem

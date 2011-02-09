@@ -37,6 +37,7 @@ import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.net.StatusRefresher;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
@@ -79,7 +80,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       if(status!=null)
         statusB = getCommonStatus(status);
 ////////
-      return statusB - statusA;
+      int result = statusB - statusA;
+      if(result==0)
+      {
+        result = a.toString().compareTo(b.toString());
+      }
+      return result;
     }
   };
 
@@ -232,6 +238,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
       _mCurrentRefreshTask = new RefreshTask();
     }
+    setSpinnerVisibility(true);
     _mCurrentRefreshTask.execute();
   }
 
@@ -287,8 +294,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-
-      return false;
+      return StatusRefresher.RefreshStates(MainActivity.this,_mStatuses);
     }
 
     @Override
@@ -296,7 +302,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       synchronized(_sRefreshLock)
       {
+        for(int count=_mBand.getChildCount()-1;count>=0;--count)
+        {
+          ListView child = (ListView) _mBand.getChildAt(count);
+          TerminalsArrayAdapter statuses = (TerminalsArrayAdapter) child.getAdapter();
+          statuses.sort(_mComparator);
+          statuses.notifyDataSetChanged();
+        }
         _mCurrentRefreshTask = null;
+        setSpinnerVisibility(false);
       }
     }
   }

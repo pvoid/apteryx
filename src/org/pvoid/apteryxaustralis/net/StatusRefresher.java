@@ -18,10 +18,7 @@
 package org.pvoid.apteryxaustralis.net;
 
 import android.content.Context;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.ReportsSection;
-import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.accounts.*;
 import org.pvoid.apteryxaustralis.storage.Storage;
 
 import java.util.TreeMap;
@@ -71,7 +68,16 @@ public class StatusRefresher
 
           if(loadTerminals)
           {
-
+            request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+            response = request.getResponse();
+            if(response!=null)
+            {
+              TerminalsSection terminalsSection = response.Terminals();
+              if(terminalsSection!=null)
+              {
+                Storage.addTerminals(context,terminalsSection.getTerminals());
+              }
+            }
           }
         }
       }
