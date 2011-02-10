@@ -142,6 +142,7 @@ public class CommonSettings extends PreferenceActivity
       AccountPreference accountPreference = new AccountPreference(this, id, title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
       _AccountsCategory.addPreference(accountPreference);
+      setResult(RESULT_OK);
     }
   }
   

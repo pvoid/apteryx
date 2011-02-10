@@ -50,6 +50,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
 
+  private static final int REQUEST_SETTINGS = 1;
+
   private static final Object _sRefreshLock = new Object();
 
   private boolean _mIsEmpty;
@@ -106,11 +108,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     _mBand = new SlideBand(this);
     _mBand.setOnCurrentViewChangeListener(this);
     _mStatuses = new TreeMap<Long,TerminalListRecord>();
-
+////////
     (new SetupUITask()).execute();
   }
-
-
+  /**
+   * Создаем диалог. Пока что только диалог о необходимости настроек
+   * @param id идентификатор диалога
+   * @return Созданный диалог
+   */
   @Override
   protected Dialog onCreateDialog(int id)
   {
@@ -119,17 +124,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
       dialog.setTitle(R.string.app_name);
       dialog.setMessage(R.string.add_account_message);
-
+/////////////
       dialog.setPositiveButton(R.string.settings,new DialogInterface.OnClickListener()
       {
         @Override
         public void onClick(DialogInterface dialogInterface, int i)
         {
           Intent intent = new Intent(MainActivity.this,CommonSettings.class);
-          startActivityForResult(intent, 0);
+          startActivityForResult(intent, REQUEST_SETTINGS);
           dialogInterface.dismiss();
         }
       });
+/////////////
       dialog.setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener()
       {
         @Override
@@ -140,9 +146,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       });
       return dialog.create();
     }
+/////////////
     return super.onCreateDialog(id);
   }
-
   /**
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
@@ -160,6 +166,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       dialog.setTitle(R.string.agents_list);
       _mAgentsDialog =  dialog.create();
     }
+/////////////
     _mAgentsDialog.show();
     _mAgentsDialog.getListView().setSelection(_mBand.getCurrentViewIndex());
   }
@@ -182,7 +189,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   protected void fillAgentsList(TerminalsArrayAdapter adapter)
   {
     Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,adapter.getAgentId());
-
+/////////////
     for(Terminal terminal : terminals)
     {
       TerminalListRecord record = _mStatuses.get(terminal.getId());
@@ -195,7 +202,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       }
       adapter.add(record);
     }
-
+/////////////
     adapter.sort(_mComparator);
   }
 
@@ -252,7 +259,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       case SETTINGS_MENU_ID:
         Intent intent = new Intent(this,CommonSettings.class);
-        startActivityForResult(intent, 0);
+        startActivityForResult(intent, REQUEST_SETTINGS);
         break;
       case REFRESH_MENU_ID:
         refreshStatuses();
@@ -267,19 +274,75 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     _mBand.setCurrentView(index);
   }
 
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data)
+  {
+    if(requestCode==REQUEST_SETTINGS && resultCode==RESULT_OK)
+    {
+      Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
+      if(statuses!=null)
+        for(TerminalStatus status : statuses)
+        {
+          _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
+        }
+///////////
+      Iterable<Agent> agents = Storage.getAgents(this,Storage.AgentsTable.NAME);
+      int index = 0;
+      int count = _mBand.getChildCount();
+///////////
+      for(Agent agent : agents)
+      {
+        if(index>=count)
+        {
+          addAgentToList(agent,index);
+          ++index;
+          continue;
+        }
+        ListView list = (ListView)_mBand.getChildAt(index);
+        TerminalsArrayAdapter adapter = (TerminalsArrayAdapter)list.getAdapter();
+        if(adapter.getAgentId()!=agent.getId())
+        {
+          addAgentToList(agent,index);
+          count = _mBand.getChildCount();
+        }
+        ++index;
+      }
+///////////
+      setAgentTitle((TerminalsArrayAdapter)((ListView)_mBand.getCurrentView()).getAdapter());
+      if(_mBand.getChildCount()>1)
+      {
+        View button = findViewById(R.id.agent_list_button);
+        button.setVisibility(View.VISIBLE);
+      }
+
+    }
+  }
+
+  private void addAgentToList(Agent agent, int index)
+  {
+    ListView list = new ListView(MainActivity.this);
+    list.setOnItemClickListener(MainActivity.this);
+    TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
+    fillAgentsList(adapter);
+    list.setAdapter(adapter);
+    LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
+    if(index>-1)
+      _mBand.addView(list,index,params);
+    else
+      _mBand.addView(list,params);
+  }
+
   private void refreshStatuses()
   {
     synchronized(_sRefreshLock)
     {
       if(_mCurrentRefreshTask!=null)
         return;
-
       _mCurrentRefreshTask = new RefreshTask();
     }
     setSpinnerVisibility(true);
     _mCurrentRefreshTask.execute();
   }
-
   /**
    * Создает списки для отображения терминалов агентов
    */
@@ -294,20 +357,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         {
           _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
         }
-
+/////////////
       Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
       _mIsEmpty = agents == null;
       if(!_mIsEmpty)
       {
-        LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
         for(Agent agent : agents)
         {
-          ListView list = new ListView(MainActivity.this);
-          list.setOnItemClickListener(MainActivity.this);
-          TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
-          fillAgentsList(adapter);
-          list.setAdapter(adapter);
-          _mBand.addView(list,params);
+          addAgentToList(agent,-1);
         }
       }
       return true;
