@@ -46,6 +46,9 @@ import org.pvoid.apteryxaustralis.storage.Storage;
 
 public class CommonSettings extends PreferenceActivity
 {
+  private final static int REQUEST_NEW_ACCOUNT = 1;
+  private final static int REQUEST_EDIT_ACCOUNT = 2;
+
   private CheckBoxPreference _Autocheck;
   private ListPreference _Intervals;
   private CheckBoxPreference _UseVibro;
@@ -112,7 +115,7 @@ public class CommonSettings extends PreferenceActivity
       public boolean onPreferenceClick(Preference preference)
       {
         Intent intent = new Intent(CommonSettings.this, AddAccountActivity.class);
-        startActivityForResult(intent,0);
+        startActivityForResult(intent,REQUEST_NEW_ACCOUNT);
         return false;
       }
     });
@@ -134,7 +137,7 @@ public class CommonSettings extends PreferenceActivity
   
   protected void onActivityResult (int requestCode, int resultCode, Intent data)
   {
-    if(requestCode==0 && resultCode==RESULT_OK)
+    if(requestCode==REQUEST_NEW_ACCOUNT && resultCode==RESULT_OK)
     {
       long id = data.getLongExtra(AddAccountActivity.EXTRA_ACCOUNT_ID, 0);
       String title = data.getStringExtra(AddAccountActivity.EXTRA_ACCOUNT_TITLE);
@@ -142,6 +145,10 @@ public class CommonSettings extends PreferenceActivity
       AccountPreference accountPreference = new AccountPreference(this, id, title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
       _AccountsCategory.addPreference(accountPreference);
+      setResult(RESULT_OK);
+    }
+    else if(requestCode==REQUEST_EDIT_ACCOUNT && resultCode==RESULT_OK)
+    {
       setResult(RESULT_OK);
     }
   }
@@ -299,15 +306,16 @@ public class CommonSettings extends PreferenceActivity
   
   private void EditPreference(Preference preference)
   {
-    
+    AccountPreference accountPreference = (AccountPreference)preference;
+    long accountId = accountPreference.getId();
+    Intent intent = new Intent(this,AddAccountActivity.class);
+    intent.putExtra(AddAccountActivity.EXTRA_ACCOUNT_ID,accountPreference.getId());
+    startActivityForResult(intent,REQUEST_EDIT_ACCOUNT);
   }
   
   private void DeletePreference(Preference preference)
   {
-    // TODO: Спросить надо ли
-    //AccountsStorage.Instance().Delete(((AccountPreference)preference).Id());
-    // TODO: Почистить агентов и терминалы
-    //AccountsStorage.Instance().Serialize(this);
+    Storage.deleteAccount(this,((AccountPreference)preference).getId());
     _AccountsCategory.removePreference(preference);    
   }
 }

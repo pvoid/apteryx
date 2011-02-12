@@ -26,7 +26,6 @@ import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.ui.TerminalInfo;
 
 public class Storage
 {
@@ -513,7 +512,7 @@ public class Storage
     }
   }
 
-  public static boolean addAgents(Context context, Iterable<Agent> agents)
+  public static boolean addAgents(Context context, Iterable<Agent> agents, long accountId)
   {
     SQLiteDatabase db = write(context);
     try
@@ -525,7 +524,10 @@ public class Storage
         values.put(AgentsTable.NAME,agent.getName());
         String phone = agent.getPhone();
         values.put(AgentsTable.PHONE,phone==null?"":phone);
-        values.put(AgentsTable.ACCOUNT,agent.getAccount());
+        long account = agent.getAccount();
+        if(account<=0)
+          account = accountId;
+        values.put(AgentsTable.ACCOUNT,account);
         db.insert(AgentsTable.TABLE_NAME,null,values);
       }
     }
@@ -537,7 +539,7 @@ public class Storage
     return true;
   }
 
-  public static boolean addAgent(Context context, Agent agent)
+  public static boolean addAgent(Context context, Agent agent, long accountId)
   {
     SQLiteDatabase db = write(context);
     try
@@ -547,7 +549,10 @@ public class Storage
       values.put(AgentsTable.NAME,agent.getName());
       String phone = agent.getPhone();
       values.put(AgentsTable.PHONE,phone==null?"":phone);
-      values.put(AgentsTable.ACCOUNT,agent.getAccount());
+      long account = agent.getAccount();
+        if(account<=0)
+          account = accountId;
+      values.put(AgentsTable.ACCOUNT,account);
       db.insert(AgentsTable.TABLE_NAME,null,values);
     }
     finally
@@ -737,5 +742,47 @@ public class Storage
         cursor.close();
     }
     return false;
+  }
+
+  public static void deleteAccount(Context context, long accountId)
+  {
+    SQLiteDatabase db = read(context);
+    String account = Long.toString(accountId);
+    final Cursor cursor = db.query(AgentsTable.TABLE_NAME,
+                                   new String[] {AgentsTable.ID},
+                                   AgentsTable.ACCOUNT+"=?",
+                                   new String[] {account},
+                                   null,null,null);
+    StringBuffer agents = new StringBuffer();
+    try
+    {
+      boolean first = true;
+      while(cursor.moveToNext())
+      {
+        if(first)
+          first = false;
+        else
+          agents.append(',');
+        agents.append(cursor.getString(0));
+      }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    db.close();
+
+    if(agents.length()>0)
+    {
+      agents.insert(0," in (");
+      agents.append(")");
+      db = write(context);
+      db.delete(TerminalsTable.TABLE_NAME,TerminalsTable.COLUMN_AGENT+agents.toString(),null);
+      db.delete(StatusesTable.TABLE_NAME,StatusesTable.AGENT+agents.toString(),null);
+      db.delete(AgentsTable.TABLE_NAME,AgentsTable.ID+agents.toString(),null);
+      db.delete(AccountTable.TABLE_NAME,AccountTable.ID+"=?",new String[] {account});
+      db.close();
+    }
   }
 }

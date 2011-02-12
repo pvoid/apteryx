@@ -31,7 +31,7 @@ public class AccountPreference extends Preference
     _Id = agentId;
   }
   
-  public long Id()
+  public long getId()
   {
     return(_Id);
   }

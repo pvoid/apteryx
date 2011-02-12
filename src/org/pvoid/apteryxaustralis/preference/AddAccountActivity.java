@@ -22,8 +22,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import android.widget.Button;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Agent;
@@ -74,12 +74,22 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     _mTerminalEdit = (EditText)findViewById(R.id.terminal);
     
     Bundle extra = getIntent().getExtras();
-    if(extra!=null && extra.containsKey(Consts.COLUMN_ID))
+    if(extra!=null && extra.containsKey(EXTRA_ACCOUNT_ID))
     {
-      _mId = extra.getLong(Consts.COLUMN_ID);
-      _mLoginEdit.setText(extra.getString(Consts.COLUMN_LOGIN));
-      _mTerminalEdit.setText(extra.getString(Consts.COLUMN_TERMINAL));
-      _mPassword = extra.getString(Consts.COLUMN_PASSWORD);
+      _mId = extra.getLong(EXTRA_ACCOUNT_ID);
+      Account account = Storage.getAccount(this, _mId);
+      if(account!=null)
+      {
+        _mLoginEdit.setText(account.getLogin());
+        _mLoginEdit.setEnabled(false);
+        _mTerminalEdit.setText(Long.toString(account.getTerminalId()));
+        _mTerminalEdit.setEnabled(false);
+        _mPasswordEdit.requestFocus();
+        Button add = (Button) findViewById(R.id.add);
+        add.setText(R.string.change_password);
+      }
+      else
+        _mId = 0;
     }
     else
       _mId = 0;
@@ -102,16 +112,15 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     if(Utils.isEmptyString(_mLogin))
     {
       Toast.makeText(this, getString(R.string.empty_login), 200).show();
+      _mLoginEdit.requestFocus();
       return;
     }
     String password = _mPasswordEdit.getText().toString();
     if(Utils.isEmptyString(password))
     {
-      if(_mId ==0)
-      {
-        Toast.makeText(this, getString(R.string.empty_password), 200).show();
-        return;
-      }
+      Toast.makeText(this, getString(R.string.empty_password), 200).show();
+      _mPasswordEdit.requestFocus();
+      return;
     }
     else
     {
@@ -134,6 +143,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     if(Utils.isEmptyString(_mTerminalId))
     {
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
+      _mTerminalEdit.requestFocus();
       return;
     }
 ////////
@@ -170,40 +180,63 @@ public class AddAccountActivity extends Activity implements IResponseHandler
              .show();
       return;
     }
-    // TODO: утащить это в отдельный поток, так как запись в БД длительна
-    AgentsSection agentsSection = response.Agents(); 
+
+    AgentsSection agentsSection = response.Agents();
     Agent agent;
-    if(agentsSection!=null && (agent = agentsSection.GetAgentInfo())!=null)
+    if(agentsSection==null || (agent = agentsSection.GetAgentInfo())==null)
+      return;
+
+
+    if(_mId!=0)
     {
-      Account account = new Account(agent.getId(), agent.getName(), _mLogin, _mPassword, Long.parseLong(_mTerminalId));
-      if(Storage.addAccount(this,account))
+      TerminalsSection terminalsSection = response.Terminals();
+      if(terminalsSection!=null)
       {
-        List<Agent> agents = agentsSection.getAgents();
-        if(agents!=null)
-        {
-          Storage.addAgents(this,agents);
-        }
-        else
-          Storage.addAgent(this,agent);
-
-        TerminalsSection terminalsSection = response.Terminals();
-        if(terminalsSection!=null)
-        {
-          Storage.addTerminals(this,terminalsSection.getTerminals());
-        }
-
-        ReportsSection reportsSection = response.Reports();
-        if(reportsSection!=null)
-        {
-          Storage.addStatuses(this,reportsSection.getTerminalsStatus());
-        }
-
-        Intent result = new Intent();
-        result.putExtra(EXTRA_ACCOUNT_ID,account.getId());
-        result.putExtra(EXTRA_ACCOUNT_TITLE,account.getTitle());
-        setResult(RESULT_OK, result);
-        finish();
+        Storage.addTerminals(this,terminalsSection.getTerminals());
       }
+
+      ReportsSection reportsSection = response.Reports();
+      if(reportsSection!=null)
+      {
+        Storage.addStatuses(this,reportsSection.getTerminalsStatus());
+      }
+
+      Intent result = new Intent();
+      result.putExtra(EXTRA_ACCOUNT_ID,_mId);
+      setResult(RESULT_OK, result);
+      finish();
+      return;
+    }
+
+    // TODO: утащить это в отдельный поток, так как запись в БД длительна
+    Account account = new Account(agent.getId(), agent.getName(), _mLogin, _mPassword, Long.parseLong(_mTerminalId));
+    if(Storage.addAccount(this,account))
+    {
+      List<Agent> agents = agentsSection.getAgents();
+      if(agents!=null)
+      {
+        Storage.addAgents(this,agents,account.getId());
+      }
+      else
+        Storage.addAgent(this,agent,account.getId());
+
+      TerminalsSection terminalsSection = response.Terminals();
+      if(terminalsSection!=null)
+      {
+        Storage.addTerminals(this,terminalsSection.getTerminals());
+      }
+
+      ReportsSection reportsSection = response.Reports();
+      if(reportsSection!=null)
+      {
+        Storage.addStatuses(this,reportsSection.getTerminalsStatus());
+      }
+
+      Intent result = new Intent();
+      result.putExtra(EXTRA_ACCOUNT_ID,account.getId());
+      result.putExtra(EXTRA_ACCOUNT_TITLE,account.getTitle());
+      setResult(RESULT_OK, result);
+      finish();
     }
   }
 }

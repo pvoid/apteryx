@@ -45,6 +45,7 @@
   <string name="accounts_list">Список аккаунтов</string>
   <string name="accounts">Аккаунты</string>
   <string name="add">Добавить аккаунт</string>
+  <string name="change_password">Изменить пароль</string>
   <string name="edit">Изменить</string>
   <string name="delete">Удалить</string>
   <string name="cancel">Отмена</string>
