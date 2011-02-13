@@ -49,12 +49,17 @@ public class CommonSettings extends PreferenceActivity
   private final static int REQUEST_NEW_ACCOUNT = 1;
   private final static int REQUEST_EDIT_ACCOUNT = 2;
 
+  public final static int RESULT_REFRESH = RESULT_FIRST_USER+1;
+  public final static int RESULT_RELOAD = RESULT_FIRST_USER+2;
+
   private CheckBoxPreference _Autocheck;
   private ListPreference _Intervals;
   private CheckBoxPreference _UseVibro;
   private RingtonePreference _Ringtone;
   private ArrayAdapter<String> _Commands;
   private PreferenceCategory _AccountsCategory;
+
+  private boolean _mResultIsReload = false;
   
   private OnPreferenceClickListener accountClickListener = new OnPreferenceClickListener()
   {
@@ -145,11 +150,12 @@ public class CommonSettings extends PreferenceActivity
       AccountPreference accountPreference = new AccountPreference(this, id, title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
       _AccountsCategory.addPreference(accountPreference);
-      setResult(RESULT_OK);
+      if(!_mResultIsReload)
+        setResult(RESULT_REFRESH);
     }
-    else if(requestCode==REQUEST_EDIT_ACCOUNT && resultCode==RESULT_OK)
+    else if(requestCode==REQUEST_EDIT_ACCOUNT && resultCode==RESULT_OK && !_mResultIsReload)
     {
-      setResult(RESULT_OK);
+      setResult(RESULT_REFRESH);
     }
   }
   
@@ -187,7 +193,7 @@ public class CommonSettings extends PreferenceActivity
   }
 /**
  * 
- * @param interval
+ * @param interval начальный интервал
  */
   private void InitializeInterval(int interval)
   {
@@ -272,7 +278,7 @@ public class CommonSettings extends PreferenceActivity
   /**
    * Устанавливает текстовое имя звука в описание опции  
    * @param uriString  uri выбранного звука
-   * @return
+   * @return признак того что изменение принято
    */
   private boolean setSoundSummary(String uriString)
   {
@@ -307,7 +313,6 @@ public class CommonSettings extends PreferenceActivity
   private void EditPreference(Preference preference)
   {
     AccountPreference accountPreference = (AccountPreference)preference;
-    long accountId = accountPreference.getId();
     Intent intent = new Intent(this,AddAccountActivity.class);
     intent.putExtra(AddAccountActivity.EXTRA_ACCOUNT_ID,accountPreference.getId());
     startActivityForResult(intent,REQUEST_EDIT_ACCOUNT);
@@ -316,6 +321,8 @@ public class CommonSettings extends PreferenceActivity
   private void DeletePreference(Preference preference)
   {
     Storage.deleteAccount(this,((AccountPreference)preference).getId());
-    _AccountsCategory.removePreference(preference);    
+    _AccountsCategory.removePreference(preference);
+    setResult(RESULT_RELOAD);
+    _mResultIsReload = true;
   }
 }
