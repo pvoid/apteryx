@@ -17,22 +17,19 @@
 
 package org.pvoid.apteryxaustralis;
 
-import java.util.ArrayList;
 import java.util.TreeMap;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
-import android.util.Log;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.net.StatusRefreshRunnable;
+import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import org.pvoid.apteryxaustralis.storage.Storage;
+import org.pvoid.apteryxaustralis.net.StatusRefresher;
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 public class StatesReceiver extends BroadcastReceiver
 {
@@ -43,7 +40,9 @@ public class StatesReceiver extends BroadcastReceiver
 		@Override
 		public void run()
 		{
-      TreeMap<Long,TerminalStatus> statusMap = new TreeMap<Long,TerminalStatus>();
+      TreeMap<Long,TerminalListRecord> tree = new TreeMap<Long,TerminalListRecord>();
+      StatusRefresher.RefreshStates(_mContext,tree);
+      /*TreeMap<Long,TerminalStatus> statusMap = new TreeMap<Long,TerminalStatus>();
       Iterable<TerminalStatus> stats = Storage.getStatuses(_mContext);
       for(TerminalStatus status : stats)
       {
@@ -96,11 +95,11 @@ public class StatesReceiver extends BroadcastReceiver
         }
 
         if(changed)
-          Notifyer.ShowNotification(_mContext);
-      }
+          Notifier.ShowNotification(_mContext);
+      }*/
 ///////////
-	    SharedPreferences prefs = _mContext.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
-	    long interval = prefs.getInt(Consts.PREF_INTERVAL, 0);
+	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
+	    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, 0);
 	    if(interval==0)
 	      return;
 	    AlarmManager alarmManager = (AlarmManager) _mContext.getSystemService(Context.ALARM_SERVICE);
@@ -138,7 +137,7 @@ public class StatesReceiver extends BroadcastReceiver
         if(terminals.Success())
         {
           if(accounts_storage.CheckStates(terminals, inactive_terminals))
-            Notifyer.ShowNotification(context, inactive_terminals);
+            Notifier.ShowNotification(context, inactive_terminals);
           accounts_storage.SaveStates(terminals);
         }
         else

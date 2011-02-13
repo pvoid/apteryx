@@ -15,25 +15,28 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-
 <resources>
   <string-array name="intervalsTitle">
-  <item>каждые 15 минут</item>
-  <item>каждые 30 минут</item>
-  <item>каждый час</item>
-  <item>каждые 3 часа</item>
-  <item>каждые 6 часов</item>
-  <item>каждые 12 часов</item>
-  <item>раз в день</item>
+    <item>каждые 5 минут</item>
+    <item>каждые 10 минут</item>
+    <item>каждые 15 минут</item>
+    <item>каждые 30 минут</item>
+    <item>каждый час</item>
+    <item>каждые 3 часа</item>
+    <item>каждые 6 часов</item>
+    <item>каждые 12 часов</item>
+    <item>раз в день</item>
   </string-array>
   
-<string-array name="intervalsValues">
-  <item>900000</item>
-  <item>1800000</item>
-  <item>3600000</item>
-  <item>10800000</item>
-  <item>21600000</item>
-  <item>43200000</item>
-  <item>86400000</item>
-</string-array>
+  <string-array name="intervalsValues">
+    <item>300000</item>
+    <item>600000</item>
+    <item>900000</item>
+    <item>1800000</item>
+    <item>3600000</item>
+    <item>10800000</item>
+    <item>21600000</item>
+    <item>43200000</item>
+    <item>86400000</item>
+  </string-array>
 </resources>

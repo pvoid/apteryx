@@ -27,30 +27,32 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
-public class Notifyer
+public class Notifier
 {
-  private static final Object _Locker = new Object();
-  private static Notification _Notification; 
+  private static final Object _mLocker = new Object();
+  private static Notification _mNotification;
   
   public static Notification GetIcon(Context context)
   {
-    synchronized (_Locker)
+    synchronized (_mLocker)
     {
-      if(_Notification==null)
+      if(_mNotification ==null)
       {
-        _Notification = new Notification(R.drawable.ic_terminal_active,context.getText(R.string.service_starte),System.currentTimeMillis());
+        _mNotification = new Notification(R.drawable.ic_terminal_active,context.getText(R.string.service_starte),System.currentTimeMillis());
         /*RemoteViews view = new RemoteViews(context.getPackageName(),R.layout.notify);
         view.setTextViewText(R.id.notify_text,context.getText(R.string.update_service));*/
-        _Notification.setLatestEventInfo(context,
+        _mNotification.setLatestEventInfo(context,
                                          context.getText(R.string.app_name),
                                          context.getText(R.string.update_service),
                                          PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
-        /*_Notification.setLatestEventInfo(context, context.getText(R.string.app_name),"", contentIntent);*/
+        _mNotification.flags|=Notification.FLAG_NO_CLEAR;
+        /*_mNotification.setLatestEventInfo(context, context.getText(R.string.app_name),"", contentIntent);*/
       }
       
-      return(_Notification);
+      return(_mNotification);
     }
   }
   
@@ -60,12 +62,12 @@ public class Notifyer
     notification.icon = R.drawable.ic_terminal_inactive;
     notification.tickerText = context.getText(R.string.terminals_errors);
     notification.contentIntent  = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
-    SharedPreferences preferences = context.getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
+    SharedPreferences preferences = context.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
     
-    if(preferences.getBoolean(Consts.PREF_USEVIBRO, false))
+    if(preferences.getBoolean(CommonSettings.PREF_USEVIBRO, false))
       notification.defaults |= Notification.DEFAULT_VIBRATE;
     
-    String sound = preferences.getString(Consts.PREF_SOUND, "");
+    String sound = preferences.getString(CommonSettings.PREF_SOUND, "");
     if(!Utils.isEmptyString(sound))
     {
       notification.sound = Uri.parse(sound);

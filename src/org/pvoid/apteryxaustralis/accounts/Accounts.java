@@ -29,6 +29,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 public class Accounts
 {
@@ -211,9 +212,9 @@ public class Accounts
     }
     _database.close();
 ///////
-    SharedPreferences prefs = _context.getSharedPreferences(Consts.APTERYX_PREFS,Context.MODE_PRIVATE);
+    SharedPreferences prefs = _context.getSharedPreferences(CommonSettings.APTERYX_PREFS,Context.MODE_PRIVATE);
     SharedPreferences.Editor edit = prefs.edit();
-    edit.putLong(Consts.PREF_LASTUPDATE, System.currentTimeMillis());
+    edit.putLong(CommonSettings.PREF_LASTUPDATE, System.currentTimeMillis());
     edit.commit();
   }
   

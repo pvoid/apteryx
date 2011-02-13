@@ -52,6 +52,17 @@ public class CommonSettings extends PreferenceActivity
   public final static int RESULT_REFRESH = RESULT_FIRST_USER+1;
   public final static int RESULT_RELOAD = RESULT_FIRST_USER+2;
 
+  public static final String APTERYX_PREFS = "apteryx-settings";
+  public static final String PREF_INTERVAL = "apteryx.update-interval";
+  public static final String PREF_AUTOCHECK = "apteryx.autoupdate";
+  public static final String PREF_USEVIBRO = "apteryx.usevibro";
+  public static final String PREF_SOUND = "apteryx.sound";
+  public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
+
+  public static final int[] INTERVALS =      new int[] {300000,600000,900000,1800000,3600000,
+                                                         10800000,21600000,43200000,86400000};
+  public static final int   DEFAULT_INTERVAL = 4;
+
   private CheckBoxPreference _Autocheck;
   private ListPreference _Intervals;
   private CheckBoxPreference _UseVibro;
@@ -101,12 +112,12 @@ public class CommonSettings extends PreferenceActivity
     _Ringtone = (RingtonePreference) findPreference("usesound");
     _Ringtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
     
-    SharedPreferences preferences = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+    SharedPreferences preferences = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
     
-    InitializeAutoupdate(preferences.getBoolean(Consts.PREF_AUTOCHECK, false));
-    InitializeInterval(preferences.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]));
+    InitializeAutoupdate(preferences.getBoolean(PREF_AUTOCHECK, false));
+    InitializeInterval(preferences.getInt(PREF_INTERVAL, INTERVALS[DEFAULT_INTERVAL]));
     InitializeVibration();
-    InitializeSound(preferences.getString(Consts.PREF_SOUND, ""));
+    InitializeSound(preferences.getString(PREF_SOUND, ""));
     InitializeAccounts();
   }
 
@@ -167,9 +178,9 @@ public class CommonSettings extends PreferenceActivity
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
       {
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
         SharedPreferences.Editor edit = prefs.edit();
-        edit.putString(Consts.PREF_SOUND,(String)newValue);
+        edit.putString(PREF_SOUND,(String)newValue);
         edit.commit();
         return(CommonSettings.this.setSoundSummary((String)newValue));
       }
@@ -183,9 +194,9 @@ public class CommonSettings extends PreferenceActivity
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
       {
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
         SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(Consts.PREF_USEVIBRO, newValue == Boolean.TRUE);
+        edit.putBoolean(PREF_USEVIBRO, newValue == Boolean.TRUE);
         edit.commit();
         return true;
       }
@@ -213,9 +224,9 @@ public class CommonSettings extends PreferenceActivity
         int interval = Integer.parseInt((String)newValue);
         if(interval!=0)
         {
-          SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+          SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
           SharedPreferences.Editor edit = prefs.edit();
-          edit.putInt(Consts.PREF_INTERVAL, interval);
+          edit.putInt(PREF_INTERVAL, interval);
           edit.commit();
           //////
           int index = _Intervals.findIndexOfValue((String)newValue);
@@ -262,9 +273,9 @@ public class CommonSettings extends PreferenceActivity
         else
           stopService(serviceIntent);
       ///////
-        SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
         SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(Consts.PREF_AUTOCHECK, checked);
+        edit.putBoolean(PREF_AUTOCHECK, checked);
         edit.commit();
       ///////
         _Autocheck.setChecked(checked);

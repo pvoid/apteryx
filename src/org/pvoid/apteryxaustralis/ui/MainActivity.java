@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +35,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.*;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
@@ -111,6 +113,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     _mStatuses = new TreeMap<Long,TerminalListRecord>();
 ////////
     (new ReloadFromDbTask()).execute();
+///////
+    SharedPreferences preferences = getSharedPreferences(CommonSettings.APTERYX_PREFS, MODE_PRIVATE);
+    if(preferences.getBoolean(CommonSettings.PREF_AUTOCHECK, false))
+    {
+      Intent serviceIntent = new Intent(MainActivity.this,UpdateStatusService.class);
+      startService(serviceIntent);
+    }
   }
   /**
    * Создаем диалог. Пока что только диалог о необходимости настроек
@@ -278,7 +287,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data)
   {
-    // TODO: Срочно все переделать на RESULT_REFRESH и RESULT_RELOAD
     if(requestCode==REQUEST_SETTINGS)
     {
       switch(resultCode)

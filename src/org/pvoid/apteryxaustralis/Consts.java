@@ -21,12 +21,6 @@ import android.app.Activity;
 
 public class Consts
 {
-  public static final String APTERYX_PREFS = "apteryx-settings";
-  public static final String PREF_INTERVAL = "apteryx.update-interval";
-  public static final String PREF_AUTOCHECK = "apteryx.autoupdate";
-  public static final String PREF_USEVIBRO = "apteryx.usevibro";
-  public static final String PREF_SOUND = "apteryx.sound";
-  public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
   public static final String URL = "https://service1.osmp.ru/xmlgate/xml.jsp";
   
   public static final String TAB_ACCOUNTS = "tab_account";
@@ -86,9 +80,7 @@ public class Consts
   public static final int MENU_DELETE = 1;
   public static final int MENU_EDIT = 2;
   
-  public static final int[] INTERVALS =      new int[] {900000,1800000,3600000,10800000,21600000,43200000,86400000};
-  public static final int   DEFAULT_INTERVAL = 2;
-  
+
   public static final int NOTIFICATION_ICON = 1;
   
   public static final String EXTRA_ACCOUNTID = "account_id";

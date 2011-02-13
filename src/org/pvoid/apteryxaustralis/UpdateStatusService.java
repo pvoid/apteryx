@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 public class UpdateStatusService extends Service
 {
@@ -86,8 +87,8 @@ public class UpdateStatusService extends Service
   {
     _ServiceRuning = true;
 ////////
-    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
-    long interval = prefs.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]);
+    SharedPreferences prefs = getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
+    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, CommonSettings.INTERVALS[CommonSettings.DEFAULT_INTERVAL]);
     if(interval==0)
       return;
 ///////
@@ -99,8 +100,8 @@ public class UpdateStatusService extends Service
     if(_StartForeground!=null)
     {
       Object[] args = new Object[2];
-      args[0] = Integer.valueOf(Consts.NOTIFICATION_ICON);
-      args[1] = Notifyer.GetIcon(this);
+      args[0] = Consts.NOTIFICATION_ICON;
+      args[1] = Notifier.GetIcon(this);
       
       try
       {
@@ -122,7 +123,7 @@ public class UpdateStatusService extends Service
     }
 ////////
     setForeground(true);
-    _NotifyManager.notify(Consts.NOTIFICATION_ICON, Notifyer.GetIcon(this));
+    _NotifyManager.notify(Consts.NOTIFICATION_ICON, Notifier.GetIcon(this));
   }
   
   private void handleStop()
