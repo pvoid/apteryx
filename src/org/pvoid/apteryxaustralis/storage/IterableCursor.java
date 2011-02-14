@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 public abstract class IterableCursor<T> implements Iterable<T>
 {
-  private final Cursor _mCursor;
+  protected final Cursor _mCursor;
 
   public IterableCursor(Cursor cursor)
   {
@@ -32,6 +32,11 @@ public abstract class IterableCursor<T> implements Iterable<T>
   }
 
   protected abstract T getItem(Cursor cursor);
+
+  public int count()
+  {
+    return _mCursor.getCount();
+  }
 
   @Override
   public Iterator<T> iterator()

@@ -29,7 +29,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.net.StatusRefresher;
+import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 
@@ -48,7 +48,7 @@ public class StatesReceiver extends BroadcastReceiver
       if(lastStatuses!=null)
         for(TerminalStatus status : lastStatuses)
           tree.put(status.getId(),new TerminalListRecord(null,status));
-      StatusRefresher.RefreshStates(_mContext,tree);
+      Receiver.RefreshStates(_mContext, tree);
 
       Iterable<TerminalStatus> statuses = Storage.getStatuses(_mContext);
       if(statuses!=null)

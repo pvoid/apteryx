@@ -22,9 +22,13 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 
 import org.pvoid.apteryxaustralis.Consts;
 
@@ -34,8 +38,11 @@ public class Request
   private StringBuffer _AgentInterface = new StringBuffer();
   private StringBuffer _TerminalsInterface = new StringBuffer();
   private StringBuffer _ReportsInterface = new StringBuffer();
-  @SuppressWarnings("unused")
-  private static final SSLInitializer _Initializer = new SSLInitializer();
+
+  static
+  {
+    SSLInitializer.Initialize();
+  }
   
   public Request(String login, String passwordHash, String terminal)
   {
@@ -57,31 +64,58 @@ public class Request
     _Request.append("\"/>");
   }
   
-  public void getAgentInfo()
+  public Request getAgentInfo()
   {
     _AgentInterface.append("<getAgentInfo/>");
+    return this;
   }
   
-  public void getAgents()
+  public Request getAgents()
   {
     _AgentInterface.append("<getAgents/>");
+    return this;
   }
   
-  public void getTerminals()
+  public Request getTerminals()
   {
     _TerminalsInterface.append("<getTerminals />");
-  }
-  
-  public void getTerminalsStatus()
-  {
-    _ReportsInterface.append("<getTerminalsStatus />");
+    return this;
   }
 
-  public void getTerminalStatus(long id)
+  public Request getPayments(long dateTill, int offset)
+  {
+    long dateStart = dateTill - offset;
+    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
+    TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+    format.setTimeZone(timezone);
+    _ReportsInterface.append("<getPayments mode=\"async\"><date-from>");
+    format.format(new Date(dateStart),_TerminalsInterface,null);
+    _ReportsInterface.append("</date-from><date-to>");
+    format.format(new Date(dateTill),_TerminalsInterface,null);
+    _ReportsInterface.append("</date-to></getPayments>");
+    return this;
+  }
+
+  public Request getPayments(long queId)
+  {
+    _ReportsInterface.append("<getPayments quid=\"");
+    _ReportsInterface.append(queId);
+    _ReportsInterface.append("\" />");
+    return this;
+  }
+  
+  public Request getTerminalsStatus()
+  {
+    _ReportsInterface.append("<getTerminalsStatus />");
+    return this;
+  }
+
+  public Request getTerminalStatus(long id)
   {
     _ReportsInterface.append("<getTerminalsStatus><target-terminal>");
     _ReportsInterface.append(id);
     _ReportsInterface.append("</target-terminal></getTerminalsStatus>");
+    return this;
   }
 
   public Response getResponse()
@@ -120,17 +154,14 @@ public class Request
     }
     catch (MalformedURLException e)
     {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     catch (UnsupportedEncodingException e)
     {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     catch (IOException e)
     {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     return(null);

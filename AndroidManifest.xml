@@ -33,12 +33,11 @@
       <activity android:name=".preference.AddAccountActivity" android:configChanges="orientation|keyboardHidden"/>
       <activity android:name=".ui.AgentsList" />
       <activity android:name=".preference.CommonSettings" android:label="@string/settings" />
-      
-      <activity android:name=".ui.FullInfo" />
       <activity android:name=".ui.TerminalInfo"/>
 
       <service android:name=".UpdateStatusService" android:label="@string/update_service" />
-      <receiver android:name=".StatesReceiver" android:process=":remote"/>
+      <!--receiver android:name=".StatesReceiver" android:process=":remote"/-->
+      <receiver android:name=".StatesReceiver"/>
       <receiver android:name=".OnBootReceiver" android:enabled="true" android:exported="false">
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED"/>

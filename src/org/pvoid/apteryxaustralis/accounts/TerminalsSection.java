@@ -50,7 +50,6 @@ public class TerminalsSection implements IResponseParser
   @Override
   public void SectionEnd()
   {
-    // TODO Auto-generated method stub
   }
 
   @Override

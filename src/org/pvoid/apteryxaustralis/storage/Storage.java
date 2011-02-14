@@ -22,10 +22,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.accounts.*;
 
 public class Storage
 {
@@ -170,6 +167,39 @@ public class Storage
                                     StatusesTable.TABLE_NAME+"("+StatusesTable.AGENT+");";
 //+--------------------------------------------------------------------+
 //|                                                                    |
+//| Информация о платежах                                              |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private interface PaymentsTable
+  {
+    static final String TABLE_NAME = "payments";
+
+    static final String ID = "id";
+    static final String TERMINAL = "terminal_id";
+    static final String STATUS = "status";
+    static final String FROM_AMOUNT = "from_amont";
+    static final String TO_AMOUNT = "to_amont";
+    static final String PROVIDER_ID = "provider_id";
+    static final String PROVIDER_NAME = "provider_name";
+    static final String DATE_IN_TERMINAL = "terminal_date";
+    static final String DATE_IN_PROCESSING = "processing_date";
+  }
+
+  private static final String PAYMENTS_TABLE = "CREATE TABLE "+PaymentsTable.TABLE_NAME+" ("+
+                                    PaymentsTable.ID +" INTEGER PRIMARY KEY,"+
+                                    PaymentsTable.TERMINAL+" INTEGER NOT NULL,"+
+                                    PaymentsTable.STATUS+" INTEGER NOT NULL,"+
+                                    PaymentsTable.FROM_AMOUNT+" TEXT NOT NULL,"+
+                                    PaymentsTable.TO_AMOUNT+" TEXT NOT NULL,"+
+                                    PaymentsTable.PROVIDER_ID+" INTEGER NOT NULL,"+
+                                    PaymentsTable.PROVIDER_NAME+" TEXT NOT NULL,"+
+                                    PaymentsTable.DATE_IN_TERMINAL+" INTEGER NOT NULL,"+
+                                    PaymentsTable.DATE_IN_PROCESSING+" INTEGER NOT NULL);";
+
+  private static final String PAYMENTS_INDEX_TERMINAL = "CREATE INDEX idx_payments_terminal ON "+
+                                    PaymentsTable.TABLE_NAME+"("+PaymentsTable.TERMINAL+");";
+//+--------------------------------------------------------------------+
+//|                                                                    |
 //| Агенты                                                             |
 //|                                                                    |
 //+--------------------------------------------------------------------+
@@ -248,6 +278,9 @@ public class Storage
 ////////
       database.execSQL(STATUS_TABLE);
       database.execSQL(STATUS_INDEX_AGENT);
+////////
+      database.execSQL(PAYMENTS_TABLE);
+      database.execSQL(PAYMENTS_INDEX_TERMINAL);
     }
 
     @Override
@@ -784,5 +817,10 @@ public class Storage
       db.delete(AccountTable.TABLE_NAME,AccountTable.ID+"=?",new String[] {account});
       db.close();
     }
+  }
+
+  public static void updatePayments(Context context, Iterable<Payment> payments)
+  {
+
   }
 }

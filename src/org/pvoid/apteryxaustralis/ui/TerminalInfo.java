@@ -18,11 +18,8 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -35,11 +32,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.net.StatusRefreshRunnable;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem;
 import org.pvoid.apteryxaustralis.ui.widgets.StateLine;
@@ -57,14 +52,7 @@ public class TerminalInfo extends Activity
     @Override
     protected TerminalStatus doInBackground(Void... voids)
     {
-      Account account = Storage.getAccount(TerminalInfo.this, _mAccountId);
-      if(account!=null)
-      {
-        return StatusRefreshRunnable.GetStatus(account.getLogin(),
-                                               account.getPassword(),
-                                               Long.toString(account.getTerminalId()),
-                                               _mTerminalId);
-      }
+
       return null;
     }
 

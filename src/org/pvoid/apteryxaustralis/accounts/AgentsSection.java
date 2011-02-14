@@ -98,7 +98,6 @@ public class AgentsSection implements IResponseParser
   @Override
   public void ElementEnd(String name, String innerText)
   {
-    // TODO Auto-generated method stub
   }
 
   @Override

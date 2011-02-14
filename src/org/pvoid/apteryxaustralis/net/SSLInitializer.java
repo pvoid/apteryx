@@ -51,7 +51,7 @@ public class SSLInitializer
     }
   };
   
-  public SSLInitializer()
+  public static void Initialize()
   {
     try
     {

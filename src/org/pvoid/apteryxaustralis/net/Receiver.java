@@ -19,12 +19,19 @@ package org.pvoid.apteryxaustralis.net;
 
 import android.content.Context;
 import org.pvoid.apteryxaustralis.accounts.*;
+import org.pvoid.apteryxaustralis.storage.IterableCursor;
 import org.pvoid.apteryxaustralis.storage.Storage;
 
 import java.util.TreeMap;
 
-public class StatusRefresher
+public class Receiver
 {
+  private static final int INTERVAL = 300000;
+  public interface PaymentsReceiveListener
+  {
+    void OnPaymentsReceived(boolean succeded);
+  }
+
   public static boolean RefreshStates(Context context, TreeMap<Long,TerminalListRecord> records)
   {
     Iterable<TerminalStatus> statusesIterable = Storage.getStatuses(context);
@@ -87,5 +94,65 @@ public class StatusRefresher
       return true;
     }
     return false;
+  }
+
+  private static class GetPaymentsRunnable implements Runnable
+  {
+    private final long[] _mQueIds;
+    private final PaymentsReceiveListener _mListener;
+    private final Context _mContext;
+
+    public GetPaymentsRunnable(Context context, long[] queIds, PaymentsReceiveListener listener)
+    {
+      _mQueIds = queIds;
+      _mListener = listener;
+      _mContext = context;
+    }
+
+    @Override
+    public void run()
+    {
+      IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(_mContext);
+      if(accounts==null)
+        return;
+//////////
+      int index = 0;
+      for(Account account : accounts)
+      {
+        Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+        request.getPayments(_mQueIds[index]);
+        Response response = request.getResponse();
+        ReportsSection reports;
+        if(response!=null && (reports=response.Reports())!=null)
+        {
+
+        }
+        ++index;
+      }
+    }
+  }
+
+  public static void RefreshPayments(Context context, PaymentsReceiveListener listener)
+  {
+    IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(context);
+    if(accounts!=null)
+    {
+      long[] queIds = new long[accounts.count()];
+      int index = 0;
+      for(Account account : accounts)
+      {
+        Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+        request.getPayments(System.currentTimeMillis(),INTERVAL);
+        Response response = request.getResponse();
+        ReportsSection reports;
+        if(response!=null && (reports = response.Reports())!=null)
+        {
+          queIds[index] = reports.getQueId();
+          ++index;
+        }
+      }
+/////////
+      (new Thread(new GetPaymentsRunnable(context,queIds,listener))).start();
+    }
   }
 }

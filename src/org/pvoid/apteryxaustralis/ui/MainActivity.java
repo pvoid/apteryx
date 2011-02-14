@@ -40,7 +40,7 @@ import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
-import org.pvoid.apteryxaustralis.net.StatusRefresher;
+import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
@@ -437,7 +437,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-      return StatusRefresher.RefreshStates(MainActivity.this,_mStatuses);
+      return Receiver.RefreshStates(MainActivity.this, _mStatuses);
     }
 
     @Override

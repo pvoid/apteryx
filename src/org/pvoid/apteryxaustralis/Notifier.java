@@ -52,7 +52,7 @@ public class Notifier
                                          context.getText(R.string.app_name),
                                          context.getText(R.string.update_service),
                                          PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
-        _mNotification.flags|=Notification.FLAG_NO_CLEAR;
+        _mNotification.flags|=Notification.FLAG_NO_CLEAR | Notification.FLAG_FOREGROUND_SERVICE;
       }
       
       return(_mNotification);
@@ -90,9 +90,6 @@ public class Notifier
     {
       Notification notification = GetIcon(context);
       notification.icon = R.drawable.ic_terminal_active;
-      RemoteViews view = notification.contentView;
-      view.setTextViewText(R.id.notify_text, context.getText(R.string.update_service));
-      view.setImageViewResource(R.id.notify_icon, R.drawable.ic_terminal_active);
       nm.notify(NOTIFICATION_ICON, notification);
     }
     else

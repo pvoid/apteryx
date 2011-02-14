@@ -58,9 +58,7 @@ public class CommonSettings extends PreferenceActivity
   public static final String PREF_SOUND = "apteryx.sound";
   public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
 
-  public static final int[] INTERVALS =      new int[] {300000,600000,900000,1800000,3600000,
-                                                        10800000,21600000,43200000,86400000};
-  public static final int   DEFAULT_INTERVAL = 4;
+  public static final int   DEFAULT_INTERVAL = 3600000;
 
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
@@ -114,7 +112,7 @@ public class CommonSettings extends PreferenceActivity
     SharedPreferences preferences = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
     
     InitializeAutoupdate(preferences.getBoolean(PREF_AUTOCHECK, false));
-    InitializeInterval(preferences.getInt(PREF_INTERVAL, INTERVALS[DEFAULT_INTERVAL]));
+    InitializeInterval(preferences.getInt(PREF_INTERVAL, DEFAULT_INTERVAL));
     InitializeVibration();
     InitializeSound(preferences.getString(PREF_SOUND, ""));
     InitializeAccounts();

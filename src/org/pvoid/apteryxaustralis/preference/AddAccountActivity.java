@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import android.os.AsyncTask;
 import android.widget.Button;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Utils;
@@ -33,7 +34,6 @@ import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
 import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.net.IResponseHandler;
 import org.pvoid.apteryxaustralis.net.Request;
-import org.pvoid.apteryxaustralis.net.RequestTask;
 import org.pvoid.apteryxaustralis.net.Response;
 
 import android.app.Activity;
@@ -61,8 +61,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   private EditText _mPasswordEdit;
   private EditText _mTerminalEdit;
   private long _mId;
-  
-  
+
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
@@ -237,6 +236,32 @@ public class AddAccountActivity extends Activity implements IResponseHandler
       result.putExtra(EXTRA_ACCOUNT_TITLE,account.getTitle());
       setResult(RESULT_OK, result);
       finish();
+    }
+  }
+
+  public class RequestTask extends AsyncTask<Request, Integer, Response>
+  {
+    protected IResponseHandler _handler;
+
+    public RequestTask(IResponseHandler handler)
+    {
+      _handler = handler;
+    }
+
+    @Override
+    protected Response doInBackground(Request... params)
+    {
+      if(params.length==0)
+        return(null);
+
+      return(params[0].getResponse());
+    }
+
+    @Override
+    protected void onPostExecute(Response response)
+    {
+      if(_handler!=null)
+        _handler.onResponse(response);
     }
   }
 }
