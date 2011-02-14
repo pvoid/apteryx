@@ -17,7 +17,6 @@
 
 package org.pvoid.apteryxaustralis.preference;
 
-import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.Utils;
@@ -60,15 +59,15 @@ public class CommonSettings extends PreferenceActivity
   public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
 
   public static final int[] INTERVALS =      new int[] {300000,600000,900000,1800000,3600000,
-                                                         10800000,21600000,43200000,86400000};
+                                                        10800000,21600000,43200000,86400000};
   public static final int   DEFAULT_INTERVAL = 4;
 
-  private CheckBoxPreference _Autocheck;
-  private ListPreference _Intervals;
-  private CheckBoxPreference _UseVibro;
-  private RingtonePreference _Ringtone;
-  private ArrayAdapter<String> _Commands;
-  private PreferenceCategory _AccountsCategory;
+  private CheckBoxPreference _mAutocheck;
+  private ListPreference _mIntervals;
+  private CheckBoxPreference _mUseVibro;
+  private RingtonePreference _mRingtone;
+  private ArrayAdapter<String> _mCommands;
+  private PreferenceCategory _mAccountsCategory;
 
   private boolean _mResultIsReload = false;
   
@@ -78,7 +77,7 @@ public class CommonSettings extends PreferenceActivity
     public boolean onPreferenceClick(final Preference preference)
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(CommonSettings.this);
-      dialog.setAdapter(_Commands, new OnClickListener()
+      dialog.setAdapter(_mCommands, new OnClickListener()
       {
         @Override
         public void onClick(DialogInterface dialog, int which)
@@ -106,11 +105,11 @@ public class CommonSettings extends PreferenceActivity
     super.onCreate(savedInstanceState);
     addPreferencesFromResource(R.xml.settings);
     
-    _Autocheck = (CheckBoxPreference)findPreference("autocheck");
-    _Intervals = (ListPreference)findPreference("interval");
-    _UseVibro = (CheckBoxPreference) findPreference("usevibro");
-    _Ringtone = (RingtonePreference) findPreference("usesound");
-    _Ringtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
+    _mAutocheck = (CheckBoxPreference)findPreference("autocheck");
+    _mIntervals = (ListPreference)findPreference("interval");
+    _mUseVibro = (CheckBoxPreference) findPreference("usevibro");
+    _mRingtone = (RingtonePreference) findPreference("usesound");
+    _mRingtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
     
     SharedPreferences preferences = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
     
@@ -123,7 +122,7 @@ public class CommonSettings extends PreferenceActivity
 
   private void InitializeAccounts()
   {
-    _AccountsCategory = (PreferenceCategory)findPreference("accounts");
+    _mAccountsCategory = (PreferenceCategory)findPreference("accounts");
     AddAccount add_account = new AddAccount(this);
     add_account.setOnPreferenceClickListener(new OnPreferenceClickListener()
     {
@@ -135,7 +134,7 @@ public class CommonSettings extends PreferenceActivity
         return false;
       }
     });
-    _AccountsCategory.addPreference(add_account);
+    _mAccountsCategory.addPreference(add_account);
 ////////
     Iterable<Account> accounts = Storage.getAccountsInfo(this);
     if(accounts!=null)
@@ -143,12 +142,12 @@ public class CommonSettings extends PreferenceActivity
       {
         AccountPreference accountPreference = new AccountPreference(this, account.getId(), account.getTitle());
         accountPreference.setOnPreferenceClickListener(accountClickListener);
-        _AccountsCategory.addPreference(accountPreference);
+        _mAccountsCategory.addPreference(accountPreference);
       }
 //////// Команды управления
-    _Commands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
-    _Commands.add(getString(R.string.edit));
-    _Commands.add(getString(R.string.delete));
+    _mCommands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
+    _mCommands.add(getString(R.string.edit));
+    _mCommands.add(getString(R.string.delete));
   }
   
   protected void onActivityResult (int requestCode, int resultCode, Intent data)
@@ -160,7 +159,7 @@ public class CommonSettings extends PreferenceActivity
       
       AccountPreference accountPreference = new AccountPreference(this, id, title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
-      _AccountsCategory.addPreference(accountPreference);
+      _mAccountsCategory.addPreference(accountPreference);
       if(!_mResultIsReload)
         setResult(RESULT_REFRESH);
     }
@@ -173,7 +172,7 @@ public class CommonSettings extends PreferenceActivity
   private void InitializeSound(String sound_uri)
   {
     setSoundSummary(sound_uri);
-    _Ringtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    _mRingtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
@@ -189,7 +188,7 @@ public class CommonSettings extends PreferenceActivity
 
   private void InitializeVibration()
   {
-    _UseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    _mUseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
@@ -209,14 +208,14 @@ public class CommonSettings extends PreferenceActivity
   private void InitializeInterval(int interval)
   {
     String intervalText = Integer.toString(interval);
-    int index = _Intervals.findIndexOfValue(intervalText);
+    int index = _mIntervals.findIndexOfValue(intervalText);
     if(index>-1)
     {
-      _Intervals.setSummary(_Intervals.getEntries()[index]);
-      _Intervals.setValue(intervalText);
+      _mIntervals.setSummary(_mIntervals.getEntries()[index]);
+      _mIntervals.setValue(intervalText);
     }
     //////
-    _Intervals.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    _mIntervals.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
@@ -229,10 +228,10 @@ public class CommonSettings extends PreferenceActivity
           edit.putInt(PREF_INTERVAL, interval);
           edit.commit();
           //////
-          int index = _Intervals.findIndexOfValue((String)newValue);
+          int index = _mIntervals.findIndexOfValue((String)newValue);
           if(index>-1)
           {
-            _Intervals.setSummary(_Intervals.getEntries()[index]);
+            _mIntervals.setSummary(_mIntervals.getEntries()[index]);
           }
           //////
           return(true);
@@ -249,16 +248,16 @@ public class CommonSettings extends PreferenceActivity
   {
     if(state)
     {
-      _Autocheck.setChecked(true);
+      _mAutocheck.setChecked(true);
     }
     else
     {
-      _Intervals.setEnabled(false);
-      _UseVibro.setEnabled(false);
-      _Ringtone.setEnabled(false);
+      _mIntervals.setEnabled(false);
+      _mUseVibro.setEnabled(false);
+      _mRingtone.setEnabled(false);
     }
 ////////
-    _Autocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    _mAutocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
@@ -278,10 +277,10 @@ public class CommonSettings extends PreferenceActivity
         edit.putBoolean(PREF_AUTOCHECK, checked);
         edit.commit();
       ///////
-        _Autocheck.setChecked(checked);
-        _Intervals.setEnabled(checked);
-        _UseVibro.setEnabled(checked);
-        _Ringtone.setEnabled(checked);
+        _mAutocheck.setChecked(checked);
+        _mIntervals.setEnabled(checked);
+        _mUseVibro.setEnabled(checked);
+        _mRingtone.setEnabled(checked);
         return true;
       }
     });
@@ -315,7 +314,7 @@ public class CommonSettings extends PreferenceActivity
     
     if(summary!=null)
     {
-      _Ringtone.setSummary(summary);
+      _mRingtone.setSummary(summary);
       return(true);
     }
     return(false);
@@ -332,7 +331,7 @@ public class CommonSettings extends PreferenceActivity
   private void DeletePreference(Preference preference)
   {
     Storage.deleteAccount(this,((AccountPreference)preference).getId());
-    _AccountsCategory.removePreference(preference);
+    _mAccountsCategory.removePreference(preference);
     setResult(RESULT_RELOAD);
     _mResultIsReload = true;
   }

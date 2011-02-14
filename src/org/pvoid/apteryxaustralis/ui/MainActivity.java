@@ -20,9 +20,7 @@ package org.pvoid.apteryxaustralis.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,7 +32,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.*;
+import org.pvoid.apteryxaustralis.Notifier;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.StatesReceiver;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
@@ -57,7 +57,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
   private static final Object _sRefreshLock = new Object();
 
-  private boolean _mIsEmpty;
+  private boolean _mIsEmpty = false;
   /**
    * Компаратор для сортировки терминалов по статусу
    */
@@ -94,6 +94,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     }
   };
 
+  private BroadcastReceiver _mUpdateMessageReceiver = new BroadcastReceiver()
+  {
+    @Override
+    public void onReceive(Context context, Intent intent)
+    {
+      (new RefreshFromDbTask()).execute();
+    }
+  };
+
   private Animation _mSpinnerAnimation;
   private SlideBand _mBand;
   private TreeMap<Long,TerminalListRecord> _mStatuses;
@@ -120,6 +129,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       Intent serviceIntent = new Intent(MainActivity.this,UpdateStatusService.class);
       startService(serviceIntent);
     }
+///////
+    IntentFilter filter = new IntentFilter(StatesReceiver.REFRESH_BROADCAST_MESSAGE);
+    registerReceiver(_mUpdateMessageReceiver, filter);
+  }
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    unregisterReceiver(_mUpdateMessageReceiver);
   }
   /**
    * Создаем диалог. Пока что только диалог о необходимости настроек
@@ -159,6 +178,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 /////////////
     return super.onCreateDialog(id);
   }
+
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    Notifier.HideNotification(this);
+  }
+
   /**
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
@@ -316,10 +343,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
     fillAgentsList(adapter);
     LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
-    /*if(index>-1)
-      _mBand.addView(list,index,params);
-    else
-      _mBand.addView(list,params);*/
+
     if(_mBand.getChildCount()<=index)
     {
       ListView list = createList();

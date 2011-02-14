@@ -28,11 +28,14 @@ import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
 import org.pvoid.apteryxaustralis.net.StatusRefresher;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.apteryxaustralis.storage.Storage;
 
 public class StatesReceiver extends BroadcastReceiver
 {
+  public static final String REFRESH_BROADCAST_MESSAGE = "org.pvoid.apteryx.StatusUpdatedMessage";
 	private Context _mContext;
 	
 	private final Runnable _RefreshStates = new Runnable()
@@ -41,62 +44,45 @@ public class StatesReceiver extends BroadcastReceiver
 		public void run()
 		{
       TreeMap<Long,TerminalListRecord> tree = new TreeMap<Long,TerminalListRecord>();
+      Iterable<TerminalStatus> lastStatuses = Storage.getStatuses(_mContext);
+      if(lastStatuses!=null)
+        for(TerminalStatus status : lastStatuses)
+          tree.put(status.getId(),new TerminalListRecord(null,status));
       StatusRefresher.RefreshStates(_mContext,tree);
-      /*TreeMap<Long,TerminalStatus> statusMap = new TreeMap<Long,TerminalStatus>();
-      Iterable<TerminalStatus> stats = Storage.getStatuses(_mContext);
-      for(TerminalStatus status : stats)
-      {
-        statusMap.put(status.getId(),status);
-      }
-///////////
-      Iterable<Account> accounts = Storage.getAccounts(_mContext);
-      if(accounts!=null)
-      {
-        boolean refreshed = false;
-        boolean changed = false;
-        boolean newTerminals = false;
-///////////
-        ArrayList<TerminalStatus> invalidStates = new ArrayList<TerminalStatus>();
 
-        for(Account account : accounts)
+      Iterable<TerminalStatus> statuses = Storage.getStatuses(_mContext);
+      if(statuses!=null)
+      {
+        boolean notify = false;
+        for(TerminalStatus status : statuses)
         {
-          Iterable<TerminalStatus> statuses = StatusRefreshRunnable.GetStatuses(account.getLogin(), account.getPassword(), Long.toString(account.getTerminalId()));
-          if(statuses!=null)
+          long id = status.getId();
+          if(tree.containsKey(id))
           {
-            for(TerminalStatus status : statuses)
+            TerminalListRecord record = tree.get(id);
+            TerminalStatus lastStatus = record.getStatus();
+            if(status.getCommonState() == TerminalStatus.STATE_COMMON_ERROR &&
+                lastStatus.getCommonState() != TerminalStatus.STATE_COMMON_ERROR)
             {
-              if(statusMap.containsKey(status.getId()))
-              {
-                TerminalStatus oldStatus = statusMap.get(status.getId());
-                //TODO: Тут проверка смены состояния
-                changed = true;
-                invalidStates.add(status);
-              }
-              else
-              {
-                newTerminals = true;
-              }
-//////////////////////
-              Storage.updateStatus(_mContext,status);
+              notify = true;
+              break;
             }
-            refreshed = true;
+          }
+          else if(status.getCommonState() == TerminalStatus.STATE_COMMON_ERROR)
+          {
+            notify = true;
+            break;
           }
         }
-/////////// Запрос на терминалы
-        if(newTerminals)
-        {
 
-        }
-///////////
-        if(refreshed)
-        {
-          Intent broadcastIntent = new Intent(Consts.REFRESH_BROADCAST_MESSAGE);
+        if(notify)
+          Notifier.ShowNotification(_mContext,Notifier.ERROR_COMMON);
+        else
+          Notifier.ShowNotification(_mContext,Notifier.NO_ERROR);
+
+        Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
           _mContext.sendBroadcast(broadcastIntent);
-        }
-
-        if(changed)
-          Notifier.ShowNotification(_mContext);
-      }*/
+      }
 ///////////
 	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
 	    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, 0);
@@ -114,39 +100,5 @@ public class StatesReceiver extends BroadcastReceiver
   {
   	_mContext = context;
   	(new Thread(_RefreshStates)).start();
-    /*TerminalsProcessData terminals = new TerminalsProcessData();
-    ArrayList<TerminalInfoOld> inactive_terminals = new ArrayList<TerminalInfoOld>();
-
-    Accounts accounts_storage = new Accounts(context);
-    ArrayList<Account> accounts = new ArrayList<Account>();
-    accounts_storage.GetAccounts(accounts);
-    if(accounts.size()>0)
-    {
-      HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
-      for(Account account : accounts)
-      {
-        ArrayList<Agent> agents_line = new ArrayList<Agent>();
-        accounts_storage.GetAgents(account.getId(), agents_line);
-        if(agents_line.size()>0)
-          agents.put(account.getId(), agents_line);
-      }
-      Account[] ac = new Account[accounts.size()];
-      StatesRequestWorker worker = new StatesRequestWorker(terminals,agents);
-      if(worker.Work(accounts.toArray(ac)))
-      {
-        if(terminals.Success())
-        {
-          if(accounts_storage.CheckStates(terminals, inactive_terminals))
-            Notifier.ShowNotification(context, inactive_terminals);
-          accounts_storage.SaveStates(terminals);
-        }
-        else
-          Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);
-      }
-    }
-    
-    
-    */
   }
-
 }

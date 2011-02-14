@@ -100,7 +100,7 @@ public class UpdateStatusService extends Service
     if(_StartForeground!=null)
     {
       Object[] args = new Object[2];
-      args[0] = Consts.NOTIFICATION_ICON;
+      args[0] = Notifier.NOTIFICATION_ICON;
       args[1] = Notifier.GetIcon(this);
       
       try
@@ -123,7 +123,7 @@ public class UpdateStatusService extends Service
     }
 ////////
     setForeground(true);
-    _NotifyManager.notify(Consts.NOTIFICATION_ICON, Notifier.GetIcon(this));
+    _NotifyManager.notify(Notifier.NOTIFICATION_ICON, Notifier.GetIcon(this));
   }
   
   private void handleStop()
@@ -160,7 +160,7 @@ public class UpdateStatusService extends Service
       return;
     }
 //////
-    _NotifyManager.cancel(Consts.NOTIFICATION_ICON);
+    _NotifyManager.cancel(Notifier.NOTIFICATION_ICON);
     setForeground(false);
   }
   

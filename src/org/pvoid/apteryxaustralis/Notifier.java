@@ -32,6 +32,12 @@ import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifier
 {
+  public static final int NOTIFICATION_ICON = 1;
+
+  public static final int NO_ERROR = 0;
+  public static final int ERROR_COMMON = 1;
+  public static final int ERROR_PRINTER = 2;
+
   private static final Object _mLocker = new Object();
   private static Notification _mNotification;
   
@@ -42,26 +48,26 @@ public class Notifier
       if(_mNotification ==null)
       {
         _mNotification = new Notification(R.drawable.ic_terminal_active,context.getText(R.string.service_starte),System.currentTimeMillis());
-        /*RemoteViews view = new RemoteViews(context.getPackageName(),R.layout.notify);
-        view.setTextViewText(R.id.notify_text,context.getText(R.string.update_service));*/
         _mNotification.setLatestEventInfo(context,
                                          context.getText(R.string.app_name),
                                          context.getText(R.string.update_service),
                                          PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
         _mNotification.flags|=Notification.FLAG_NO_CLEAR;
-        /*_mNotification.setLatestEventInfo(context, context.getText(R.string.app_name),"", contentIntent);*/
       }
       
       return(_mNotification);
     }
   }
   
-  public static void ShowNotification(Context context)
+  public static void ShowNotification(Context context,int error)
   {
     Notification notification = GetIcon(context);
-    notification.icon = R.drawable.ic_terminal_inactive;
-    notification.tickerText = context.getText(R.string.terminals_errors);
-    notification.contentIntent  = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+    if(error != NO_ERROR)
+    {
+      notification.icon = error==ERROR_COMMON ? R.drawable.ic_terminal_inactive : R.drawable.ic_terminal_printer_error;
+      notification.tickerText = context.getText(R.string.terminals_errors);
+    }
+    notification.when = System.currentTimeMillis();
     SharedPreferences preferences = context.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
     
     if(preferences.getBoolean(CommonSettings.PREF_USEVIBRO, false))
@@ -74,7 +80,7 @@ public class Notifier
     }
     
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
-    nm.notify(Consts.NOTIFICATION_ICON, notification);
+    nm.notify(NOTIFICATION_ICON, notification);
   }
   
   public static void HideNotification(Context context)
@@ -87,9 +93,9 @@ public class Notifier
       RemoteViews view = notification.contentView;
       view.setTextViewText(R.id.notify_text, context.getText(R.string.update_service));
       view.setImageViewResource(R.id.notify_icon, R.drawable.ic_terminal_active);
-      nm.notify(Consts.NOTIFICATION_ICON, notification);
+      nm.notify(NOTIFICATION_ICON, notification);
     }
     else
-      nm.cancel(Consts.NOTIFICATION_ICON);
+      nm.cancel(NOTIFICATION_ICON);
   }
 }
