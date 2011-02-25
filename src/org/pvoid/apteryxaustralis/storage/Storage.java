@@ -44,14 +44,14 @@ public class Storage
     static final String TERMINAL = "terminal";
 
     static final String[] COLUMNS_SHORT = new String[] {ID,TITLE};
-    static final String[] COLUMNS_AUTH = new String[] {LOGIN,PASSWORD,TERMINAL};
+    static final String[] COLUMNS_AUTH = new String[] {ID,LOGIN,PASSWORD,TERMINAL};
 
     static final int COLUMN_ID = 0;
     static final int COLUMN_TITLE = 1;
 
-    static final int COLUMN_LOGIN = 0;
-    static final int COLUMN_PASSWORD = 1;
-    static final int COLUMN_TERMINAL = 2;
+    static final int COLUMN_LOGIN = 1;
+    static final int COLUMN_PASSWORD = 2;
+    static final int COLUMN_TERMINAL = 3;
   }
 
   private static final String ACCOUNT_TABLE = "CREATE TABLE "+AccountTable.TABLE_NAME+" ("+
@@ -183,11 +183,13 @@ public class Storage
     static final String PROVIDER_NAME = "provider_name";
     static final String DATE_IN_TERMINAL = "terminal_date";
     static final String DATE_IN_PROCESSING = "processing_date";
+    static final String UPDATE_DATE = "update_date";
   }
 
   private static final String PAYMENTS_TABLE = "CREATE TABLE "+PaymentsTable.TABLE_NAME+" ("+
                                     PaymentsTable.ID +" INTEGER PRIMARY KEY,"+
                                     PaymentsTable.TERMINAL+" INTEGER NOT NULL,"+
+                                    PaymentsTable.UPDATE_DATE+" INTEGER NOT NULL,"+
                                     PaymentsTable.STATUS+" INTEGER NOT NULL,"+
                                     PaymentsTable.FROM_AMOUNT+" TEXT NOT NULL,"+
                                     PaymentsTable.TO_AMOUNT+" TEXT NOT NULL,"+
@@ -200,7 +202,7 @@ public class Storage
                                     PaymentsTable.TABLE_NAME+"("+PaymentsTable.TERMINAL+");";
 //+--------------------------------------------------------------------+
 //|                                                                    |
-//| Агенты                                                             |
+//| Полная информация по терминалу                                     |
 //|                                                                    |
 //+--------------------------------------------------------------------+
   private static interface TerminalInfoQuery
@@ -249,6 +251,26 @@ public class Storage
     static final int COLUMN_AGENT_PHONE=14;
     static final int COLUMN_ACCOUNT=15;
   }
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Полная информация по терминалу                                     |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+private static interface TerminalsForAccountQuery
+{
+  static final String
+      QUERY = "SELECT t."+TerminalsTable.ID +
+                    ",t."+TerminalsTable.ADDRESS +
+                    ",t."+TerminalsTable.NAME +
+                    ",t."+TerminalsTable.AGENT+
+              " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+AgentsTable.TABLE_NAME+
+                                " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID + " WHERE a."
+                                +AgentsTable.ACCOUNT+"=?";
+  static final int COLUMN_ID = 0;
+  static final int COLUMN_ADDRESS = 1;
+  static final int COLUMN_NAME = 2;
+  static final int COLUMN_AGENT = 3;
+}
 //+--------------------------------------------------------------------+
 //|                                                                    |
 //| Сама база данных                                                   |
@@ -322,7 +344,8 @@ public class Storage
     @Override
     protected Account getItem(Cursor cursor)
     {
-      return new Account(cursor.getString(AccountTable.COLUMN_LOGIN),
+      return new Account(cursor.getLong(AccountTable.COLUMN_ID),
+                         cursor.getString(AccountTable.COLUMN_LOGIN),
                          cursor.getString(AccountTable.COLUMN_PASSWORD),
                          cursor.getLong(AccountTable.COLUMN_TERMINAL));
     }
@@ -509,6 +532,20 @@ public class Storage
   public static Iterable<Terminal> getTerminals(Context context)
   {
     return getTerminals(context,-1);
+  }
+
+  public static Iterable<Terminal> getTerminals(Context context, Account account)
+  {
+    SQLiteDatabase db = read(context);
+    Cursor cursor = db.rawQuery(TerminalsForAccountQuery.QUERY,new String[] {Long.toString(account.getId())});
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+////////
+    return new TerminalsIterable(cursor);
   }
 
   public static Iterable<TerminalStatus> getStatuses(Context context)
@@ -821,6 +858,29 @@ public class Storage
 
   public static void updatePayments(Context context, Iterable<Payment> payments)
   {
+    if(payments==null)
+      return;
 
+    ContentValues values = new ContentValues();
+    SQLiteDatabase db = write(context);
+    for(Payment payment : payments)
+    {
+      values.clear();
+      values.put(PaymentsTable.ID,payment.getId());
+      values.put(PaymentsTable.TERMINAL,payment.getTerminalId());
+      values.put(PaymentsTable.FROM_AMOUNT,payment.getFromAmount());
+      values.put(PaymentsTable.TO_AMOUNT,payment.getToAmount());
+      values.put(PaymentsTable.PROVIDER_ID,payment.getProviderId());
+      values.put(PaymentsTable.PROVIDER_NAME,payment.getProviderName());
+      values.put(PaymentsTable.STATUS,payment.getStatus());
+      values.put(PaymentsTable.DATE_IN_PROCESSING,payment.getDateInProcessing());
+      values.put(PaymentsTable.DATE_IN_TERMINAL,payment.getDateInTerminal());
+      values.put(PaymentsTable.UPDATE_DATE,System.currentTimeMillis());
+      if(db.update(PaymentsTable.TABLE_NAME,values,PaymentsTable.TERMINAL+"=?",new String[] {Long.toString(payment.getTerminalId())})==0)
+      {
+        db.insert(PaymentsTable.TABLE_NAME,null,values);
+      }
+    }
+    db.close();
   }
 }

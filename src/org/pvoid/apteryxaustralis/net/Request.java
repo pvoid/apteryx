@@ -20,24 +20,29 @@ package org.pvoid.apteryxaustralis.net;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-
-import org.pvoid.apteryxaustralis.Consts;
 
 public class Request
 {
-  private StringBuffer _Request = new StringBuffer();
-  private StringBuffer _AgentInterface = new StringBuffer();
-  private StringBuffer _TerminalsInterface = new StringBuffer();
-  private StringBuffer _ReportsInterface = new StringBuffer();
+  private static final String URL = "https://service1.osmp.ru/xmlgate/xml.jsp";
+  private static final int INTERVAL = 24*60*60*1000;
+
+  private StringBuffer _mRequest = new StringBuffer();
+  private StringBuffer _mAgentInterface = new StringBuffer();
+  private StringBuffer _mTerminalsInterface = new StringBuffer();
+  private StringBuffer _mReportsInterface = new StringBuffer();
+
+  private final String _mLogin;
+  private final String _mPassword;
+  private final String _mTerminal;
+  private final int _mOffset;
 
   static
   {
@@ -46,111 +51,162 @@ public class Request
   
   public Request(String login, String passwordHash, String terminal)
   {
-    _Request.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+    _mLogin = login;
+    _mPassword = passwordHash;
+    _mTerminal = terminal;
+
+    TimeZone zone = TimeZone.getDefault();
+    _mOffset = zone.getOffset(System.currentTimeMillis())/3600000;
+
+    Initialize();
+  }
+
+  public Request(String login, String passwordHash, long terminal)
+  {
+    _mLogin = login;
+    _mPassword = passwordHash;
+    _mTerminal = Long.toString(terminal);
+
+    TimeZone zone = TimeZone.getDefault();
+    _mOffset = zone.getOffset(System.currentTimeMillis())/3600000;
+
+    Initialize();
+  }
+
+  private void Initialize()
+  {
+    _mRequest.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
                     "<request>"+
                     "<auth login=\"");
-    _Request.append(login);
-    _Request.append("\" sign=\"");
-    _Request.append(passwordHash);
-    _Request.append("\" signAlg=\"MD5\"/><client terminal=\"");
-    _Request.append(terminal);
-    _Request.append("\" software=\"Dealer v0\" timezone=\"GMT");
-    TimeZone zone = TimeZone.getDefault();
-    int offset = zone.getOffset(System.currentTimeMillis());
-    offset/=3600000;
-    if(offset>0)
-      _Request.append('+');
-    _Request.append(offset);
-    _Request.append("\"/>");
+    _mRequest.append(_mLogin);
+    _mRequest.append("\" sign=\"");
+    _mRequest.append(_mPassword);
+    _mRequest.append("\" signAlg=\"MD5\"/><client terminal=\"");
+    _mRequest.append(_mTerminal);
+    _mRequest.append("\" software=\"Dealer v0\" timezone=\"GMT");
+
+    if(_mOffset>0)
+      _mRequest.append('+');
+    _mRequest.append(_mOffset);
+    _mRequest.append("\"/>");
   }
-  
+
+  public void clear()
+  {
+    _mRequest.delete(0, _mRequest.length());
+    _mAgentInterface.delete(0, _mAgentInterface.length());
+    _mReportsInterface.delete(0, _mReportsInterface.length());
+    _mTerminalsInterface.delete(0, _mTerminalsInterface.length());
+
+    Initialize();
+  }
+
   public Request getAgentInfo()
   {
-    _AgentInterface.append("<getAgentInfo/>");
+    _mAgentInterface.append("<getAgentInfo/>");
     return this;
   }
   
   public Request getAgents()
   {
-    _AgentInterface.append("<getAgents/>");
+    _mAgentInterface.append("<getAgents/>");
     return this;
   }
   
   public Request getTerminals()
   {
-    _TerminalsInterface.append("<getTerminals />");
+    _mTerminalsInterface.append("<getTerminals />");
     return this;
   }
 
-  public Request getPayments(long dateTill, int offset)
+  public Request getPayments(long terminalId)
   {
-    long dateStart = dateTill - offset;
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
+    long dateStart = System.currentTimeMillis();
+    Date tillDate = new Date(dateStart);
+    dateStart-=INTERVAL;
+    Date startDate = new Date(dateStart);
+    SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm:ss");
     TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
-    format.setTimeZone(timezone);
-    _ReportsInterface.append("<getPayments mode=\"async\"><date-from>");
-    format.format(new Date(dateStart),_TerminalsInterface,null);
-    _ReportsInterface.append("</date-from><date-to>");
-    format.format(new Date(dateTill),_TerminalsInterface,null);
-    _ReportsInterface.append("</date-to></getPayments>");
+    formatDate.setTimeZone(timezone);
+    formatTime.setTimeZone(timezone);
+    _mReportsInterface.append("<getPayments mode=\"async\"><date-from>");
+    _mReportsInterface.append(formatDate.format(startDate));
+    _mReportsInterface.append('T');
+    _mReportsInterface.append(formatTime.format(startDate));
+    _mReportsInterface.append("</date-from><date-to>");
+    _mReportsInterface.append(formatDate.format(tillDate));
+    _mReportsInterface.append('T');
+    _mReportsInterface.append(formatTime.format(tillDate));
+    _mReportsInterface.append("</date-to><terminal>");
+    _mReportsInterface.append(terminalId);
+    _mReportsInterface.append("</terminal><max-row-count>1</max-row-count></getPayments>");
     return this;
   }
 
-  public Request getPayments(long queId)
+  public Request getPaymentsFromQue(long queId)
   {
-    _ReportsInterface.append("<getPayments quid=\"");
-    _ReportsInterface.append(queId);
-    _ReportsInterface.append("\" />");
+    _mReportsInterface.append("<getPayments quid=\"");
+    _mReportsInterface.append(queId);
+    _mReportsInterface.append("\" mode=\"async\"/>");
     return this;
   }
   
   public Request getTerminalsStatus()
   {
-    _ReportsInterface.append("<getTerminalsStatus />");
+    _mReportsInterface.append("<getTerminalsStatus />");
     return this;
   }
 
   public Request getTerminalStatus(long id)
   {
-    _ReportsInterface.append("<getTerminalsStatus><target-terminal>");
-    _ReportsInterface.append(id);
-    _ReportsInterface.append("</target-terminal></getTerminalsStatus>");
+    _mReportsInterface.append("<getTerminalsStatus><target-terminal>");
+    _mReportsInterface.append(id);
+    _mReportsInterface.append("</target-terminal></getTerminalsStatus>");
     return this;
   }
 
   public Response getResponse()
   {
-    if(_AgentInterface.length()>0)
+    if(_mAgentInterface.length()>0)
     {
-      _Request.append("<agents>");
-      _Request.append(_AgentInterface);
-      _Request.append("</agents>");
+      _mRequest.append("<agents>");
+      _mRequest.append(_mAgentInterface);
+      _mRequest.append("</agents>");
     }
-    if(_TerminalsInterface.length()>0)
+    if(_mTerminalsInterface.length()>0)
     {
-      _Request.append("<terminals>");
-      _Request.append(_TerminalsInterface);
-      _Request.append("</terminals>");
+      _mRequest.append("<terminals>");
+      _mRequest.append(_mTerminalsInterface);
+      _mRequest.append("</terminals>");
     }
-    if(_ReportsInterface.length()>0)
+    if(_mReportsInterface.length()>0)
     {
-      _Request.append("<reports>");
-      _Request.append(_ReportsInterface);
-      _Request.append("</reports>");
+      _mRequest.append("<reports>");
+      _mRequest.append(_mReportsInterface);
+      _mRequest.append("</reports>");
     }
-    _Request.append("</request>");
+    _mRequest.append("</request>");
     try
     {
-      HttpsURLConnection connection = (HttpsURLConnection)new URL(Consts.URL).openConnection();
+      System.setProperty("http.keepAlive", "false");
+      HttpsURLConnection connection = (HttpsURLConnection)new URL(URL).openConnection();
+      connection.setRequestMethod("POST");
       connection.setDoOutput(true);
       OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
-      writer.write(_Request.toString());
+      writer.write(_mRequest.toString());
       writer.flush();
       writer.close();
 ///////////
-      Response response = new Response(connection);
-      connection.disconnect();
-      return(response);
+      try
+      {
+        Response response = new Response(connection);
+        return(response);
+      }
+      finally
+      {
+        connection.disconnect();
+      }
     }
     catch (MalformedURLException e)
     {

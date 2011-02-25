@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      (new RefreshFromDbTask()).execute();
+      //(new RefreshFromDbTask()).execute();
     }
   };
 
@@ -437,21 +437,24 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-      return Receiver.RefreshStates(MainActivity.this, _mStatuses);
+      //return Receiver.RefreshStates(MainActivity.this, _mStatuses);
+      Receiver.RefreshPayments(MainActivity.this);
+      return false;
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean)
+    protected void onPostExecute(Boolean result)
     {
       synchronized(_sRefreshLock)
       {
-        for(int count=_mBand.getChildCount()-1;count>=0;--count)
-        {
-          ListView child = (ListView) _mBand.getChildAt(count);
-          TerminalsArrayAdapter statuses = (TerminalsArrayAdapter) child.getAdapter();
-          statuses.sort(_mComparator);
-          statuses.notifyDataSetChanged();
-        }
+        if(result)
+          for(int count=_mBand.getChildCount()-1;count>=0;--count)
+          {
+            ListView child = (ListView) _mBand.getChildAt(count);
+            TerminalsArrayAdapter statuses = (TerminalsArrayAdapter) child.getAdapter();
+            statuses.sort(_mComparator);
+            statuses.notifyDataSetChanged();
+          }
         _mCurrentRefreshTask = null;
         setSpinnerVisibility(false);
       }

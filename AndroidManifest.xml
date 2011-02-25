@@ -31,7 +31,6 @@
         </intent-filter>
       </activity>
       <activity android:name=".preference.AddAccountActivity" android:configChanges="orientation|keyboardHidden"/>
-      <activity android:name=".ui.AgentsList" />
       <activity android:name=".preference.CommonSettings" android:label="@string/settings" />
       <activity android:name=".ui.TerminalInfo"/>
 

@@ -42,6 +42,14 @@ public class Account
     _mTitle = title;
   }
 
+  public Account(long id, String login, String password, long terminal)
+  {
+    _mId = id;
+    _mLogin = login;
+    _mPasswordHash = password;
+    _mTerminal = terminal;
+  }
+
   public Account(String login, String password, long terminal)
   {
     _mId = -1;

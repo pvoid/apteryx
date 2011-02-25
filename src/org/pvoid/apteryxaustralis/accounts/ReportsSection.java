@@ -36,8 +36,8 @@ public class ReportsSection implements IResponseParser
   private SimpleDateFormat _mDateFormat;
   private ArrayList<TerminalStatus> _mStatuses = null;
   private ArrayList<Payment> _mPayments = null;
-  private long _mQueId = -1;
-  
+  private ArrayList<PaymentsRequest> _mRequests = null;
+
   public ReportsSection()
   {
   }
@@ -65,7 +65,7 @@ public class ReportsSection implements IResponseParser
       index = date.lastIndexOf('-');
     try
     {
-      _mDateFormat.parse(date.replace('T', ' ').substring(0, index)).getTime();
+      return _mDateFormat.parse(date.replace('T', ' ').substring(0, index)).getTime();
     }
     catch(ParseException e)
     {
@@ -93,9 +93,24 @@ public class ReportsSection implements IResponseParser
       TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
       _mDateFormat.setTimeZone(timezone);
 
-      String queId = attributes.getValue("quid");
-      if(!TextUtils.isEmpty(queId))
-        _mQueId = Long.parseLong(queId);
+      String text = attributes.getValue("quid");
+      long queId = 0;
+      if(!TextUtils.isEmpty(text))
+        queId = Long.parseLong(text);
+
+      text = attributes.getValue("status");
+      int state = 0;
+      if(!TextUtils.isEmpty(text) && TextUtils.isDigitsOnly(text))
+        state = Integer.parseInt(text);
+
+      text = attributes.getValue("result");
+      int result = 0;
+      if(!TextUtils.isEmpty(text))
+        result = Integer.parseInt(text);
+
+      if(_mRequests==null)
+        _mRequests = new ArrayList<PaymentsRequest>();
+      _mRequests.add(new PaymentsRequest(queId,state,result));
 
       return;
     }
@@ -204,10 +219,10 @@ public class ReportsSection implements IResponseParser
           _mStatuses = new ArrayList<TerminalStatus>();
         _mStatuses.add(status);
       }
-      else if(_mCurrentState ==STATE_PAYMENTS)
+      else if(_mCurrentState == STATE_PAYMENTS)
       {
         String id = attributes.getValue("uid");
-        String terminal = attributes.getValue("trm_id");
+        String terminal = attributes.getValue("trm-id");
         if(TextUtils.isEmpty(id) || TextUtils.isEmpty(terminal))
           return;
         Payment payment = new Payment(Long.parseLong(id),Long.parseLong(terminal));
@@ -231,19 +246,19 @@ public class ReportsSection implements IResponseParser
         if(!TextUtils.isEmpty(text))
           payment.setProviderName(text);
 ///////////
-        text = attributes.getValue("receipt_date");
+        text = attributes.getValue("receipt-date");
         if(!TextUtils.isEmpty(text))
         {
           payment.setDateInTerminal(getPaymentDate(text));
         }
 ///////////
-        text = attributes.getValue("payment_date");
+        text = attributes.getValue("payment-date");
         if(!TextUtils.isEmpty(text))
         {
           payment.setDateInProcessing(getPaymentDate(text));
         }
 ///////////
-        if(_mPayments ==null)
+        if(_mPayments == null)
           _mPayments = new ArrayList<Payment>();
         _mPayments.add(payment);
       }
@@ -275,8 +290,22 @@ public class ReportsSection implements IResponseParser
     return _mPayments;
   }
 
-  public long getQueId()
+  public Iterable<PaymentsRequest> getPaymentsRequests()
   {
-    return _mQueId;
+    return _mRequests;
+  }
+
+  public static class PaymentsRequest
+  {
+    public final long queId;
+    public final int status;
+    public final int result;
+
+    private PaymentsRequest(long queId, int status, int result)
+    {
+      this.queId = queId;
+      this.status = status;
+      this.result = result;
+    }
   }
 }

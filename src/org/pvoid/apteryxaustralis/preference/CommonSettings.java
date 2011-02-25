@@ -226,6 +226,10 @@ public class CommonSettings extends PreferenceActivity
           edit.putInt(PREF_INTERVAL, interval);
           edit.commit();
           //////
+          Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
+          stopService(serviceIntent);
+          startService(serviceIntent);
+          //////
           int index = _mIntervals.findIndexOfValue((String)newValue);
           if(index>-1)
           {

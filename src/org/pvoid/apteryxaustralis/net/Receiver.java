@@ -18,19 +18,19 @@
 package org.pvoid.apteryxaustralis.net;
 
 import android.content.Context;
+import android.view.animation.AccelerateInterpolator;
+import android.widget.ArrayAdapter;
 import org.pvoid.apteryxaustralis.accounts.*;
 import org.pvoid.apteryxaustralis.storage.IterableCursor;
 import org.pvoid.apteryxaustralis.storage.Storage;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class Receiver
 {
-  private static final int INTERVAL = 300000;
-  public interface PaymentsReceiveListener
-  {
-    void OnPaymentsReceived(boolean succeded);
-  }
+  private static final int MAX_PAYMENTS_REQUESTS = 5;
+  private static final int MAX_RETRIES = 3;
 
   public static boolean RefreshStates(Context context, TreeMap<Long,TerminalListRecord> records)
   {
@@ -96,63 +96,80 @@ public class Receiver
     return false;
   }
 
-  private static class GetPaymentsRunnable implements Runnable
+  private static boolean receivePayments(Context context, Account account, Response response)
   {
-    private final long[] _mQueIds;
-    private final PaymentsReceiveListener _mListener;
-    private final Context _mContext;
+    if(response==null)
+      return false;
 
-    public GetPaymentsRunnable(Context context, long[] queIds, PaymentsReceiveListener listener)
+    ReportsSection reports = response.Reports();
+    if(reports==null)
+      return false;
+
+    Request request = new Request(account.getLogin(),account.getPassword(),account.getTerminalId());
+    for(ReportsSection.PaymentsRequest r : reports.getPaymentsRequests())
     {
-      _mQueIds = queIds;
-      _mListener = listener;
-      _mContext = context;
+      if(r.queId>0)
+        request.getPaymentsFromQue(r.queId);
     }
 
-    @Override
-    public void run()
+    int retries = MAX_RETRIES;
+    while(retries>0)
     {
-      IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(_mContext);
-      if(accounts==null)
-        return;
-//////////
-      int index = 0;
-      for(Account account : accounts)
+      response = request.getResponse();
+      request.clear();
+      boolean retry = false;
+      if(response!=null && (reports=response.Reports())!=null)
       {
-        Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
-        request.getPayments(_mQueIds[index]);
-        Response response = request.getResponse();
-        ReportsSection reports;
-        if(response!=null && (reports=response.Reports())!=null)
+        Storage.updatePayments(context, reports.getPayments());
+        for(ReportsSection.PaymentsRequest r : reports.getPaymentsRequests())
         {
-
+          switch(r.status)
+          {
+            case 1:
+            case 2:
+              request.getPaymentsFromQue(r.queId);
+              retry = true;
+              break;
+          }
         }
-        ++index;
       }
+
+      if(retry)
+        --retries;
+      else
+        return true;
     }
+    return false;
   }
 
-  public static void RefreshPayments(Context context, PaymentsReceiveListener listener)
+  public static boolean RefreshPayments(Context context)
   {
     IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(context);
-    if(accounts!=null)
+    if(accounts==null)
+      return false;
+////////
+    for(Account account : accounts)
     {
-      long[] queIds = new long[accounts.count()];
-      int index = 0;
-      for(Account account : accounts)
+      Iterable<Terminal> terminals = Storage.getTerminals(context,account);
+      int requests = 0;
+      Request request = new Request(account.getLogin(),account.getPassword(),account.getTerminalId());
+      for(Terminal terminal : terminals)
       {
-        Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
-        request.getPayments(System.currentTimeMillis(),INTERVAL);
-        Response response = request.getResponse();
-        ReportsSection reports;
-        if(response!=null && (reports = response.Reports())!=null)
+        if(requests==MAX_PAYMENTS_REQUESTS-1)
         {
-          queIds[index] = reports.getQueId();
-          ++index;
+          if(receivePayments(context,account,request.getResponse()))
+            ;
+          request.clear();
+          requests = 0;
         }
+        request.getPayments(terminal.getId());
+        ++requests;
       }
-/////////
-      (new Thread(new GetPaymentsRunnable(context,queIds,listener))).start();
+
+      if(requests>0)
+        receivePayments(context,account,request.getResponse());
     }
+
+    return true;
   }
 }

@@ -23,6 +23,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
 
 import android.content.BroadcastReceiver;
@@ -43,6 +44,7 @@ public class StatesReceiver extends BroadcastReceiver
 		@Override
 		public void run()
 		{
+      Log.d(StatesReceiver.class.getSimpleName(),"Receive task start");
       TreeMap<Long,TerminalListRecord> tree = new TreeMap<Long,TerminalListRecord>();
       Iterable<TerminalStatus> lastStatuses = Storage.getStatuses(_mContext);
       if(lastStatuses!=null)
@@ -83,6 +85,7 @@ public class StatesReceiver extends BroadcastReceiver
         Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
           _mContext.sendBroadcast(broadcastIntent);
       }
+      Log.d(StatesReceiver.class.getSimpleName(),"Receive task end");
 ///////////
 	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
 	    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, 0);

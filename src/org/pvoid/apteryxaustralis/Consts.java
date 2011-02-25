@@ -21,19 +21,6 @@ import android.app.Activity;
 
 public class Consts
 {
-  public static final String URL = "https://service1.osmp.ru/xmlgate/xml.jsp";
-  
-  public static final String TAB_ACCOUNTS = "tab_account";
-  public static final String TAB_PREFERENCES = "tab_preferences";
-  
-  public static final int RESULT_RELOAD = Activity.RESULT_FIRST_USER + 1;
-  
-  public static final int ACTIVITY_ADD_ACCOUNT = 1;
-  public static final int ACTIVITY_EDIT_ACCOUNT = 2;
-  public static final int ACTIVITY_SELECT_AGENT = 3;
-  
-  public static final String RESULT_AGENT_POSITION = "agent-position";
-  
   public static final String DB_NAME = "apteryx";
   public static final int DB_VERSION = 2;
   
@@ -81,6 +68,4 @@ public class Consts
   public static final String EXTRA_AGENTS = "agents";
   public static final String EXTRA_SELECTED_AGENT = "selected_agent";
   public static final String EXTRA_SELECTED_AGENTS = "selected_agents";
-  
-
 }

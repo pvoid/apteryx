@@ -45,7 +45,7 @@ public class Response extends DefaultHandler
   private TerminalsSection _Terminals;
   private ReportsSection _Reports;
   
-  public Response(HttpsURLConnection connection) throws UnsupportedEncodingException, IOException
+  public Response(HttpsURLConnection connection) throws IOException
   {
     _HttpCode = connection.getResponseCode();
     if(_HttpCode==200)
