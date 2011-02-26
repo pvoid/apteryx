@@ -36,10 +36,7 @@ import org.pvoid.apteryxaustralis.Notifier;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.StatesReceiver;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.types.Agent;
-import org.pvoid.apteryxaustralis.types.Terminal;
-import org.pvoid.apteryxaustralis.types.TerminalListRecord;
-import org.pvoid.apteryxaustralis.types.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.*;
 import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
@@ -387,6 +384,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         for(TerminalStatus status : statuses)
         {
           _mStatuses.put(status.getId(),new TerminalListRecord(null,status,null));
+        }
+/////////////
+      Iterable<Payment> payments = Storage.getPayments(MainActivity.this);
+      if(payments!=null)
+        for(Payment payment : payments)
+        {
+          TerminalListRecord record = _mStatuses.get(payment.getTerminalId());
+          if(record!=null)
+            record.setPayment(payment);
         }
 /////////////
       Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);

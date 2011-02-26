@@ -24,6 +24,8 @@
   <string name="overdraft">Овердрафт</string>
   <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
   <string name="agents_list">Список агентов</string>
+  <string name="last_activity">п. активность: </string>
+  <string name="last_payment">п. платеж: </string>
 
   <string name="add_account">Новый аккаунт</string>
   <string name="settings">Настройки</string>

@@ -20,6 +20,7 @@ package org.pvoid.apteryxaustralis.ui;
 import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.types.Agent;
+import org.pvoid.apteryxaustralis.types.Payment;
 import org.pvoid.apteryxaustralis.types.TerminalListRecord;
 import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
@@ -55,14 +56,15 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
       view = inflater.inflate(R.layout.terminal, null);
     }
     
-    TerminalListRecord terminal = getItem(position);
-    if(terminal!=null)
+    TerminalListRecord listRecord = getItem(position);
+    if(listRecord!=null)
     {
       TextView name = (TextView)view.findViewById(R.id.list_title);
-      name.setText(terminal.toString());
+      name.setText(listRecord.toString());
       TextView status = (TextView) view.findViewById(R.id.status);
       ImageView icon = (ImageView)view.findViewById(R.id.icon);
-      TerminalStatus status_record = terminal.getStatus();
+      TerminalStatus status_record = listRecord.getStatus();
+      Payment payment_record = listRecord.getPayment();
       if(status_record==null)
       {
       	status.setVisibility(View.GONE);
@@ -98,7 +100,27 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
               icon.setImageResource(R.drawable.ic_terminal_pending);
               break;
             default:
-              status.setText(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),System.currentTimeMillis(), 0, DateUtils.FORMAT_ABBREV_RELATIVE));
+              long date;
+              StringBuffer statusText = new StringBuffer();
+              if(payment_record!=null && (date = payment_record.getDateInTerminal())!=0)
+              {
+                statusText.append(getContext().getString(R.string.last_payment));
+                statusText.append(' ');
+                statusText.append(DateUtils.getRelativeTimeSpanString(date,
+                                                                      System.currentTimeMillis(),
+                                                                      DateUtils.SECOND_IN_MILLIS,
+                                                                      DateUtils.FORMAT_ABBREV_RELATIVE));
+              }
+              else
+              {
+                statusText.append(getContext().getString(R.string.last_activity));
+                statusText.append(' ');
+                statusText.append(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),
+                                                                      System.currentTimeMillis(),
+                                                                      DateUtils.SECOND_IN_MILLIS,
+                                                                      DateUtils.FORMAT_ABBREV_RELATIVE));
+              }
+              status.setText(statusText.toString());
               status.setVisibility(View.VISIBLE);
               icon.setImageResource(R.drawable.ic_terminal_active);
           }

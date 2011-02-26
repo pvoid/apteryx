@@ -23,6 +23,7 @@ import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,10 +41,14 @@ import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem;
 import org.pvoid.apteryxaustralis.ui.widgets.StateLine;
 
+import java.util.Calendar;
+
 public class TerminalInfoActivity extends Activity
 {
   private static final int MENU_REFRESH = 0;
   private static final int DIALOG_PROGRESS = 0;
+
+  private static String DATE_FORMAT = "dd MMM yyyy hh:mm";
 
   private long _mAccountId;
   private long _mTerminalId;
@@ -76,7 +81,7 @@ public class TerminalInfoActivity extends Activity
     text.setText(DateUtils.getRelativeTimeSpanString(status.getRequestDate(),
                                                      System.currentTimeMillis(),
                                                      0,
-                                                     DateUtils.FORMAT_ABBREV_RELATIVE));
+                                                     DateUtils.FORMAT_ABBREV_ALL));
 
 
     ImageView icon = (ImageView)findViewById(R.id.status_icon);
@@ -125,11 +130,10 @@ public class TerminalInfoActivity extends Activity
     line.setVisibility(first?View.GONE:View.VISIBLE);
     statesContainer.setVisibility(first?View.GONE:View.VISIBLE);
 ////////// Дата последней активности
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(status.getLastActivityDate());
     FullInfoItem info = (FullInfoItem)findViewById(R.id.last_activity);
-    info.setText(DateUtils.getRelativeTimeSpanString(status.getLastActivityDate(),
-                                                     System.currentTimeMillis(),
-                                                     0,
-                                                     DateUtils.FORMAT_ABBREV_RELATIVE));
+    info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
 ////////// Уровень сигнала
     info = (FullInfoItem)findViewById(R.id.signal_level);
     info.setText(Integer.toString(status.getSignalLevel()));
@@ -146,10 +150,9 @@ public class TerminalInfoActivity extends Activity
       info.setVisibility(View.GONE);
     else
     {
-      info.setText(DateUtils.getRelativeTimeSpanString(time,
-                                                       System.currentTimeMillis(),
-                                                       0,
-                                                       DateUtils.FORMAT_ABBREV_RELATIVE));
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTimeInMillis(time);
+      info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
       info.setVisibility(View.VISIBLE);
     }
   }

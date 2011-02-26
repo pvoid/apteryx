@@ -23,11 +23,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import org.pvoid.apteryxaustralis.types.*;
+import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Storage
 {
   private static final String DB_NAME = "apx_storage";
   private static final int DB_VERSION = 1;
+
 //+--------------------------------------------------------------------+
 //|                                                                    |
 //| Аккаунты                                                           |
@@ -184,6 +186,19 @@ public class Storage
     static final String DATE_IN_TERMINAL = "terminal_date";
     static final String DATE_IN_PROCESSING = "processing_date";
     static final String UPDATE_DATE = "update_date";
+    static final String[] COLUMNS_FULL = {ID,TERMINAL,STATUS,FROM_AMOUNT,TO_AMOUNT,
+                                          PROVIDER_ID,PROVIDER_NAME,DATE_IN_TERMINAL,DATE_IN_PROCESSING,UPDATE_DATE};
+
+    static final int COLUMN_ID = 0;
+    static final int COLUMN_TERMINAL = 1;
+    static final int COLUMN_STATUS = 2;
+    static final int COLUMN_FROM_AMOUNT = 3;
+    static final int COLUMN_TO_AMOUNT = 4;
+    static final int COLUMN_PROVIDER_ID = 5;
+    static final int COLUMN_PROVIDER_NAME = 6;
+    static final int COLUMN_DATE_IN_TERMINAL = 7;
+    static final int COLUMN_DATE_IN_PROCESSING = 8;
+    static final int COLUMN_UPDATE_DATE = 9;
   }
 
   private static final String PAYMENTS_TABLE = "CREATE TABLE "+PaymentsTable.TABLE_NAME+" ("+
@@ -420,6 +435,32 @@ private static interface TerminalsForAccountQuery
       status.setWdtEvent(cursor.getShort(10));
 
       return status;
+    }
+  }
+//+--------------------------------------------------------------------+
+//|                                                                    |
+//| Перечисление платежей из курсора                                   |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private static class PaymentsIterable extends IterableCursor<Payment>
+  {
+    public PaymentsIterable(Cursor cursor)
+    {
+      super(cursor);
+    }
+
+    @Override
+    protected Payment getItem(Cursor cursor)
+    {
+      final Payment payment = new Payment(cursor.getLong(PaymentsTable.COLUMN_ID),cursor.getLong(PaymentsTable.COLUMN_TERMINAL));
+      payment.setDateInProcessing(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_PROCESSING));
+      payment.setDateInTerminal(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_TERMINAL));
+      payment.setFromAmount(cursor.getFloat(PaymentsTable.COLUMN_FROM_AMOUNT));
+      payment.setToAmount(cursor.getFloat(PaymentsTable.COLUMN_TO_AMOUNT));
+      payment.setProviderId(cursor.getLong(PaymentsTable.COLUMN_PROVIDER_ID));
+      payment.setProviderName(cursor.getString(PaymentsTable.COLUMN_PROVIDER_NAME));
+      payment.setStatus(cursor.getInt(PaymentsTable.COLUMN_STATUS));
+      return payment;
     }
   }
 
@@ -891,5 +932,19 @@ private static interface TerminalsForAccountQuery
       }
     }
     db.close();
+  }
+
+  public static Iterable<Payment> getPayments(Context context)
+  {
+    SQLiteDatabase db = read(context);
+    Cursor cursor = db.query(PaymentsTable.TABLE_NAME,PaymentsTable.COLUMNS_FULL,null,null,null,null,null);
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+////////
+    return new PaymentsIterable(cursor);
   }
 }

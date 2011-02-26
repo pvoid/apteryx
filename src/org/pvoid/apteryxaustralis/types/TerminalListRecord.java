@@ -70,4 +70,9 @@ public class TerminalListRecord
   {
     _mTerminal = terminal;
   }
+
+  public void setPayment(Payment payment)
+  {
+    _mPayment = payment;
+  }
 }
