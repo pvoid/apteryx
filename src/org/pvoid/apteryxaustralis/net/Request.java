@@ -127,7 +127,7 @@ public class Request
     Date startDate = new Date(dateStart);
     SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm:ss");
-    TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+    TimeZone timezone = TimeZone.getDefault();
     formatDate.setTimeZone(timezone);
     formatTime.setTimeZone(timezone);
     _mReportsInterface.append("<getPayments mode=\"async\"><date-from>");
@@ -151,7 +151,7 @@ public class Request
     _mReportsInterface.append("\" mode=\"async\"/>");
     return this;
   }
-  
+
   public Request getTerminalsStatus()
   {
     _mReportsInterface.append("<getTerminalsStatus />");
