@@ -28,9 +28,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.pvoid.apteryxaustralis.accounts.AgentsSection;
-import org.pvoid.apteryxaustralis.accounts.ReportsSection;
-import org.pvoid.apteryxaustralis.accounts.TerminalsSection;
+import org.pvoid.apteryxaustralis.protocol.AgentsSection;
+import org.pvoid.apteryxaustralis.protocol.ReportsSection;
+import org.pvoid.apteryxaustralis.protocol.TerminalsSection;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

@@ -24,12 +24,12 @@ import android.app.PendingIntent;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.util.Log;
-import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
+import org.pvoid.apteryxaustralis.types.TerminalListRecord;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
@@ -45,12 +45,16 @@ public class StatesReceiver extends BroadcastReceiver
 		public void run()
 		{
       Log.d(StatesReceiver.class.getSimpleName(),"Receive task start");
+      // WTF: Почему тут такой широкий ти используется?
       TreeMap<Long,TerminalListRecord> tree = new TreeMap<Long,TerminalListRecord>();
       Iterable<TerminalStatus> lastStatuses = Storage.getStatuses(_mContext);
       if(lastStatuses!=null)
         for(TerminalStatus status : lastStatuses)
-          tree.put(status.getId(),new TerminalListRecord(null,status));
+          tree.put(status.getId(),new TerminalListRecord(null,status,null));
       Receiver.RefreshStates(_mContext, tree);
+	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
+      if(prefs.getBoolean(CommonSettings.PREF_GET_PAYMENTS,false))
+        Receiver.RefreshPayments(_mContext);
 
       Iterable<TerminalStatus> statuses = Storage.getStatuses(_mContext);
       if(statuses!=null)
@@ -85,9 +89,11 @@ public class StatesReceiver extends BroadcastReceiver
         Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
           _mContext.sendBroadcast(broadcastIntent);
       }
+
+
+
       Log.d(StatesReceiver.class.getSimpleName(),"Receive task end");
 ///////////
-	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
 	    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, 0);
 	    if(interval==0)
 	      return;

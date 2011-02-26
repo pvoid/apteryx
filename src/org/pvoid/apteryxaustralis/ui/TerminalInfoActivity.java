@@ -32,14 +32,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.Agent;
+import org.pvoid.apteryxaustralis.types.Payment;
+import org.pvoid.apteryxaustralis.types.Terminal;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem;
 import org.pvoid.apteryxaustralis.ui.widgets.StateLine;
 
-public class TerminalInfo extends Activity
+public class TerminalInfoActivity extends Activity
 {
   private static final int MENU_REFRESH = 0;
   private static final int DIALOG_PROGRESS = 0;
@@ -137,12 +138,29 @@ public class TerminalInfo extends Activity
     info.setText(Float.toString(status.getSimProviderBalance()));
   }
 
-  private void setTerminalInfo(Terminal terminal, TerminalStatus status, Agent agent)
+  private void setLastPayment(Payment payment)
+  {
+    long time = payment.getDateInTerminal();
+    FullInfoItem info = (FullInfoItem)findViewById(R.id.last_payment);
+    if(time<=0)
+      info.setVisibility(View.GONE);
+    else
+    {
+      info.setText(DateUtils.getRelativeTimeSpanString(time,
+                                                       System.currentTimeMillis(),
+                                                       0,
+                                                       DateUtils.FORMAT_ABBREV_RELATIVE));
+      info.setVisibility(View.VISIBLE);
+    }
+  }
+
+  private void setTerminalInfo(Terminal terminal, TerminalStatus status, Payment payment, Agent agent)
   {
     TextView text = (TextView)findViewById(R.id.name);
     text.setText(terminal.getDisplayName());
 
     setTerminalStatus(status);
+    setLastPayment(payment);
 
     FullInfoItem info = (FullInfoItem)findViewById(R.id.address);
     info.setText(terminal.getAddress());
@@ -158,12 +176,13 @@ public class TerminalInfo extends Activity
     {
       Terminal terminal = new Terminal(_mTerminalId);
       TerminalStatus status = new TerminalStatus(_mTerminalId);
+      Payment payment = new Payment(_mTerminalId);
       Agent agent = new Agent();
 
-      if(Storage.getTerminalInfo(this,_mTerminalId,terminal,status,agent))
+      if(Storage.getTerminalInfo(this,_mTerminalId,terminal,status,payment,agent))
       {
         _mAccountId = agent.getAccount();
-        setTerminalInfo(terminal, status, agent);
+        setTerminalInfo(terminal, status, payment, agent);
       }
     }
   }

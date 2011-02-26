@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.types;
 
 import android.content.Context;
 import org.pvoid.apteryxaustralis.R;

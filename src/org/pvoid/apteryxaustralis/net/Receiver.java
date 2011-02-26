@@ -18,13 +18,15 @@
 package org.pvoid.apteryxaustralis.net;
 
 import android.content.Context;
-import android.view.animation.AccelerateInterpolator;
-import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.accounts.*;
+import android.util.Log;
+import org.pvoid.apteryxaustralis.protocol.*;
 import org.pvoid.apteryxaustralis.storage.IterableCursor;
 import org.pvoid.apteryxaustralis.storage.Storage;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Terminal;
+import org.pvoid.apteryxaustralis.types.TerminalListRecord;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
-import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class Receiver
@@ -34,6 +36,8 @@ public class Receiver
 
   public static boolean RefreshStates(Context context, TreeMap<Long,TerminalListRecord> records)
   {
+    Log.d(Receiver.class.getSimpleName(),"RefreshStates started");
+////////
     Iterable<TerminalStatus> statusesIterable = Storage.getStatuses(context);
     TreeMap<Long,TerminalStatus> statuses = null;
     if(records==null)
@@ -144,6 +148,7 @@ public class Receiver
 
   public static boolean RefreshPayments(Context context)
   {
+    Log.d(Receiver.class.getSimpleName(),"RefreshPayments started");
     IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(context);
     if(accounts==null)
       return false;

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.protocol;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +24,8 @@ import java.util.TimeZone;
 
 import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.net.IResponseParser;
+import org.pvoid.apteryxaustralis.types.Payment;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 import org.xml.sax.Attributes;
 
 public class ReportsSection implements IResponseParser

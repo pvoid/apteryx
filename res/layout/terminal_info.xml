@@ -72,6 +72,12 @@
                    android:layout_height="1dip"
                    android:id="@+id/sep_line"
                    android:src="@drawable/list_line"/>
+    <!-- Последний платеж -->
+        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/fullinfo_last_payment"
+                  android:id="@+id/last_payment"/>
     <!-- Последний ответ -->
         <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
                   android:layout_width="fill_parent"

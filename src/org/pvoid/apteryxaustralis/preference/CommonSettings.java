@@ -20,7 +20,7 @@ package org.pvoid.apteryxaustralis.preference;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.Utils;
-import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.types.Account;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;

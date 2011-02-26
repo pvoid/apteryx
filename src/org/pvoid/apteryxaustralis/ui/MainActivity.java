@@ -36,10 +36,10 @@ import org.pvoid.apteryxaustralis.Notifier;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.StatesReceiver;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.Agent;
+import org.pvoid.apteryxaustralis.types.Terminal;
+import org.pvoid.apteryxaustralis.types.TerminalListRecord;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
@@ -234,7 +234,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         record.setTerminal(terminal);
       else
       {
-        record = new TerminalListRecord(terminal,null);
+        record = new TerminalListRecord(terminal,null,null);
         Log.w(MainActivity.class.getCanonicalName(),"Recird not found ID#"+terminal.getId());
       }
       adapter.add(record);
@@ -248,7 +248,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   {
     TerminalsArrayAdapter adapter = (TerminalsArrayAdapter)adapterView.getAdapter();
     TerminalListRecord record = adapter.getItem(index);
-    Intent intent = new Intent(this,TerminalInfo.class);
+    Intent intent = new Intent(this,TerminalInfoActivity.class);
     intent.putExtra("id",record.getId());
     startActivityForResult(intent,0);
   }
@@ -386,7 +386,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       if(statuses!=null)
         for(TerminalStatus status : statuses)
         {
-          _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
+          _mStatuses.put(status.getId(),new TerminalListRecord(null,status,null));
         }
 /////////////
       Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
@@ -471,7 +471,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       if(statuses!=null)
         for(TerminalStatus status : statuses)
         {
-          _mStatuses.put(status.getId(),new TerminalListRecord(null,status));
+          _mStatuses.put(status.getId(),new TerminalListRecord(null,status,null));
         }
 ///////////
       return Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);

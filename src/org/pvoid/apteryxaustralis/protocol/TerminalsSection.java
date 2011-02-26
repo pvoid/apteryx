@@ -15,12 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.protocol;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.pvoid.apteryxaustralis.net.IResponseParser;
+import org.pvoid.apteryxaustralis.types.Terminal;
 import org.xml.sax.Attributes;
 
 public class TerminalsSection implements IResponseParser

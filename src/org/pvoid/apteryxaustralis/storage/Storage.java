@@ -22,7 +22,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import org.pvoid.apteryxaustralis.accounts.*;
+import org.pvoid.apteryxaustralis.types.*;
 
 public class Storage
 {
@@ -227,9 +227,14 @@ public class Storage
                                        ",a."+AgentsTable.PHONE+
                                        ",a."+AgentsTable.ACCOUNT+
 
+                                       ",p."+PaymentsTable.DATE_IN_TERMINAL+
+
                                 " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+StatusesTable.TABLE_NAME+" s"+
-                                " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+" INNER JOIN "+AgentsTable.TABLE_NAME+
-                                " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID +
+                                    " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+
+                                " LEFT JOIN "+PaymentsTable.TABLE_NAME+" p "+
+                                    "ON p."+PaymentsTable.TERMINAL+"=t."+TerminalsTable.ID+
+                                " INNER JOIN "+AgentsTable.TABLE_NAME+
+                                    " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID +
 
 
                                 " WHERE t."+TerminalsTable.ID+"=?";
@@ -250,6 +255,7 @@ public class Storage
     static final int COLUMN_AGENT_NAME = 13;
     static final int COLUMN_AGENT_PHONE=14;
     static final int COLUMN_ACCOUNT=15;
+    static final int COLUMN_PAYMENT_DATE=16;
   }
 //+--------------------------------------------------------------------+
 //|                                                                    |
@@ -773,7 +779,7 @@ private static interface TerminalsForAccountQuery
     return null;
   }
 
-  public static boolean getTerminalInfo(Context context, long id, Terminal terminal, TerminalStatus status, Agent agent)
+  public static boolean getTerminalInfo(Context context, long id, Terminal terminal, TerminalStatus status, Payment payment, Agent agent)
   {
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.rawQuery(TerminalInfoQuery.QUERY,new String[] {Long.toString(id)});
@@ -802,6 +808,9 @@ private static interface TerminalsForAccountQuery
         agent.setName(cursor.getString(TerminalInfoQuery.COLUMN_AGENT_NAME));
         agent.setPhone(cursor.getString(TerminalInfoQuery.COLUMN_AGENT_PHONE));
         agent.setAccount(cursor.getLong(TerminalInfoQuery.COLUMN_ACCOUNT));
+//////////// Заполняем платеж
+        if(!cursor.isNull(TerminalInfoQuery.COLUMN_PAYMENT_DATE))
+          payment.setDateInTerminal(cursor.getLong(TerminalInfoQuery.COLUMN_PAYMENT_DATE));
 //////////// Все хорошо
         return true;
       }

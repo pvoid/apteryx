@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.types;
 
 public class Payment
 {
-  private final long _mId;
+  private long _mId;
   private final long _mTerminalId;
   private int _mStatus;
   private float _mFromAmount;
@@ -33,6 +33,11 @@ public class Payment
   {
     _mId = id;
     _mTerminalId = terminalId;
+  }
+
+  public Payment(long terminalid)
+  {
+    _mTerminalId = terminalid;
   }
 
   public long getId()

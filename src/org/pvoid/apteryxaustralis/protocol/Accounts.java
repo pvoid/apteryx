@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.protocol;
 
 import java.util.List;
-import java.util.Set;
 
 import org.pvoid.apteryxaustralis.Consts;
 
@@ -27,7 +26,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Agent;
 
+/**
+ * TODO: Кандидат на удаление. Пока сохранен для переноса данных со старой структуры на новую
+ */
 public class Accounts
 {
   private static final String CREATE_ACCOUNTS_TABLE = 

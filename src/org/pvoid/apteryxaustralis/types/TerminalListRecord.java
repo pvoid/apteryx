@@ -15,19 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
+package org.pvoid.apteryxaustralis.types;
 
 import android.text.TextUtils;
+import org.pvoid.apteryxaustralis.types.Terminal;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
 public class TerminalListRecord
 {
   private Terminal _mTerminal;
 	private TerminalStatus _mStatus;
+  private Payment _mPayment;
 	
-	public TerminalListRecord(Terminal terminal, TerminalStatus status)
+	public TerminalListRecord(Terminal terminal, TerminalStatus status, Payment payment)
 	{
     _mTerminal = terminal;
 		_mStatus = status;
+    _mPayment = payment;
 	}
 
   public long getId()
@@ -43,6 +47,11 @@ public class TerminalListRecord
 	{
 		return _mStatus;
 	}
+
+  public Payment getPayment()
+  {
+    return _mPayment;
+  }
 	
 	@Override
 	public String toString()

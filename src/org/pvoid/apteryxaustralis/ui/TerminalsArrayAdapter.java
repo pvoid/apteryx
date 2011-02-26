@@ -19,9 +19,9 @@ package org.pvoid.apteryxaustralis.ui;
 
 import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Agent;
-import org.pvoid.apteryxaustralis.accounts.TerminalListRecord;
-import org.pvoid.apteryxaustralis.accounts.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.Agent;
+import org.pvoid.apteryxaustralis.types.TerminalListRecord;
+import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
 import android.content.Context;
 import android.text.format.DateUtils;
