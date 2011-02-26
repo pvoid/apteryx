@@ -42,13 +42,14 @@ import org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem;
 import org.pvoid.apteryxaustralis.ui.widgets.StateLine;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 public class TerminalInfoActivity extends Activity
 {
   private static final int MENU_REFRESH = 0;
   private static final int DIALOG_PROGRESS = 0;
 
-  private static String DATE_FORMAT = "dd MMM yyyy hh:mm";
+  private static String DATE_FORMAT = "dd MMM yyyy kk:mm";
 
   private long _mAccountId;
   private long _mTerminalId;
@@ -131,6 +132,7 @@ public class TerminalInfoActivity extends Activity
     statesContainer.setVisibility(first?View.GONE:View.VISIBLE);
 ////////// Дата последней активности
     Calendar calendar = Calendar.getInstance();
+    calendar.setTimeZone(TimeZone.getDefault());
     calendar.setTimeInMillis(status.getLastActivityDate());
     FullInfoItem info = (FullInfoItem)findViewById(R.id.last_activity);
     info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
@@ -151,6 +153,7 @@ public class TerminalInfoActivity extends Activity
     else
     {
       Calendar calendar = Calendar.getInstance();
+      calendar.setTimeZone(TimeZone.getDefault());
       calendar.setTimeInMillis(time);
       info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
       info.setVisibility(View.VISIBLE);
