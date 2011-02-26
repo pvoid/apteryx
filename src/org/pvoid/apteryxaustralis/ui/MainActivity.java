@@ -437,9 +437,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-      //return Receiver.RefreshStates(MainActivity.this, _mStatuses);
-      Receiver.RefreshPayments(MainActivity.this);
-      return false;
+      SharedPreferences prefs = getSharedPreferences(CommonSettings.APTERYX_PREFS, MODE_PRIVATE);
+      if(prefs.getBoolean(CommonSettings.PREF_GET_PAYMENTS,false))
+        Receiver.RefreshPayments(MainActivity.this);
+      return Receiver.RefreshStates(MainActivity.this, _mStatuses);
     }
 
     @Override

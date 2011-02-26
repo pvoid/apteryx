@@ -28,6 +28,9 @@
 	                  android:title="@string/settings_interval"
 	                  android:entries="@array/intervalsTitle"
 	                  android:entryValues="@array/intervalsValues" />
+    <CheckBoxPreference android:key="get_payments"
+                        android:title="@string/settings_receive_payments"
+                        android:summary="@string/settings_payments_description"/>
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/settings_notify">
     <CheckBoxPreference android:key="usevibro"

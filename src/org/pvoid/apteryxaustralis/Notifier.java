@@ -66,19 +66,19 @@ public class Notifier
     {
       notification.icon = error==ERROR_COMMON ? R.drawable.ic_terminal_inactive : R.drawable.ic_terminal_printer_error;
       notification.tickerText = context.getText(R.string.terminals_errors);
+
+      SharedPreferences preferences = context.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
+      if(preferences.getBoolean(CommonSettings.PREF_USEVIBRO, false))
+        notification.defaults |= Notification.DEFAULT_VIBRATE;
+
+      String sound = preferences.getString(CommonSettings.PREF_SOUND, "");
+      if(!Utils.isEmptyString(sound))
+      {
+        notification.sound = Uri.parse(sound);
+      }
     }
+
     notification.when = System.currentTimeMillis();
-    SharedPreferences preferences = context.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
-    
-    if(preferences.getBoolean(CommonSettings.PREF_USEVIBRO, false))
-      notification.defaults |= Notification.DEFAULT_VIBRATE;
-    
-    String sound = preferences.getString(CommonSettings.PREF_SOUND, "");
-    if(!Utils.isEmptyString(sound))
-    {
-      notification.sound = Uri.parse(sound);
-    }
-    
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
     nm.notify(NOTIFICATION_ICON, notification);
   }

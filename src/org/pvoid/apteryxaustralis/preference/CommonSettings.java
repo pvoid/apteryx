@@ -56,6 +56,7 @@ public class CommonSettings extends PreferenceActivity
   public static final String PREF_AUTOCHECK = "apteryx.autoupdate";
   public static final String PREF_USEVIBRO = "apteryx.usevibro";
   public static final String PREF_SOUND = "apteryx.sound";
+  public static final String PREF_GET_PAYMENTS = "apteryx.payments";
   public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
 
   public static final int   DEFAULT_INTERVAL = 3600000;
@@ -66,6 +67,7 @@ public class CommonSettings extends PreferenceActivity
   private RingtonePreference _mRingtone;
   private ArrayAdapter<String> _mCommands;
   private PreferenceCategory _mAccountsCategory;
+  private CheckBoxPreference _mReceivePayments;
 
   private boolean _mResultIsReload = false;
   
@@ -107,6 +109,7 @@ public class CommonSettings extends PreferenceActivity
     _mIntervals = (ListPreference)findPreference("interval");
     _mUseVibro = (CheckBoxPreference) findPreference("usevibro");
     _mRingtone = (RingtonePreference) findPreference("usesound");
+    _mReceivePayments = (CheckBoxPreference) findPreference("get_payments");
     _mRingtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
     
     SharedPreferences preferences = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
@@ -116,6 +119,7 @@ public class CommonSettings extends PreferenceActivity
     InitializeVibration();
     InitializeSound(preferences.getString(PREF_SOUND, ""));
     InitializeAccounts();
+    InitializePaymentsReceive(preferences.getBoolean(PREF_GET_PAYMENTS,false));
   }
 
   private void InitializeAccounts()
@@ -166,7 +170,25 @@ public class CommonSettings extends PreferenceActivity
       setResult(RESULT_REFRESH);
     }
   }
-  
+
+  private void InitializePaymentsReceive(boolean state)
+  {
+    _mReceivePayments.setChecked(state);
+////////
+    _mReceivePayments.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue)
+      {
+        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean(PREF_GET_PAYMENTS,(Boolean)newValue);
+        edit.commit();
+        return true;
+      }
+    });
+  }
+
   private void InitializeSound(String sound_uri)
   {
     setSoundSummary(sound_uri);

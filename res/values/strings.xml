@@ -88,6 +88,8 @@
   <string name="settings_notify">Уведомления</string>
   <string name="settings_usevibro">Использовать вибрацию</string>
   <string name="settings_melody">Сигнал уведомления</string>
+  <string name="settings_receive_payments">Получать последние платежи</string>
+  <string name="settings_payments_description">Данная опция требует большого потребления трафика</string>
 
   <string name="interval_15m">каждые 15 минут</string>
   <string name="interval_30m">каждые 30 минут</string>
@@ -108,4 +110,5 @@
   <string name="terminals_errors">Возникли проблемы с терминалом</string>
 
   <string name="terminal">Терминал</string>
+
 </resources>
