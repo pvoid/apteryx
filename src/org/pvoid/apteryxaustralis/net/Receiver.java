@@ -32,7 +32,7 @@ import java.util.TreeMap;
 public class Receiver
 {
   private static final int MAX_PAYMENTS_REQUESTS = 5;
-  private static final int MAX_RETRIES = 3;
+  private static final int MAX_RETRIES = 5;
 
   public static boolean RefreshStates(Context context, TreeMap<Long,TerminalListRecord> records)
   {
@@ -139,7 +139,18 @@ public class Receiver
       }
 
       if(retry)
+      {
         --retries;
+        try
+        {
+          Thread.sleep(500);
+        }
+        catch(InterruptedException e)
+        {
+          e.printStackTrace();
+          return false;
+        }
+      }
       else
         return true;
     }

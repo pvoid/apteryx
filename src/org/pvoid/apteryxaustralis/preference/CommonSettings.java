@@ -262,6 +262,7 @@ public class CommonSettings extends PreferenceActivity
       _mIntervals.setEnabled(false);
       _mUseVibro.setEnabled(false);
       _mRingtone.setEnabled(false);
+      _mReceivePayments.setEnabled(false);
     }
 ////////
     _mAutocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
@@ -285,6 +286,7 @@ public class CommonSettings extends PreferenceActivity
         _mIntervals.setEnabled(checked);
         _mUseVibro.setEnabled(checked);
         _mRingtone.setEnabled(checked);
+        _mReceivePayments.setEnabled(checked);
         return true;
       }
     });

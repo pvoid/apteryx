@@ -254,7 +254,7 @@ public class ReportsSection implements IResponseParser
           payment.setDateInTerminal(getPaymentDate(text));
         }
 ///////////
-        text = attributes.getValue("payment-date");
+        text = attributes.getValue("txn-date");
         if(!TextUtils.isEmpty(text))
         {
           payment.setDateInProcessing(getPaymentDate(text));

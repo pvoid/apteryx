@@ -80,6 +80,13 @@ public class Payment
     return _mDateInProcessing;
   }
 
+  public long getActualDate()
+  {
+    if(_mDateInTerminal>_mDateInProcessing)
+      return _mDateInProcessing;
+    return _mDateInTerminal;
+  }
+
   public void setFromAmount(float fromAmount)
   {
     _mFromAmount = fromAmount;

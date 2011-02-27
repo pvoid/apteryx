@@ -104,7 +104,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
             default:
               long date;
               StringBuffer statusText = new StringBuffer();
-              if(payment_record!=null && (date = payment_record.getDateInTerminal())!=0)
+              if(payment_record!=null && (date = payment_record.getActualDate())!=0)
               {
                 statusText.append(getContext().getString(R.string.last_payment));
                 statusText.append(' ');
@@ -113,7 +113,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
                                                                       DateUtils.SECOND_IN_MILLIS,
                                                                       DateUtils.FORMAT_ABBREV_RELATIVE));
 
-                if((System.currentTimeMillis() - payment_record.getDateInTerminal())>Preferences.getPaymentTimeout(getContext()))
+                if((System.currentTimeMillis() - payment_record.getActualDate())>Preferences.getPaymentTimeout(getContext()))
                   image = R.drawable.ic_terminal_pending;
               }
               else

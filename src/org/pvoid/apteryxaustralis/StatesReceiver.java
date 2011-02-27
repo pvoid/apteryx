@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.util.Log;
 import org.pvoid.apteryxaustralis.preference.Preferences;
+import org.pvoid.apteryxaustralis.types.Payment;
 import org.pvoid.apteryxaustralis.types.TerminalListRecord;
 
 import android.content.BroadcastReceiver;
@@ -46,7 +47,6 @@ public class StatesReceiver extends BroadcastReceiver
 		public void run()
 		{
       Log.d(StatesReceiver.class.getSimpleName(),"Receive task start");
-      // WTF: Почему тут такой широкий ти используется?
       TreeMap<Long,TerminalListRecord> tree = new TreeMap<Long,TerminalListRecord>();
       Iterable<TerminalStatus> lastStatuses = Storage.getStatuses(_mContext);
       if(lastStatuses!=null)
@@ -54,12 +54,21 @@ public class StatesReceiver extends BroadcastReceiver
           tree.put(status.getId(),new TerminalListRecord(null,status,null));
       Receiver.RefreshStates(_mContext, tree);
       if(Preferences.getReceivePayments(_mContext))
-        Receiver.RefreshPayments(_mContext);
+      {
+        Iterable<Payment> payments = Storage.getPayments(_mContext);
+        for(Payment payment : payments)
+        {
+          if(tree.containsKey(payment.getTerminalId()))
+            tree.get(payment.getTerminalId()).setPayment(payment);
+        }
 
+        Receiver.RefreshPayments(_mContext);
+      }
+
+      boolean notify = false;
       Iterable<TerminalStatus> statuses = Storage.getStatuses(_mContext);
       if(statuses!=null)
       {
-        boolean notify = false;
         for(TerminalStatus status : statuses)
         {
           long id = status.getId();
@@ -80,16 +89,36 @@ public class StatesReceiver extends BroadcastReceiver
             break;
           }
         }
-
-        if(notify)
-          Notifier.ShowNotification(_mContext,Notifier.ERROR_COMMON);
-        else
-          Notifier.ShowNotification(_mContext,Notifier.NO_ERROR);
-
-        Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
-          _mContext.sendBroadcast(broadcastIntent);
       }
 
+      if(!notify && Preferences.getReceivePayments(_mContext))
+      {
+        Iterable<Payment> payments = Storage.getPayments(_mContext);
+        for(Payment payment : payments)
+        {
+          long time = payment.getActualDate();
+          if(System.currentTimeMillis()-time>Preferences.getPaymentTimeout(_mContext))
+          {
+            Payment last = null;
+            if(tree.containsKey(payment.getTerminalId()))
+              last = tree.get(payment.getTerminalId()).getPayment();
+
+            if(last==null || last.getActualDate()==time)
+            {
+              notify = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if(notify)
+        Notifier.ShowNotification(_mContext,Notifier.ERROR_COMMON);
+      else
+        Notifier.ShowNotification(_mContext,Notifier.NO_ERROR);
+
+      Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
+        _mContext.sendBroadcast(broadcastIntent);
 
 
       Log.d(StatesReceiver.class.getSimpleName(),"Receive task end");

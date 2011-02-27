@@ -243,6 +243,7 @@ public class Storage
                                        ",a."+AgentsTable.ACCOUNT+
 
                                        ",p."+PaymentsTable.DATE_IN_TERMINAL+
+                                       ",p."+PaymentsTable.DATE_IN_PROCESSING+
 
                                 " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+StatusesTable.TABLE_NAME+" s"+
                                     " ON t."+TerminalsTable.ID+"=s."+StatusesTable.ID+
@@ -271,6 +272,7 @@ public class Storage
     static final int COLUMN_AGENT_PHONE=14;
     static final int COLUMN_ACCOUNT=15;
     static final int COLUMN_PAYMENT_DATE=16;
+    static final int COLUMN_PROCESSING_DATE=17;
   }
 //+--------------------------------------------------------------------+
 //|                                                                    |
@@ -852,6 +854,8 @@ private static interface TerminalsForAccountQuery
 //////////// Заполняем платеж
         if(!cursor.isNull(TerminalInfoQuery.COLUMN_PAYMENT_DATE))
           payment.setDateInTerminal(cursor.getLong(TerminalInfoQuery.COLUMN_PAYMENT_DATE));
+        if(!cursor.isNull(TerminalInfoQuery.COLUMN_PROCESSING_DATE))
+          payment.setDateInProcessing(cursor.getLong(TerminalInfoQuery.COLUMN_PROCESSING_DATE));
 //////////// Все хорошо
         return true;
       }

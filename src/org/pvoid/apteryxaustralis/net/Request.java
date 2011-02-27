@@ -33,7 +33,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class Request
 {
   private static final String URL = "https://service1.osmp.ru/xmlgate/xml.jsp";
-  private static final int INTERVAL = 3*60*60*1000;
+  private static final int INTERVAL = 8*60*60*1000;
 
   private StringBuffer _mRequest = new StringBuffer();
   private StringBuffer _mAgentInterface = new StringBuffer();
@@ -141,7 +141,7 @@ public class Request
     _mReportsInterface.append(formatTime.format(tillDate));
     _mReportsInterface.append("</date-to><terminal>");
     _mReportsInterface.append(terminalId);
-    _mReportsInterface.append("</terminal></getPayments>");
+    _mReportsInterface.append("</terminal><max-row-count>1</max-row-count></getPayments>");
     return this;
   }
 
@@ -149,7 +149,7 @@ public class Request
   {
     _mReportsInterface.append("<getPayments quid=\"");
     _mReportsInterface.append(queId);
-    _mReportsInterface.append("\" mode=\"async\" start=\"1\" end=\"2\" />");
+    _mReportsInterface.append("\" mode=\"async\" />");
     return this;
   }
 

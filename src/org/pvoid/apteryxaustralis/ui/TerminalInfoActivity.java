@@ -147,7 +147,7 @@ public class TerminalInfoActivity extends Activity
 
   private void setLastPayment(Payment payment)
   {
-    long time = payment.getDateInTerminal();
+    long time = payment.getActualDate();
     FullInfoItem info = (FullInfoItem)findViewById(R.id.last_payment);
     if(time<=0)
       info.setVisibility(View.GONE);
@@ -159,7 +159,7 @@ public class TerminalInfoActivity extends Activity
       info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
       info.setVisibility(View.VISIBLE);
 
-      if((System.currentTimeMillis()-payment.getDateInTerminal())> Preferences.getPaymentTimeout(this))
+      if((System.currentTimeMillis()-payment.getActualDate())> Preferences.getPaymentTimeout(this))
       {
         ImageView icon = (ImageView)findViewById(R.id.status_icon);
         icon.setImageResource(R.drawable.ic_terminal_pending);

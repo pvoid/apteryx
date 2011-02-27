@@ -90,7 +90,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         payment = a.getPayment();
         if(payment!=null)
         {
-          if((System.currentTimeMillis() - payment.getDateInTerminal())> Preferences.getPaymentTimeout(MainActivity.this))
+          if((System.currentTimeMillis() - payment.getActualDate())> Preferences.getPaymentTimeout(MainActivity.this))
             statusA = TerminalStatus.STATE_COMMON_WARNING;
         }
       }
@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         payment = b.getPayment();
         if(payment!=null)
         {
-          if((System.currentTimeMillis() - payment.getDateInTerminal())> Preferences.getPaymentTimeout(MainActivity.this))
+          if((System.currentTimeMillis() - payment.getActualDate())> Preferences.getPaymentTimeout(MainActivity.this))
             statusB = TerminalStatus.STATE_COMMON_WARNING;
         }
       }
