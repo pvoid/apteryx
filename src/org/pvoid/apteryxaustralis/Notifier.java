@@ -23,11 +23,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.widget.RemoteViews;
 
-import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifier
@@ -67,11 +65,10 @@ public class Notifier
       notification.icon = error==ERROR_COMMON ? R.drawable.ic_terminal_inactive : R.drawable.ic_terminal_printer_error;
       notification.tickerText = context.getText(R.string.terminals_errors);
 
-      SharedPreferences preferences = context.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
-      if(preferences.getBoolean(CommonSettings.PREF_USEVIBRO, false))
+      if(Preferences.getUseVibration(context))
         notification.defaults |= Notification.DEFAULT_VIBRATE;
 
-      String sound = preferences.getString(CommonSettings.PREF_SOUND, "");
+      String sound = Preferences.getSound(context);
       if(!Utils.isEmptyString(sound))
       {
         notification.sound = Uri.parse(sound);

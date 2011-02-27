@@ -24,6 +24,7 @@ import android.app.PendingIntent;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.util.Log;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.types.TerminalListRecord;
 
 import android.content.BroadcastReceiver;
@@ -52,8 +53,7 @@ public class StatesReceiver extends BroadcastReceiver
         for(TerminalStatus status : lastStatuses)
           tree.put(status.getId(),new TerminalListRecord(null,status,null));
       Receiver.RefreshStates(_mContext, tree);
-	    SharedPreferences prefs = _mContext.getSharedPreferences(CommonSettings.APTERYX_PREFS, Context.MODE_PRIVATE);
-      if(prefs.getBoolean(CommonSettings.PREF_GET_PAYMENTS,false))
+      if(Preferences.getReceivePayments(_mContext))
         Receiver.RefreshPayments(_mContext);
 
       Iterable<TerminalStatus> statuses = Storage.getStatuses(_mContext);
@@ -94,7 +94,7 @@ public class StatesReceiver extends BroadcastReceiver
 
       Log.d(StatesReceiver.class.getSimpleName(),"Receive task end");
 ///////////
-	    long interval = prefs.getInt(CommonSettings.PREF_INTERVAL, 0);
+	    long interval = Preferences.getUpdateInterval(_mContext);
 	    if(interval==0)
 	      return;
 	    AlarmManager alarmManager = (AlarmManager) _mContext.getSystemService(Context.ALARM_SERVICE);

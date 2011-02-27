@@ -36,6 +36,7 @@ import org.pvoid.apteryxaustralis.Notifier;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.StatesReceiver;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.types.*;
 import org.pvoid.apteryxaustralis.net.Receiver;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
@@ -120,8 +121,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 ////////
     (new ReloadFromDbTask()).execute();
 ///////
-    SharedPreferences preferences = getSharedPreferences(CommonSettings.APTERYX_PREFS, MODE_PRIVATE);
-    if(preferences.getBoolean(CommonSettings.PREF_AUTOCHECK, false))
+    if(Preferences.getAutoUpdate(this))
     {
       Intent serviceIntent = new Intent(MainActivity.this,UpdateStatusService.class);
       startService(serviceIntent);
@@ -443,8 +443,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-      SharedPreferences prefs = getSharedPreferences(CommonSettings.APTERYX_PREFS, MODE_PRIVATE);
-      if(prefs.getBoolean(CommonSettings.PREF_GET_PAYMENTS,false))
+      if(Preferences.getReceivePayments(MainActivity.this))
         Receiver.RefreshPayments(MainActivity.this);
       return Receiver.RefreshStates(MainActivity.this, _mStatuses);
     }

@@ -68,7 +68,7 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
       if(status_record==null)
       {
       	status.setVisibility(View.GONE);
-      	icon.setImageResource(R.drawable.ic_terminal_active);
+      	icon.setImageResource(R.drawable.ic_terminal_unknown);
       }
       else
       {

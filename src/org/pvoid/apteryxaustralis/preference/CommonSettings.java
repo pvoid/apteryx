@@ -51,16 +51,6 @@ public class CommonSettings extends PreferenceActivity
   public final static int RESULT_REFRESH = RESULT_FIRST_USER+1;
   public final static int RESULT_RELOAD = RESULT_FIRST_USER+2;
 
-  public static final String APTERYX_PREFS = "apteryx-settings";
-  public static final String PREF_INTERVAL = "apteryx.update-interval";
-  public static final String PREF_AUTOCHECK = "apteryx.autoupdate";
-  public static final String PREF_USEVIBRO = "apteryx.usevibro";
-  public static final String PREF_SOUND = "apteryx.sound";
-  public static final String PREF_GET_PAYMENTS = "apteryx.payments";
-  public static final String PREF_LASTUPDATE = "apteryx.lastupdate";
-
-  public static final int   DEFAULT_INTERVAL = 3600000;
-
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
   private CheckBoxPreference _mUseVibro;
@@ -111,15 +101,13 @@ public class CommonSettings extends PreferenceActivity
     _mRingtone = (RingtonePreference) findPreference("usesound");
     _mReceivePayments = (CheckBoxPreference) findPreference("get_payments");
     _mRingtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
-    
-    SharedPreferences preferences = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-    
-    InitializeAutoupdate(preferences.getBoolean(PREF_AUTOCHECK, false));
-    InitializeInterval(preferences.getInt(PREF_INTERVAL, DEFAULT_INTERVAL));
-    InitializeVibration();
-    InitializeSound(preferences.getString(PREF_SOUND, ""));
+
+    InitializeAutoupdate(Preferences.getAutoUpdate(this));
+    InitializeInterval(Preferences.getUpdateInterval(this));
+    InitializeVibration(Preferences.getUseVibration(this));
+    InitializeSound(Preferences.getSound(this));
     InitializeAccounts();
-    InitializePaymentsReceive(preferences.getBoolean(PREF_GET_PAYMENTS,false));
+    InitializePaymentsReceive(Preferences.getReceivePayments(this));
   }
 
   private void InitializeAccounts()
@@ -178,12 +166,9 @@ public class CommonSettings extends PreferenceActivity
     _mReceivePayments.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
-      public boolean onPreferenceChange(Preference preference, Object newValue)
+      public boolean onPreferenceChange(Preference preference, Object value)
       {
-        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(PREF_GET_PAYMENTS,(Boolean)newValue);
-        edit.commit();
+        Preferences.setReceivePayments(CommonSettings.this,(Boolean)value);
         return true;
       }
     });
@@ -195,28 +180,23 @@ public class CommonSettings extends PreferenceActivity
     _mRingtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
-      public boolean onPreferenceChange(Preference preference, Object newValue)
+      public boolean onPreferenceChange(Preference preference, Object value)
       {
-        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putString(PREF_SOUND,(String)newValue);
-        edit.commit();
-        return(CommonSettings.this.setSoundSummary((String)newValue));
+        Preferences.setSound(CommonSettings.this,(String)value);
+        return(CommonSettings.this.setSoundSummary((String)value));
       }
     });
   }
 
-  private void InitializeVibration()
+  private void InitializeVibration(boolean useVibration)
   {
+    _mUseVibro.setChecked(useVibration);
     _mUseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue)
       {
-        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(PREF_USEVIBRO, newValue == Boolean.TRUE);
-        edit.commit();
+        Preferences.setUseVibration(CommonSettings.this,(Boolean)newValue);
         return true;
       }
     });
@@ -243,10 +223,7 @@ public class CommonSettings extends PreferenceActivity
         int interval = Integer.parseInt((String)newValue);
         if(interval!=0)
         {
-          SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-          SharedPreferences.Editor edit = prefs.edit();
-          edit.putInt(PREF_INTERVAL, interval);
-          edit.commit();
+          Preferences.setUpdateInterval(CommonSettings.this,interval);
           //////
           Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
           stopService(serviceIntent);
@@ -296,10 +273,7 @@ public class CommonSettings extends PreferenceActivity
         else
           stopService(serviceIntent);
       ///////
-        SharedPreferences prefs = getSharedPreferences(APTERYX_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.putBoolean(PREF_AUTOCHECK, checked);
-        edit.commit();
+        Preferences.setAutoUpdate(CommonSettings.this,checked);
       ///////
         _mAutocheck.setChecked(checked);
         _mIntervals.setEnabled(checked);
