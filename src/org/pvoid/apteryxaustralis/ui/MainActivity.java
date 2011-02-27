@@ -136,12 +136,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
     _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
-    setSpinnerVisibility(true);
     _mBand = new SlideBand(this);
     _mBand.setOnCurrentViewChangeListener(this);
     _mStatuses = new TreeMap<Long,TerminalListRecord>();
 ////////
-    (new ReloadFromDbTask()).execute();
+    LinearLayout layout = (LinearLayout) findViewById(R.id.mainscreen);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0);
+    params.weight=1;
+    layout.addView(_mBand,params);
 ///////
     if(Preferences.getAutoUpdate(this))
     {
@@ -151,6 +153,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 ///////
     IntentFilter filter = new IntentFilter(StatesReceiver.REFRESH_BROADCAST_MESSAGE);
     registerReceiver(_mUpdateMessageReceiver, filter);
+  }
+
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    Notifier.HideNotification(this);
+    (new RefreshFromDbTask()).execute();
   }
 
   @Override
@@ -198,13 +208,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     return super.onCreateDialog(id);
   }
 
-  @Override
-  protected void onResume()
-  {
-    super.onResume();
-    Notifier.HideNotification(this);
-  }
-
   /**
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
@@ -245,7 +248,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   protected void fillAgentsList(TerminalsArrayAdapter adapter)
   {
     Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,adapter.getAgentId());
-/////////////
     for(Terminal terminal : terminals)
     {
       TerminalListRecord record = _mStatuses.get(terminal.getId());
@@ -258,8 +260,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       }
       adapter.add(record);
     }
-/////////////
-    adapter.sort(_mComparator);
   }
 
   @Override
@@ -343,7 +343,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         case CommonSettings.RESULT_RELOAD:
           ViewGroup view = (ViewGroup) findViewById(R.id.mainscreen);
           view.removeView(_mBand);
-          (new ReloadFromDbTask()).execute();
+          (new RefreshFromDbTask()).execute();
           break;
       }
     }
@@ -356,9 +356,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     return list;
   }
 
-  private void addAgentToList(Agent agent, int index, boolean replace)
+  private TerminalsArrayAdapter addAgentToList(Agent agent, int index, boolean replace)
   {
-
     TerminalsArrayAdapter adapter = new TerminalsArrayAdapter(MainActivity.this,agent,R.layout.terminal,R.id.list_title);
     fillAgentsList(adapter);
     LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT);
@@ -380,6 +379,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       list.setAdapter(adapter);
       _mBand.addView(list,index,params);
     }
+////////
+    return adapter;
   }
 
   private void refreshStatuses()
@@ -392,70 +393,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     }
     setSpinnerVisibility(true);
     _mCurrentRefreshTask.execute();
-  }
-  /**
-   * Создает списки для отображения терминалов агентов
-   */
-  private class ReloadFromDbTask extends AsyncTask<Void,Void,Boolean>
-  {
-    @Override
-    protected Boolean doInBackground(Void... voids)
-    {
-      Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
-      if(statuses!=null)
-        for(TerminalStatus status : statuses)
-        {
-          _mStatuses.put(status.getId(),new TerminalListRecord(null,status,null));
-        }
-/////////////
-      Iterable<Payment> payments = Storage.getPayments(MainActivity.this);
-      if(payments!=null)
-        for(Payment payment : payments)
-        {
-          TerminalListRecord record = _mStatuses.get(payment.getTerminalId());
-          if(record!=null)
-            record.setPayment(payment);
-        }
-/////////////
-      Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
-      _mIsEmpty = agents == null;
-      if(!_mIsEmpty)
-      {
-        int index = 0;
-        for(Agent agent : agents)
-        {
-          addAgentToList(agent,index,true);
-          ++index;
-        }
-
-        int count = _mBand.getChildCount();
-        for(int current=index;current<count;++current)
-        {
-          _mBand.removeViewAt(index);
-        }
-      }
-      return true;
-    }
-
-    @Override
-    protected void onPostExecute(Boolean result)
-    {
-      LinearLayout layout = (LinearLayout) findViewById(R.id.mainscreen);
-      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0);
-      params.weight=1;
-      layout.addView(_mBand,params);
-      setAgentTitle(null);
-      setSpinnerVisibility(false);
-      View button = findViewById(R.id.agent_list_button);
-      if(_mBand.getChildCount()>1)
-        button.setVisibility(View.VISIBLE);
-      else
-        button.setVisibility(View.GONE);
-      _mBand.setCurrentView(0);
-
-      if(_mIsEmpty)
-        showDialog(DIALOG_NEED_SETTINGS);
-    }
   }
   /**
    * Обновление списка терминалов
@@ -492,6 +429,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private class RefreshFromDbTask extends AsyncTask<Void,Void,Iterable<Agent>>
   {
     @Override
+    protected void onPreExecute()
+    {
+      setSpinnerVisibility(true);
+    }
+
+    @Override
     protected Iterable<Agent> doInBackground(Void... voids)
     {
       Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
@@ -500,6 +443,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         {
           _mStatuses.put(status.getId(),new TerminalListRecord(null,status,null));
         }
+      Iterable<Payment> payments = Storage.getPayments(MainActivity.this);
+      if(payments!=null)
+        for(Payment payment :  payments)
+        {
+          TerminalListRecord record = _mStatuses.get(payment.getTerminalId());
+          if(record!=null)
+            record.setPayment(payment);
+        }
+
 ///////////
       return Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
     }
@@ -509,22 +461,27 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       int index = 0;
       int count = _mBand.getChildCount();
+      TerminalsArrayAdapter adapter;
 ///////////
       for(Agent agent : agents)
       {
         if(index>=count)
         {
-          addAgentToList(agent,index,false);
-          ++index;
-          continue;
+          adapter = addAgentToList(agent,index,false);
         }
-        ListView list = (ListView)_mBand.getChildAt(index);
-        TerminalsArrayAdapter adapter = (TerminalsArrayAdapter)list.getAdapter();
-        if(adapter.getAgentId()!=agent.getId())
+        else
         {
-          addAgentToList(agent,index,false);
-          count = _mBand.getChildCount();
+          ListView list = (ListView)_mBand.getChildAt(index);
+          adapter = (TerminalsArrayAdapter)list.getAdapter();
+          if(adapter.getAgentId()!=agent.getId())
+          {
+            addAgentToList(agent,index,false);
+            count = _mBand.getChildCount();
+          }
         }
+/////////////
+        adapter.sort(_mComparator);
+        adapter.notifyDataSetInvalidated();
         ++index;
       }
 ///////////
@@ -534,6 +491,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         View button = findViewById(R.id.agent_list_button);
         button.setVisibility(View.VISIBLE);
       }
+///////////
+      setSpinnerVisibility(false);
     }
   }
 }
