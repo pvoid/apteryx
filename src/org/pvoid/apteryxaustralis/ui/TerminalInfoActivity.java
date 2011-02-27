@@ -33,6 +33,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.types.Agent;
 import org.pvoid.apteryxaustralis.types.Payment;
 import org.pvoid.apteryxaustralis.types.Terminal;
@@ -157,6 +158,12 @@ public class TerminalInfoActivity extends Activity
       calendar.setTimeInMillis(time);
       info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
       info.setVisibility(View.VISIBLE);
+
+      if((System.currentTimeMillis()-payment.getDateInTerminal())> Preferences.getPaymentTimeout(this))
+      {
+        ImageView icon = (ImageView)findViewById(R.id.status_icon);
+        icon.setImageResource(R.drawable.ic_terminal_pending);
+      }
     }
   }
 
