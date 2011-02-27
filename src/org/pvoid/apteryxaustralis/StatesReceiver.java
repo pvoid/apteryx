@@ -67,14 +67,14 @@ public class StatesReceiver extends BroadcastReceiver
           {
             TerminalListRecord record = tree.get(id);
             TerminalStatus lastStatus = record.getStatus();
-            if(status.getCommonState() == TerminalStatus.STATE_COMMON_ERROR &&
-                lastStatus.getCommonState() != TerminalStatus.STATE_COMMON_ERROR)
+            if(status.getCommonState(_mContext) == TerminalStatus.STATE_COMMON_ERROR &&
+                lastStatus.getCommonState(_mContext) != TerminalStatus.STATE_COMMON_ERROR)
             {
               notify = true;
               break;
             }
           }
-          else if(status.getCommonState() == TerminalStatus.STATE_COMMON_ERROR)
+          else if(status.getCommonState(_mContext) == TerminalStatus.STATE_COMMON_ERROR)
           {
             notify = true;
             break;

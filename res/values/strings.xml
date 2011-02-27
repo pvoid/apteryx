@@ -65,7 +65,7 @@
   <string name="fullinfo_an">Наименование агента:</string>
   <string name="fullinfo_cash">Cумма наличных:</string>
   <string name="fullinfo_bonds">Число купюр:</string>
-  <string name="fullinfo_last_activity">Дата последнего ответа:</string>
+  <string name="fullinfo_last_activity">Дата последней активности:</string>
   <string name="fullinfo_last_payment">Дата последнего платежа:</string>
   <string name="fullinfo_signal_level">Уровень сигнала:</string>
   <string name="fullinfo_balance">Баланс сим карты:</string>
@@ -112,5 +112,7 @@
   <string name="terminals_errors">Возникли проблемы с терминалом</string>
 
   <string name="terminal">Терминал</string>
+  <string name="activity_timeout_title">Не было активности</string>
+  <string name="payment_timeout_title">Платежа не было</string>
 
 </resources>

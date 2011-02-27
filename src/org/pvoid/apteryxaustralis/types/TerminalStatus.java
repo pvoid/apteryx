@@ -19,6 +19,7 @@ package org.pvoid.apteryxaustralis.types;
 
 import android.content.Context;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -245,7 +246,7 @@ public class TerminalStatus
     _mWdtEvent = status.getWdtEvent();
   }
 
-  public int getCommonState()
+  public int getCommonState(Context context)
   {
     if((_mMachineStatus&STATE_PRINTER_STACKER_ERROR)!=0 ||
        (_mMachineStatus&STATE_INTERFACE_ERROR)!=0 || (_mMachineStatus&STATE_DEVICES_ABSENT)!=0 ||
@@ -255,12 +256,16 @@ public class TerminalStatus
     {
       return STATE_COMMON_ERROR;
     }
-
+////////
     if((_mMachineStatus&STATE_PAPER_COMING_TO_END)!=0 || (_mMachineStatus&STATE_UNAUTHORIZED_SOFTWARE)!=0 ||
         (_mMachineStatus&STATE_HARDDRIVE_PROBLEMS)!=0)
     {
       return STATE_COMMON_WARNING;
     }
+////////
+    if((System.currentTimeMillis() - _mLastActivityDate)> Preferences.getActivityTimeout(context))
+      return STATE_COMMON_WARNING;
+////////
     return STATE_COMMON_OK;
   }
 

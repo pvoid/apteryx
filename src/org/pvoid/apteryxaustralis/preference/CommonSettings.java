@@ -53,6 +53,8 @@ public class CommonSettings extends PreferenceActivity
 
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
+  private ListPreference _mActivityTimeout;
+  private ListPreference _mPaymentTimeout;
   private CheckBoxPreference _mUseVibro;
   private RingtonePreference _mRingtone;
   private ArrayAdapter<String> _mCommands;
@@ -99,8 +101,10 @@ public class CommonSettings extends PreferenceActivity
     _mIntervals = (ListPreference)findPreference("interval");
     _mUseVibro = (CheckBoxPreference) findPreference("usevibro");
     _mRingtone = (RingtonePreference) findPreference("usesound");
-    _mReceivePayments = (CheckBoxPreference) findPreference("get_payments");
     _mRingtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
+    _mReceivePayments = (CheckBoxPreference) findPreference("get_payments");
+    _mActivityTimeout = (ListPreference) findPreference("activity_timeout");
+    _mPaymentTimeout = (ListPreference) findPreference("payment_timeout");
 
     InitializeAutoupdate(Preferences.getAutoUpdate(this));
     InitializeInterval(Preferences.getUpdateInterval(this));
@@ -108,6 +112,8 @@ public class CommonSettings extends PreferenceActivity
     InitializeSound(Preferences.getSound(this));
     InitializeAccounts();
     InitializePaymentsReceive(Preferences.getReceivePayments(this));
+    InitializeActivityTimeout(Preferences.getActivityTimeout(this));
+    InitializePaymentTimeout(Preferences.getPaymentTimeout(this));
   }
 
   private void InitializeAccounts()
@@ -273,7 +279,7 @@ public class CommonSettings extends PreferenceActivity
         else
           stopService(serviceIntent);
       ///////
-        Preferences.setAutoUpdate(CommonSettings.this,checked);
+        Preferences.setAutoUpdate(CommonSettings.this, checked);
       ///////
         _mAutocheck.setChecked(checked);
         _mIntervals.setEnabled(checked);
@@ -283,6 +289,73 @@ public class CommonSettings extends PreferenceActivity
       }
     });
   }
+
+  private void InitializeActivityTimeout(int timeout)
+  {
+    String intervalText = Integer.toString(timeout);
+    int index = _mActivityTimeout.findIndexOfValue(intervalText);
+    if(index>-1)
+    {
+      _mActivityTimeout.setSummary(_mActivityTimeout.getEntries()[index]);
+      _mActivityTimeout.setValue(intervalText);
+    }
+    //////
+    _mActivityTimeout.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue)
+      {
+        int interval = Integer.parseInt((String)newValue);
+        if(interval!=0)
+        {
+          Preferences.setActivityTimeout(CommonSettings.this,interval);
+          //////
+          int index = _mActivityTimeout.findIndexOfValue((String)newValue);
+          if(index>-1)
+          {
+            _mActivityTimeout.setSummary(_mActivityTimeout.getEntries()[index]);
+          }
+          //////
+          return true;
+        }
+        return false;
+      }
+    });
+  }
+
+  private void InitializePaymentTimeout(int timeout)
+  {
+    String intervalText = Integer.toString(timeout);
+    int index = _mPaymentTimeout.findIndexOfValue(intervalText);
+    if(index>-1)
+    {
+      _mPaymentTimeout.setSummary(_mPaymentTimeout.getEntries()[index]);
+      _mPaymentTimeout.setValue(intervalText);
+    }
+    //////
+    _mPaymentTimeout.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
+    {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue)
+      {
+        int interval = Integer.parseInt((String)newValue);
+        if(interval!=0)
+        {
+          Preferences.setPaymentTimeout(CommonSettings.this,interval);
+          //////
+          int index = _mPaymentTimeout.findIndexOfValue((String)newValue);
+          if(index>-1)
+          {
+            _mPaymentTimeout.setSummary(_mPaymentTimeout.getEntries()[index]);
+          }
+          //////
+          return true;
+        }
+        return false;
+      }
+    });
+  }
+
   /**
    * Устанавливает текстовое имя звука в описание опции  
    * @param uriString  uri выбранного звука
@@ -317,7 +390,7 @@ public class CommonSettings extends PreferenceActivity
     }
     return(false);
   }
-  
+
   private void EditPreference(Preference preference)
   {
     AccountPreference accountPreference = (AccountPreference)preference;

@@ -98,7 +98,7 @@ public class TerminalInfoActivity extends Activity
       icon.setImageResource(R.drawable.ic_terminal_printer_error);
     }
     else
-      switch(status.getCommonState())
+      switch(status.getCommonState(this))
       {
         case TerminalStatus.STATE_COMMON_ERROR:
           icon.setImageResource(R.drawable.ic_terminal_inactive);

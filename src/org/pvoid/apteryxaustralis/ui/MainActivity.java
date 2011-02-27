@@ -23,6 +23,7 @@ import android.app.Dialog;
 import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,13 +60,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   /**
    * Компаратор для сортировки терминалов по статусу
    */
-  private static final Comparator<TerminalListRecord> _mComparator = new Comparator<TerminalListRecord>()
+  private final Comparator<TerminalListRecord> _mComparator = new Comparator<TerminalListRecord>()
   {
     private int getCommonStatus(TerminalStatus status)
     {
       if(!status.getPrinterErrorId().equals("OK") || !status.getNoteErrorId().equals("OK"))
         return TerminalStatus.STATE_COMMON_ERROR;
-      return status.getCommonState();
+      return status.getCommonState(MainActivity.this);
     }
 
     @Override
@@ -83,6 +84,26 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       if(status!=null)
         statusB = getCommonStatus(status);
 ////////
+      Payment payment;
+      if(statusA==TerminalStatus.STATE_COMMON_OK || statusA==TerminalStatus.STATE_COMMON_NONE)
+      {
+        payment = a.getPayment();
+        if(payment!=null)
+        {
+          if((System.currentTimeMillis() - payment.getDateInTerminal())> Preferences.getPaymentTimeout(MainActivity.this))
+            statusA = TerminalStatus.STATE_COMMON_WARNING;
+        }
+      }
+      if(statusB==TerminalStatus.STATE_COMMON_OK || statusB==TerminalStatus.STATE_COMMON_NONE)
+      {
+        payment = b.getPayment();
+        if(payment!=null)
+        {
+          if((System.currentTimeMillis() - payment.getDateInTerminal())> Preferences.getPaymentTimeout(MainActivity.this))
+            statusB = TerminalStatus.STATE_COMMON_WARNING;
+        }
+      }
+////////
       int result = statusB - statusA;
       if(result==0)
       {
@@ -97,7 +118,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      //(new RefreshFromDbTask()).execute();
+      Log.v("BroadcastReceiver","Task received");
+      (new RefreshFromDbTask()).execute();
     }
   };
 
@@ -232,7 +254,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       else
       {
         record = new TerminalListRecord(terminal,null,null);
-        Log.w(MainActivity.class.getCanonicalName(),"Recird not found ID#"+terminal.getId());
+        Log.w(MainActivity.class.getCanonicalName(),"Record not found ID#"+terminal.getId());
       }
       adapter.add(record);
     }

@@ -19,6 +19,7 @@ package org.pvoid.apteryxaustralis.ui;
 
 import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.types.Agent;
 import org.pvoid.apteryxaustralis.types.Payment;
 import org.pvoid.apteryxaustralis.types.TerminalListRecord;
@@ -88,17 +89,18 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
           status.setText(printer_state);
         }
         else
-          switch(status_record.getCommonState())
+        {
+          int image = R.drawable.ic_terminal_active;
+          switch(status_record.getCommonState(getContext()))
           {
             case TerminalStatus.STATE_COMMON_ERROR:
-              icon.setImageResource(R.drawable.ic_terminal_inactive);
+              image = R.drawable.ic_terminal_inactive;
               status.setVisibility(View.VISIBLE);
               status.setText(status_record.getErrorText(context,false));
               // TODO: Разные иконки для принтера и для остального
               break;
             case TerminalStatus.STATE_COMMON_WARNING:
-              icon.setImageResource(R.drawable.ic_terminal_pending);
-              break;
+              image = R.drawable.ic_terminal_pending;
             default:
               long date;
               StringBuffer statusText = new StringBuffer();
@@ -110,6 +112,9 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
                                                                       System.currentTimeMillis(),
                                                                       DateUtils.SECOND_IN_MILLIS,
                                                                       DateUtils.FORMAT_ABBREV_RELATIVE));
+
+                if((System.currentTimeMillis() - payment_record.getDateInTerminal())>Preferences.getPaymentTimeout(getContext()))
+                  image = R.drawable.ic_terminal_pending;
               }
               else
               {
@@ -122,8 +127,10 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
               }
               status.setText(statusText.toString());
               status.setVisibility(View.VISIBLE);
-              icon.setImageResource(R.drawable.ic_terminal_active);
           }
+
+          icon.setImageResource(image);
+        }
       }
     }
      
