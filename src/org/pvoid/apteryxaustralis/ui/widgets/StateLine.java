@@ -18,6 +18,7 @@
 package org.pvoid.apteryxaustralis.ui.widgets;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -35,7 +36,8 @@ public class StateLine extends ViewGroup
   private static final int BULLET_ID = 2;
 
   private static final int BULLET_PADDING = 4;
-  private float scaledDensity = 0;
+  private float _mScaledDensity = 0;
+  private float _mDensity = 0;
 
   public StateLine(Context context)
   {
@@ -58,17 +60,25 @@ public class StateLine extends ViewGroup
   private void createUI(Context context)
   {
     final DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-    scaledDensity = metrics.scaledDensity;
+    _mScaledDensity = metrics.scaledDensity;
+    _mDensity = metrics.density;
 
     TextView message = new TextView(context);
+
+    TypedArray items = context.obtainStyledAttributes(R.styleable.text);
+    int appearance = items.getResourceId(R.styleable.text_android_textAppearanceMedium,-1);
+    if(appearance>0)
+    {
+      message.setTextAppearance(context,appearance);
+    }
+
     message.setId(TEXT_ID);
-    message.setTextSize(16f * scaledDensity);
     message.setTextColor(Color.WHITE);
     addView(message, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 
     ImageView bullet = new ImageView(context);
     bullet.setImageResource(R.drawable.list_bullet);
-    int sideSize = (int)(8f*scaledDensity);
+    int sideSize = (int)(8f* _mDensity);
     bullet.setId(BULLET_ID);
     addView(bullet, new LayoutParams(sideSize, sideSize));
   }
@@ -94,7 +104,7 @@ public class StateLine extends ViewGroup
     measureChild(text,widthMeasureSpec,heightMeasureSpec);
     LayoutParams params = text.getLayoutParams();
     int measuredWidth = getChildMeasureSpec(widthMeasureSpec,
-                                            bullet.getMeasuredWidth()+getPaddingLeft()+getPaddingRight()+(int)(BULLET_PADDING*scaledDensity),
+                                            bullet.getMeasuredWidth()+getPaddingLeft()+getPaddingRight()+(int)(BULLET_PADDING* _mScaledDensity),
                                             params.width);
     text.measure(measuredWidth, MeasureSpec.makeMeasureSpec(params.height, MeasureSpec.EXACTLY));
     int height = Math.max(bullet.getMeasuredHeight(),text.getMeasuredHeight());
@@ -111,9 +121,9 @@ public class StateLine extends ViewGroup
 
     ImageView bullet = (ImageView)findViewById(BULLET_ID);
     TextView text = (TextView) findViewById(TEXT_ID);
-    int localTop = top+(int)(7*scaledDensity);
+    int localTop = (int) (text.getBaseline()-bullet.getMeasuredHeight() - 2* _mDensity);
     bullet.layout(left,localTop,left+bullet.getMeasuredWidth(),localTop+bullet.getMeasuredHeight());
-    left+=bullet.getMeasuredWidth()+BULLET_PADDING*scaledDensity;
+    left+=bullet.getMeasuredWidth()+BULLET_PADDING* _mScaledDensity;
     text.layout(left,top,left+text.getMeasuredWidth(),top+text.getMeasuredHeight());
   }
 
