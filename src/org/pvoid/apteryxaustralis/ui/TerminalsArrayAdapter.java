@@ -91,44 +91,46 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
         else
         {
           int image = R.drawable.ic_terminal_active;
+          StringBuffer statusText = new StringBuffer();
           switch(status_record.getCommonState(getContext()))
           {
             case TerminalStatus.STATE_COMMON_ERROR:
               image = R.drawable.ic_terminal_inactive;
-              status.setVisibility(View.VISIBLE);
-              status.setText(status_record.getErrorText(context,false));
+              String statusMessage = status_record.getErrorText(context,false);
+              if(!TextUtils.isEmpty(statusMessage))
+                statusText.append(statusMessage);
               // TODO: Разные иконки для принтера и для остального
               break;
             case TerminalStatus.STATE_COMMON_WARNING:
               image = R.drawable.ic_terminal_pending;
-            default:
-              long date;
-              StringBuffer statusText = new StringBuffer();
-              if(payment_record!=null && (date = payment_record.getActualDate())!=0)
-              {
-                statusText.append(getContext().getString(R.string.last_payment));
-                statusText.append(' ');
-                statusText.append(DateUtils.getRelativeTimeSpanString(date,
-                                                                      System.currentTimeMillis(),
-                                                                      DateUtils.SECOND_IN_MILLIS,
-                                                                      DateUtils.FORMAT_ABBREV_RELATIVE));
-
-                if((System.currentTimeMillis() - payment_record.getActualDate())>Preferences.getPaymentTimeout(getContext()))
-                  image = R.drawable.ic_terminal_pending;
-              }
-              else
-              {
-                statusText.append(getContext().getString(R.string.last_activity));
-                statusText.append(' ');
-                statusText.append(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),
-                                                                      System.currentTimeMillis(),
-                                                                      DateUtils.SECOND_IN_MILLIS,
-                                                                      DateUtils.FORMAT_ABBREV_RELATIVE));
-              }
-              status.setText(statusText.toString());
-              status.setVisibility(View.VISIBLE);
           }
+          status.setVisibility(View.VISIBLE);
+          long date;
+          if(statusText.length()==0)
+          {
+            if(payment_record!=null && (date = payment_record.getActualDate())!=0)
+            {
+              statusText.append(getContext().getString(R.string.last_payment));
+              statusText.append(' ');
+              statusText.append(DateUtils.getRelativeTimeSpanString(date,
+                                                                    System.currentTimeMillis(),
+                                                                    DateUtils.SECOND_IN_MILLIS,
+                                                                    DateUtils.FORMAT_ABBREV_RELATIVE));
 
+              if((System.currentTimeMillis() - payment_record.getActualDate())>Preferences.getPaymentTimeout(getContext()))
+                image = R.drawable.ic_terminal_pending;
+            }
+            else
+            {
+              statusText.append(getContext().getString(R.string.last_activity));
+              statusText.append(' ');
+              statusText.append(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),
+                                                                    System.currentTimeMillis(),
+                                                                    DateUtils.SECOND_IN_MILLIS,
+                                                                    DateUtils.FORMAT_ABBREV_RELATIVE));
+            }
+          }
+          status.setText(statusText.toString());
           icon.setImageResource(image);
         }
       }
