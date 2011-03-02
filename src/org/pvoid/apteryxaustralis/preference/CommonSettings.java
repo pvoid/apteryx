@@ -17,16 +17,15 @@
 
 package org.pvoid.apteryxaustralis.preference;
 
+import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.types.Account;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -174,7 +173,7 @@ public class CommonSettings extends PreferenceActivity
       @Override
       public boolean onPreferenceChange(Preference preference, Object value)
       {
-        Preferences.setReceivePayments(CommonSettings.this,(Boolean)value);
+        Preferences.setReceivePayments(CommonSettings.this,((Boolean)value)==Boolean.TRUE);
         return true;
       }
     });
@@ -262,7 +261,6 @@ public class CommonSettings extends PreferenceActivity
       _mIntervals.setEnabled(false);
       _mUseVibro.setEnabled(false);
       _mRingtone.setEnabled(false);
-      _mReceivePayments.setEnabled(false);
     }
 ////////
     _mAutocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
@@ -286,7 +284,6 @@ public class CommonSettings extends PreferenceActivity
         _mIntervals.setEnabled(checked);
         _mUseVibro.setEnabled(checked);
         _mRingtone.setEnabled(checked);
-        _mReceivePayments.setEnabled(checked);
         return true;
       }
     });
@@ -366,7 +363,7 @@ public class CommonSettings extends PreferenceActivity
   private boolean setSoundSummary(String uriString)
   {
     String summary = null;
-    if(Utils.isEmptyString(uriString))
+    if(TextUtils.isEmpty(uriString))
     {
       summary = getString(R.string.no_sound);
     }

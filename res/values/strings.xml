@@ -52,6 +52,7 @@
   <string name="delete">Удалить</string>
   <string name="cancel">Отмена</string>
   <string name="delete_confirm">Вы уверены что хотите удалить аккаунт</string>
+  <string name="updates_and_statuses">Обновления и статусы</string>
 
   <string name="auth_process">Проверка аккаунта</string>
   <string name="network_error">Не могу проверить аккаунт. Ошибка сети.</string>
@@ -114,5 +115,6 @@
   <string name="terminal">Терминал</string>
   <string name="activity_timeout_title">Не было активности</string>
   <string name="payment_timeout_title">Платежа не было</string>
+
 
 </resources>

@@ -41,22 +41,20 @@
   </string-array>
 
   <string-array name="timeoutTitle">
+    <item>больше 10 минут</item>
+    <item>больше 15 минут</item>
+    <item>больше 20 минут</item>
     <item>больше 30 минут</item>
     <item>больше 40 минут</item>
-    <item>больше 50 минут</item>
     <item>больше часа</item>
-    <item>больше часа 30 минут</item>
-    <item>больше двух часов</item>
-    <item>больше трех часов</item>
   </string-array>
 
   <string-array name="timeoutValues">
+    <item>600000</item>
+    <item>900000</item>
+    <item>1200000</item>
     <item>1800000</item>
     <item>2400000</item>
-    <item>3000000</item>
     <item>3600000</item>
-    <item>5400000</item>
-    <item>7200000</item>
-    <item>10800000</item>
   </string-array>
 </resources>

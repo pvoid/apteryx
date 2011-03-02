@@ -17,7 +17,7 @@
 
 package org.pvoid.apteryxaustralis.types;
 
-import org.pvoid.apteryxaustralis.Utils;
+import android.text.TextUtils;
 
 public class Account
 {
@@ -105,7 +105,7 @@ public class Account
   
   public String toString()
   {
-    if(Utils.isEmptyString(_mTitle))
+    if(TextUtils.isEmpty(_mTitle))
       return(_mLogin);
     return(_mTitle);
   }

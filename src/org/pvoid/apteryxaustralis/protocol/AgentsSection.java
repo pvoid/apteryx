@@ -35,8 +35,8 @@ public class AgentsSection implements IResponseParser
   private static final int STATE_AGENTS_INFO = 2;
   
   private int _CurrentState;
-  private ArrayList<Agent> _Agents = null;
-  private Agent _CurrentAgent;
+  private ArrayList<Agent> _mAgents = null;
+  private Agent _mCurrentAgent;
   
   public static AgentsSection getParser()
   {
@@ -65,7 +65,7 @@ public class AgentsSection implements IResponseParser
       String phone = attributes.getValue("phone");
       try
       {
-        _CurrentAgent = new Agent(Long.parseLong(id),name,phone);
+        _mCurrentAgent = new Agent(Long.parseLong(id),name,phone);
       }
       catch(NumberFormatException e)
       {
@@ -79,13 +79,13 @@ public class AgentsSection implements IResponseParser
     {
       String id = attributes.getValue("agt_id");
       String name = attributes.getValue("agt_name");
-      if(_Agents==null)
-        _Agents = new ArrayList<Agent>();
+      if(_mAgents ==null)
+        _mAgents = new ArrayList<Agent>();
       try
       {
         Agent agent = new Agent(Long.parseLong(id),name,null);
-        agent.setAccount(_CurrentAgent.getId());
-        _Agents.add(agent);
+        agent.setAccount(_mCurrentAgent.getId());
+        _mAgents.add(agent);
       }
       catch(NumberFormatException e)
       {
@@ -110,8 +110,8 @@ public class AgentsSection implements IResponseParser
   @Override
   public void SectionEnd()
   {
-    if(_Agents!=null)
-      Arrays.sort(_Agents.toArray(), new Comparator<Object>()
+    if(_mAgents !=null)
+      Arrays.sort(_mAgents.toArray(), new Comparator<Object>()
         {
           @Override
           public int compare(Object object1, Object object2)
@@ -123,11 +123,11 @@ public class AgentsSection implements IResponseParser
   
   public Agent GetAgentInfo()
   {
-    return(_CurrentAgent);
+    return(_mCurrentAgent);
   }
   
   public List<Agent> getAgents()
   {
-    return(_Agents);
+    return(_mAgents);
   }
 }

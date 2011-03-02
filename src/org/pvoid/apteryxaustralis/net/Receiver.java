@@ -38,13 +38,14 @@ public class Receiver
   {
     Log.d(Receiver.class.getSimpleName(),"RefreshStates started");
 ////////
-    Iterable<TerminalStatus> statusesIterable = Storage.getStatuses(context);
     TreeMap<Long,TerminalStatus> statuses = null;
     if(records==null)
     {
+      Iterable<TerminalStatus> statusesIterable = Storage.getStatuses(context);
       statuses = new TreeMap<Long,TerminalStatus>();
-      for(TerminalStatus status : statusesIterable)
-        statuses.put(status.getId(),status);
+      if(statusesIterable!=null)
+        for(TerminalStatus status : statusesIterable)
+          statuses.put(status.getId(),status);
     }
 
     Iterable<Account> accounts = Storage.getAccounts(context);
@@ -80,18 +81,7 @@ public class Receiver
             }
 
             if(loadTerminals)
-            {
-              request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
-              response = request.getResponse();
-              if(response!=null)
-              {
-                TerminalsSection terminalsSection = response.Terminals();
-                if(terminalsSection!=null)
-                {
-                  Storage.addTerminals(context,terminalsSection.getTerminals());
-                }
-              }
-            }
+              RefreshTerminals(context,account);
           }
         }
       }
@@ -187,5 +177,43 @@ public class Receiver
     }
 
     return true;
+  }
+
+  public static boolean RefreshAgents(Context context)
+  {
+    boolean result = false;
+    IterableCursor<Account> accounts = (IterableCursor<Account>)Storage.getAccounts(context);
+    if(accounts==null)
+      return result;
+////////
+    for(Account account : accounts)
+    {
+      Request request = new Request(account.getLogin(),account.getPassword(),account.getTerminalId());
+      request.getAgentInfo();
+      request.getAgents();
+      Response response = request.getResponse();
+      AgentsSection section;
+      if(response!=null && (section=response.Agents())!=null)
+      {
+        Storage.addAgents(context,section.getAgents(),account.getId());
+        result = true;
+      }
+    }
+////////
+    return result;
+  }
+
+  public static boolean RefreshTerminals(Context context, Account account)
+  {
+    boolean result = false;
+    Request request = new Request(account.getLogin(),account.getPassword(),account.getTerminalId());
+    request.getTerminals();
+    Response response = request.getResponse();
+    TerminalsSection terminalsSection;
+    if(response!=null && (terminalsSection=response.Terminals())!=null)
+    {
+      Storage.addTerminals(context,terminalsSection.getTerminals());
+    }
+    return result;
   }
 }

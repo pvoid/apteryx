@@ -32,8 +32,8 @@ public class Preferences
   private static final String PREF_PAYMENT_TIMEOUT = "apteryx.payment-timeout";
 
   private static final int DEFAULT_INTERVAL = 3600000;
-  private static final int DEFAULT_ACTIVITY_TIMEOUT = 2400000;
-  private static final int DEFAULT_PAYMENT_TIMEOUT = 1800000;
+  private static final int DEFAULT_ACTIVITY_TIMEOUT = 900000;
+  private static final int DEFAULT_PAYMENT_TIMEOUT = 1200000;
 
   private static final int VALUE_UNKNOWN = -1;
   private static final int VALUE_TRUE = 1;

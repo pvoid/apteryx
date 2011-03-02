@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
@@ -69,7 +70,7 @@ public class Notifier
         notification.defaults |= Notification.DEFAULT_VIBRATE;
 
       String sound = Preferences.getSound(context);
-      if(!Utils.isEmptyString(sound))
+      if(!TextUtils.isEmpty(sound))
       {
         notification.sound = Uri.parse(sound);
       }

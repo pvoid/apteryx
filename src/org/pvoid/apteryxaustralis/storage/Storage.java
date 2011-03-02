@@ -20,15 +20,21 @@ package org.pvoid.apteryxaustralis.storage;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
+import org.pvoid.apteryxaustralis.OnBootReceiver;
 import org.pvoid.apteryxaustralis.types.*;
-import org.pvoid.apteryxaustralis.ui.MainActivity;
+
+import java.io.File;
 
 public class Storage
 {
   private static final String DB_NAME = "apx_storage";
   private static final int DB_VERSION = 1;
+
+  private static boolean _sImported = false;
 
 //+--------------------------------------------------------------------+
 //|                                                                    |
@@ -279,21 +285,21 @@ public class Storage
 //| Полная информация по терминалу                                     |
 //|                                                                    |
 //+--------------------------------------------------------------------+
-private static interface TerminalsForAccountQuery
-{
-  static final String
-      QUERY = "SELECT t."+TerminalsTable.ID +
-                    ",t."+TerminalsTable.ADDRESS +
-                    ",t."+TerminalsTable.NAME +
-                    ",t."+TerminalsTable.AGENT+
-              " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+AgentsTable.TABLE_NAME+
-                                " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID + " WHERE a."
-                                +AgentsTable.ACCOUNT+"=?";
-  static final int COLUMN_ID = 0;
-  static final int COLUMN_ADDRESS = 1;
-  static final int COLUMN_NAME = 2;
-  static final int COLUMN_AGENT = 3;
-}
+  private static interface TerminalsForAccountQuery
+  {
+    static final String
+        QUERY = "SELECT t."+TerminalsTable.ID +
+                      ",t."+TerminalsTable.ADDRESS +
+                      ",t."+TerminalsTable.NAME +
+                      ",t."+TerminalsTable.AGENT+
+                " FROM "+TerminalsTable.TABLE_NAME+" t INNER JOIN "+AgentsTable.TABLE_NAME+
+                                  " a ON t."+TerminalsTable.AGENT + "=a." + AgentsTable.ID + " WHERE a."
+                                  +AgentsTable.ACCOUNT+"=?";
+    static final int COLUMN_ID = 0;
+    static final int COLUMN_ADDRESS = 1;
+    static final int COLUMN_NAME = 2;
+    static final int COLUMN_AGENT = 3;
+  }
 //+--------------------------------------------------------------------+
 //|                                                                    |
 //| Сама база данных                                                   |
@@ -326,6 +332,53 @@ private static interface TerminalsForAccountQuery
 ////////
       database.execSQL(PAYMENTS_TABLE);
       database.execSQL(PAYMENTS_INDEX_TERMINAL);
+////////
+      importAccount(database);
+    }
+
+    private void importAccount(SQLiteDatabase database)
+    {
+      String path = Environment.getDataDirectory()+"/data/"+OnBootReceiver.class.getPackage().getName()+"/databases/apteryx";
+      try
+      {
+        SQLiteDatabase old_db = SQLiteDatabase.openDatabase(path,
+                                                            null,
+                                                            SQLiteDatabase.OPEN_READONLY);
+
+        Cursor cursor = old_db.rawQuery("select id,title,login,password,terminal from accounts",null);
+        try
+        {
+          ContentValues values = new ContentValues();
+          while(cursor.moveToNext())
+          {
+            values.put(AccountTable.ID,cursor.getLong(0));
+            values.put(AccountTable.TITLE,cursor.getString(1));
+            values.put(AccountTable.LOGIN,cursor.getString(2));
+            values.put(AccountTable.PASSWORD,cursor.getString(3));
+            values.put(AccountTable.TERMINAL,cursor.getLong(4));
+
+            database.insert(AccountTable.TABLE_NAME,null,values);
+            values.clear();
+          }
+        }
+        finally
+        {
+          if(cursor!=null)
+            cursor.close();
+        }
+
+        old_db.close();
+      }
+      catch(SQLException e)
+      {
+        e.printStackTrace();
+      }
+
+      File file = new File(path);
+      if(file.exists())
+        file.delete();
+
+      _sImported = true;
     }
 
     @Override
@@ -487,6 +540,11 @@ private static interface TerminalsForAccountQuery
         _mDatabase = new DataBase(context);
     }
     return _mDatabase.getWritableDatabase();
+  }
+
+  public static boolean isImported()
+  {
+    return _sImported;
   }
 
   public static Iterable<Account> getAccountsInfo(Context context)
@@ -729,7 +787,6 @@ private static interface TerminalsForAccountQuery
     SQLiteDatabase db = write(context);
     try
     {
-      ContentValues values = new ContentValues();
       for(TerminalStatus status : statuses)
       {
         addStatus(db,status); //TODO: Может запросы вместе объединить?

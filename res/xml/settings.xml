@@ -20,6 +20,11 @@
   <PreferenceCategory android:title="@string/accounts"
                       android:key="accounts">
   </PreferenceCategory>
+  <PreferenceCategory android:title="@string/updates_and_statuses">
+    <CheckBoxPreference android:key="get_payments"
+                        android:title="@string/settings_receive_payments"
+                        android:summary="@string/settings_payments_description"/>
+  </PreferenceCategory>
   <PreferenceCategory android:title="@string/settings_autocheck_title">
 	  <CheckBoxPreference android:key="autocheck"
 	                      android:title="@string/settings_autocheck"
@@ -28,9 +33,6 @@
 	                  android:title="@string/settings_interval"
 	                  android:entries="@array/intervalsTitle"
 	                  android:entryValues="@array/intervalsValues" />
-    <CheckBoxPreference android:key="get_payments"
-                        android:title="@string/settings_receive_payments"
-                        android:summary="@string/settings_payments_description"/>
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/settings_notify">
     <ListPreference android:key="activity_timeout"

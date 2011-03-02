@@ -23,7 +23,6 @@ import android.app.Dialog;
 import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,6 +56,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   private static final Object _sRefreshLock = new Object();
 
   private boolean _mIsEmpty = false;
+  private int _mSpinnerCount = 0;
   /**
    * Компаратор для сортировки терминалов по статусу
    */
@@ -235,6 +235,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     View spinner = findViewById(R.id.refresh_spinner);
     if(!visible)
     {
+      if(_mSpinnerCount>0)
+        --_mSpinnerCount;
+    }
+    else
+      ++_mSpinnerCount;
+
+    if(_mSpinnerCount==0)
+    {
       spinner.clearAnimation();
       spinner.setVisibility(View.GONE);
     }
@@ -248,18 +256,19 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
   protected void fillAgentsList(TerminalsArrayAdapter adapter)
   {
     Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,adapter.getAgentId());
-    for(Terminal terminal : terminals)
-    {
-      TerminalListRecord record = _mStatuses.get(terminal.getId());
-      if(record!=null)
-        record.setTerminal(terminal);
-      else
+    if(terminals!=null)
+      for(Terminal terminal : terminals)
       {
-        record = new TerminalListRecord(terminal,null,null);
-        Log.w(MainActivity.class.getCanonicalName(),"Record not found ID#"+terminal.getId());
+        TerminalListRecord record = _mStatuses.get(terminal.getId());
+        if(record!=null)
+          record.setTerminal(terminal);
+        else
+        {
+          record = new TerminalListRecord(terminal,null,null);
+          Log.w(MainActivity.class.getCanonicalName(),"Record not found ID#"+terminal.getId());
+        }
+        adapter.add(record);
       }
-      adapter.add(record);
-    }
   }
 
   @Override
@@ -437,6 +446,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Iterable<Agent> doInBackground(Void... voids)
     {
+      Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+      if(agents==null && Storage.isImported())
+      {
+        Receiver.RefreshAgents(MainActivity.this);
+        Receiver.RefreshStates(MainActivity.this,null);
+        if(Preferences.getReceivePayments(MainActivity.this))
+          Receiver.RefreshPayments(MainActivity.this);
+        agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+      }
+///////////
       Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
       if(statuses!=null)
         for(TerminalStatus status : statuses)
@@ -451,9 +470,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
           if(record!=null)
             record.setPayment(payment);
         }
-
 ///////////
-      return Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+      return agents;
     }
 
     @Override
@@ -463,34 +481,39 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       int count = _mBand.getChildCount();
       TerminalsArrayAdapter adapter;
 ///////////
-      for(Agent agent : agents)
+      if(agents!=null)
       {
-        if(index>=count)
+        for(Agent agent : agents)
         {
-          adapter = addAgentToList(agent,index,false);
-        }
-        else
-        {
-          ListView list = (ListView)_mBand.getChildAt(index);
-          adapter = (TerminalsArrayAdapter)list.getAdapter();
-          if(adapter.getAgentId()!=agent.getId())
+          if(index>=count)
           {
-            addAgentToList(agent,index,false);
-            count = _mBand.getChildCount();
+            adapter = addAgentToList(agent,index,false);
           }
+          else
+          {
+            ListView list = (ListView)_mBand.getChildAt(index);
+            adapter = (TerminalsArrayAdapter)list.getAdapter();
+            if(adapter.getAgentId()!=agent.getId())
+            {
+              addAgentToList(agent,index,false);
+              count = _mBand.getChildCount();
+            }
+          }
+  /////////////
+          adapter.sort(_mComparator);
+          adapter.notifyDataSetInvalidated();
+          ++index;
         }
-/////////////
-        adapter.sort(_mComparator);
-        adapter.notifyDataSetInvalidated();
-        ++index;
-      }
 ///////////
-      setAgentTitle((TerminalsArrayAdapter)((ListView)_mBand.getCurrentView()).getAdapter());
-      if(_mBand.getChildCount()>1)
-      {
-        View button = findViewById(R.id.agent_list_button);
-        button.setVisibility(View.VISIBLE);
+        setAgentTitle((TerminalsArrayAdapter)((ListView)_mBand.getCurrentView()).getAdapter());
+        if(_mBand.getChildCount()>1)
+        {
+          View button = findViewById(R.id.agent_list_button);
+          button.setVisibility(View.VISIBLE);
+        }
       }
+      else
+        showDialog(DIALOG_NEED_SETTINGS);
 ///////////
       setSpinnerVisibility(false);
     }

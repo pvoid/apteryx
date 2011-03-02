@@ -23,9 +23,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.widget.Button;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.Utils;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Agent;
 import org.pvoid.apteryxaustralis.protocol.AgentsSection;
@@ -108,14 +108,14 @@ public class AddAccountActivity extends Activity implements IResponseHandler
   {
 ////////
     _mLogin = _mLoginEdit.getText().toString();
-    if(Utils.isEmptyString(_mLogin))
+    if(TextUtils.isEmpty(_mLogin))
     {
       Toast.makeText(this, getString(R.string.empty_login), 200).show();
       _mLoginEdit.requestFocus();
       return;
     }
     String password = _mPasswordEdit.getText().toString();
-    if(Utils.isEmptyString(password))
+    if(TextUtils.isEmpty(password))
     {
       Toast.makeText(this, getString(R.string.empty_password), 200).show();
       _mPasswordEdit.requestFocus();
@@ -139,7 +139,7 @@ public class AddAccountActivity extends Activity implements IResponseHandler
     }
 ////////
     _mTerminalId = _mTerminalEdit.getText().toString();
-    if(Utils.isEmptyString(_mTerminalId))
+    if(TextUtils.isEmpty(_mTerminalId))
     {
       Toast.makeText(this, getString(R.string.empty_terminal), 200).show();
       _mTerminalEdit.requestFocus();

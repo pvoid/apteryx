@@ -250,7 +250,7 @@ public class TerminalStatus
   {
     if((_mMachineStatus&STATE_PRINTER_STACKER_ERROR)!=0 ||
        (_mMachineStatus&STATE_INTERFACE_ERROR)!=0 || (_mMachineStatus&STATE_DEVICES_ABSENT)!=0 ||
-       (_mMachineStatus&STATE_STACKER_REMOVED)!=0 || (_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0 ||
+       (_mMachineStatus&STATE_STACKER_REMOVED)!=0 ||
        (_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0 || (_mMachineStatus&STATE_HARDWARE_OR_SOFTWARE_PROBLEM)!=0 ||
        (_mMachineStatus& STATE_DOOR_IS_OPENED)!=0 || (_mMachineStatus&STATE_INTERFACE_OVERLAPPED)!=0)
     {
@@ -299,13 +299,6 @@ public class TerminalStatus
       if(!full)
         return context.getString(R.string.STATE_STACKER_REMOVED);
       buffer.append(context.getString(R.string.STATE_STACKER_REMOVED));
-    }
-////////
-    if((_mMachineStatus&STATE_ESSENTIAL_ELEMENTS_ERROR)!=0)
-    {
-      if(!full)
-        return context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR);
-      buffer.append(context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR));
     }
 ////////
     if((_mMachineStatus&STATE_STOPPED_DUE_BALANCE)!=0)
