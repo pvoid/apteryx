@@ -55,7 +55,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
   private static final Object _sRefreshLock = new Object();
 
-  private boolean _mIsEmpty = false;
   private int _mSpinnerCount = 0;
   /**
    * Компаратор для сортировки терминалов по статусу

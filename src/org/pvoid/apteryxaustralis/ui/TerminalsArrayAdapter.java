@@ -65,7 +65,11 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
       TextView status = (TextView) view.findViewById(R.id.status);
       ImageView icon = (ImageView)view.findViewById(R.id.icon);
       TerminalStatus status_record = listRecord.getStatus();
-      Payment payment_record = listRecord.getPayment();
+      Payment payment_record = null;
+
+      if(Preferences.getReceivePayments(getContext()))
+        payment_record = listRecord.getPayment();
+
       if(status_record==null)
       {
       	status.setVisibility(View.GONE);

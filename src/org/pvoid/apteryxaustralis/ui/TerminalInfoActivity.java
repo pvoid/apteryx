@@ -147,7 +147,9 @@ public class TerminalInfoActivity extends Activity
 
   private void setLastPayment(Payment payment)
   {
-    long time = payment.getActualDate();
+    long time = 0;
+    if(Preferences.getReceivePayments(this))
+      time = payment.getActualDate();
     FullInfoItem info = (FullInfoItem)findViewById(R.id.last_payment);
     if(time<=0)
       info.setVisibility(View.GONE);
