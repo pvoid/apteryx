@@ -23,6 +23,9 @@ import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
 public class TerminalListRecord
 {
+  private static final int INVISIBLE_INTERVAL = 30*60*60*1000;
+
+  private boolean _mIsVisible;
   private Terminal _mTerminal;
 	private TerminalStatus _mStatus;
   private Payment _mPayment;
@@ -32,6 +35,7 @@ public class TerminalListRecord
     _mTerminal = terminal;
 		_mStatus = status;
     _mPayment = payment;
+    _mIsVisible = true;
 	}
 
   public long getId()
@@ -74,5 +78,16 @@ public class TerminalListRecord
   public void setPayment(Payment payment)
   {
     _mPayment = payment;
+  }
+
+  public boolean isVisible()
+  {
+    if(_mStatus==null)
+      return false;
+////////
+    if(System.currentTimeMillis() - _mStatus.getLastActivityDate()>INVISIBLE_INTERVAL)
+      return false;
+////////
+    return _mIsVisible;
   }
 }

@@ -266,7 +266,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
           record = new TerminalListRecord(terminal,null,null);
           Log.w(MainActivity.class.getCanonicalName(),"Record not found ID#"+terminal.getId());
         }
-        adapter.add(record);
+        if(record.isVisible())
+          adapter.add(record);
       }
   }
 

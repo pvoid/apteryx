@@ -28,6 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import android.util.Log;
 import org.pvoid.apteryxaustralis.protocol.AgentsSection;
 import org.pvoid.apteryxaustralis.protocol.ReportsSection;
 import org.pvoid.apteryxaustralis.protocol.TerminalsSection;
@@ -63,6 +64,7 @@ public class Response extends DefaultHandler
         result.append(line);
       }
       reader.close();
+      Log.d(Response.class.getName(),result.toString());
 /////////
       SAXParserFactory factory = SAXParserFactory.newInstance();
       SAXParser parser;
@@ -106,6 +108,8 @@ public class Response extends DefaultHandler
         e.printStackTrace();
       }
     }
+    else
+      Log.v(Response.class.getName(),"Http code: "+_HttpCode);
   }
   
   @Override

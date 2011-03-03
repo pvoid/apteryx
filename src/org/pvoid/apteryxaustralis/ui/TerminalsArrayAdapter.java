@@ -95,6 +95,9 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
         else
         {
           int image = R.drawable.ic_terminal_active;
+          long paymentDate = 0;
+          if(payment_record!=null)
+            paymentDate = payment_record.getActualDate();
           StringBuffer statusText = new StringBuffer();
           switch(status_record.getCommonState(getContext()))
           {
@@ -107,30 +110,32 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
               break;
             case TerminalStatus.STATE_COMMON_WARNING:
               image = R.drawable.ic_terminal_pending;
+              break;
+            default:
+              if(payment_record!=null && paymentDate>0 &&
+                 (System.currentTimeMillis() - payment_record.getActualDate())>Preferences.getPaymentTimeout(getContext()))
+                image = R.drawable.ic_terminal_pending;
           }
           status.setVisibility(View.VISIBLE);
-          long date;
+
           if(statusText.length()==0)
           {
-            if(payment_record!=null && (date = payment_record.getActualDate())!=0)
+            if(paymentDate>0 && payment_record!=null)
             {
               statusText.append(getContext().getString(R.string.last_payment));
               statusText.append(' ');
-              statusText.append(DateUtils.getRelativeTimeSpanString(date,
-                                                                    System.currentTimeMillis(),
-                                                                    DateUtils.SECOND_IN_MILLIS,
+              statusText.append(DateUtils.getRelativeTimeSpanString(paymentDate,
+                                                                    payment_record.getUpdateDate(),
+                                                                    DateUtils.MINUTE_IN_MILLIS,
                                                                     DateUtils.FORMAT_ABBREV_RELATIVE));
-
-              if((System.currentTimeMillis() - payment_record.getActualDate())>Preferences.getPaymentTimeout(getContext()))
-                image = R.drawable.ic_terminal_pending;
             }
             else
             {
               statusText.append(getContext().getString(R.string.last_activity));
               statusText.append(' ');
               statusText.append(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),
-                                                                    System.currentTimeMillis(),
-                                                                    DateUtils.SECOND_IN_MILLIS,
+                                                                    status_record.getRequestDate(),
+                                                                    DateUtils.MINUTE_IN_MILLIS,
                                                                     DateUtils.FORMAT_ABBREV_RELATIVE));
             }
           }

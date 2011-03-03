@@ -28,6 +28,7 @@ public class Payment
   private String _mProviderName;
   private long _mDateInTerminal;
   private long _mDateInProcessing;
+  private long _mUpdateDate;
 
   public Payment(long id, long terminalId)
   {
@@ -125,5 +126,15 @@ public class Payment
   public void setStatus(int status)
   {
     _mStatus = status;
+  }
+
+  public long getUpdateDate()
+  {
+    return _mUpdateDate;
+  }
+
+  public void setUpdateDate(long updateDate)
+  {
+    _mUpdateDate = updateDate;
   }
 }

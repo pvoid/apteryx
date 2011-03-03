@@ -154,7 +154,7 @@ public class Storage
     static final String EVENT = "event";
 
     static final String[] COLUMNS_FULL = new String[] {ID,AGENT,LAST_ACTIVITY,PRINTER_ERROR,
-                                                       NOTE_ERROR,SIGNAL_LEVEL,BALANCE,STATUS,DOOR_OPEN,DOOR_ALARM,EVENT};
+                                                       NOTE_ERROR,SIGNAL_LEVEL,BALANCE,STATUS,DOOR_OPEN,DOOR_ALARM,EVENT,DATE};
   }
 
   private static final String STATUS_TABLE = "CREATE TABLE "+StatusesTable.TABLE_NAME+" ("+
@@ -488,6 +488,7 @@ public class Storage
       status.setWdtDoorOpenCount(cursor.getShort(8));
       status.setWdtDoorAlarmCount(cursor.getShort(9));
       status.setWdtEvent(cursor.getShort(10));
+      status.setRequestDate(cursor.getLong(11));
 
       return status;
     }
@@ -515,6 +516,7 @@ public class Storage
       payment.setProviderId(cursor.getLong(PaymentsTable.COLUMN_PROVIDER_ID));
       payment.setProviderName(cursor.getString(PaymentsTable.COLUMN_PROVIDER_NAME));
       payment.setStatus(cursor.getInt(PaymentsTable.COLUMN_STATUS));
+      payment.setUpdateDate(cursor.getLong(PaymentsTable.COLUMN_UPDATE_DATE));
       return payment;
     }
   }
