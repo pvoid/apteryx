@@ -263,7 +263,7 @@ public class TerminalStatus
       return STATE_COMMON_WARNING;
     }
 ////////
-    if((System.currentTimeMillis() - _mLastActivityDate)> Preferences.getActivityTimeout(context))
+    if((_mInfoDate - _mLastActivityDate)> Preferences.getActivityTimeout(context))
       return STATE_COMMON_ERROR;
 ////////
     return STATE_COMMON_OK;

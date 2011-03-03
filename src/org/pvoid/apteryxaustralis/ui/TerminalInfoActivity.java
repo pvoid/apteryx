@@ -118,6 +118,23 @@ public class TerminalInfoActivity extends Activity
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
                                                                      ViewGroup.LayoutParams.WRAP_CONTENT);
     params.topMargin = (int) (density * 4 + 0.5f);
+
+    if(!"OK".equals(status.getPrinterErrorId()))
+    {
+      StateLine line = new StateLine(this);
+      first=false;
+      line.setText(status.getPrinterErrorId());
+      statesContainer.addView(line,params);
+    }
+
+    if(!"OK".equals(status.getNoteErrorId()))
+    {
+      StateLine line = new StateLine(this);
+      first=false;
+      line.setText(status.getPrinterErrorId());
+      statesContainer.addView(line,params);
+    }
+
     for(String state : states)
     {
       StateLine line = new StateLine(this);
