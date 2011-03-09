@@ -40,11 +40,12 @@ import org.xml.sax.helpers.DefaultHandler;
 public class Response extends DefaultHandler
 {
   private int _HttpCode;
-  private int _OsmpCode;
-  private IResponseParser _Parser = null;
-  private AgentsSection _Agents;
-  private TerminalsSection _Terminals;
-  private ReportsSection _Reports;
+  private int _mOsmpCode;
+  private IResponseParser _mParser = null;
+  private AgentsSection _mAgents;
+  private TerminalsSection _mTerminals;
+  private ReportsSection _mReports;
+  private StringBuffer _mText = new StringBuffer();
   
   public Response(HttpsURLConnection connection) throws IOException
   {
@@ -120,71 +121,72 @@ public class Response extends DefaultHandler
       String code = attributes.getValue("result");
       if(code!=null)
       {
-        _OsmpCode = Integer.parseInt(code);
+        _mOsmpCode = Integer.parseInt(code);
       }
     }
     else if(localName.equals("agents"))
     {
-      _Agents = AgentsSection.getParser();
-      _Parser = _Agents;
-      _Parser.SectionStart();
+      _mAgents = AgentsSection.getParser();
+      _mParser = _mAgents;
+      _mParser.SectionStart();
     }
     else if(localName.equals("terminals"))
     {
-      _Terminals = TerminalsSection.getParser();
-      _Parser = _Terminals;
-      _Parser.SectionStart();
+      _mTerminals = TerminalsSection.getParser();
+      _mParser = _mTerminals;
+      _mParser.SectionStart();
     }
     else if(localName.equals("reports"))
     {
-      _Reports = ReportsSection.getParser();
-      _Parser = _Reports;
-      _Parser.SectionStart();
+      _mReports = ReportsSection.getParser();
+      _mParser = _mReports;
+      _mParser.SectionStart();
     }
-    else if(_Parser!=null)
+    else if(_mParser !=null)
     {
-      _Parser.ElementStart(localName, attributes);
+      _mParser.ElementStart(localName, attributes);
     }
+
+    int length = _mText.length();
+    if(length>0)
+      _mText.delete(0,length-1);
   }
   
   @Override
   public void characters(char[] ch, int start, int length)
   {
-    
+    _mText.append(ch,start,length);
   }
   
   @Override
   public void endElement(String uri, String localName, String qName)
   {
-    if(localName.equals("agents"))
+    if("agents".equals(localName) || "terminals".equals(localName) || "reports".equals(localName))
     {
-      _Parser.SectionEnd();
-      _Parser = null;
+      _mParser.SectionEnd();
+      _mParser = null;
     }
-    else if(localName.equals("terminals"))
-    {
-      _Parser.SectionEnd();
-      _Parser = null;
-    }
+    else if(_mParser!=null)
+      _mParser.ElementEnd(localName,_mText.toString());
   }
   
   public AgentsSection Agents()
   {
-    return(_Agents);
+    return(_mAgents);
   }
   
   public TerminalsSection Terminals()
   {
-    return(_Terminals);
+    return(_mTerminals);
   }
   
   public ReportsSection Reports()
   {
-    return(_Reports);
+    return(_mReports);
   }
   
   public int OsmpCode()
   {
-    return(_OsmpCode);
+    return(_mOsmpCode);
   }
 }

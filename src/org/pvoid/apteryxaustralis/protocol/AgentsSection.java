@@ -33,32 +33,60 @@ public class AgentsSection implements IResponseParser
   private static final int STATE_NONE = 0;
   private static final int STATE_AGENT_INFO = 1;
   private static final int STATE_AGENTS_INFO = 2;
-  
-  private int _CurrentState;
+  private static final int STATE_BALANCE_INFO = 3;
+
+  private int _mCurrentState;
   private ArrayList<Agent> _mAgents = null;
   private Agent _mCurrentAgent;
+  private ArrayList<BalanceInfo> _mBalances;
   
   public static AgentsSection getParser()
   {
     return(new AgentsSection());
   }
 
+  public static class BalanceInfo
+  {
+    private float _mBalance;
+    private float _mOverdraft;
+
+    public float getBalance()
+    {
+      return _mBalance;
+    }
+
+    public void setBalance(float balance)
+    {
+      _mBalance = balance;
+    }
+
+    public float getOverdraft()
+    {
+      return _mOverdraft;
+    }
+
+    public void setOverdraft(float overdraft)
+    {
+      _mOverdraft = overdraft;
+    }
+  }
+
   @Override
   public void ElementStart(String tagName, Attributes attributes)
   {
-    if(tagName.equals("getAgentInfo"))
+    if("getAgentInfo".equals(tagName))
     {
-      _CurrentState = STATE_AGENT_INFO;
+      _mCurrentState = STATE_AGENT_INFO;
       return;
     }
 ////////
-    if(tagName.equals("getAgents"))
+    if("getAgents".equals(tagName))
     {
-      _CurrentState = STATE_AGENTS_INFO;
+      _mCurrentState = STATE_AGENTS_INFO;
       return;
     }
 ////////
-    if(tagName.equals("agent"))
+    if("agent".equals(tagName))
     {
       String id = attributes.getValue("id");
       String name = attributes.getValue("name");
@@ -75,7 +103,7 @@ public class AgentsSection implements IResponseParser
       return;
     }
 /////////
-    if(tagName.equals("row") && _CurrentState == STATE_AGENTS_INFO)
+    if("row".equals(tagName) && _mCurrentState == STATE_AGENTS_INFO)
     {
       String id = attributes.getValue("agt_id");
       String name = attributes.getValue("agt_name");
@@ -94,17 +122,37 @@ public class AgentsSection implements IResponseParser
       }
       return;
     }
+/////////
+    if("getBalance".equals(tagName))
+    {
+      _mCurrentState = STATE_BALANCE_INFO;
+      if(_mBalances==null)
+        _mBalances = new ArrayList<BalanceInfo>();
+      _mBalances.add(new BalanceInfo());
+    }
   }
 
   @Override
-  public void ElementEnd(String name, String innerText)
+  public void ElementEnd(String tagName, String innerText)
   {
+    if("getAgentInfo".equals(tagName) || "getBalance".equals(tagName))
+      _mCurrentState = STATE_NONE;
+/////////
+    if("balance".equals(tagName) && _mCurrentState == STATE_BALANCE_INFO)
+    {
+      _mBalances.get(_mBalances.size()-1).setBalance(Float.parseFloat(innerText));
+    }
+/////////
+    if("overdraft".equals(tagName) && _mCurrentState == STATE_BALANCE_INFO)
+    {
+      _mBalances.get(_mBalances.size()-1).setOverdraft(Float.parseFloat(innerText));
+    }
   }
 
   @Override
   public void SectionStart()
   {
-    _CurrentState = STATE_NONE;
+    _mCurrentState = STATE_NONE;
   }
 
   @Override
@@ -128,6 +176,11 @@ public class AgentsSection implements IResponseParser
   
   public List<Agent> getAgents()
   {
-    return(_mAgents);
+    return _mAgents;
+  }
+
+  public List<BalanceInfo> getBalances()
+  {
+    return _mBalances;
   }
 }

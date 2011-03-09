@@ -18,13 +18,12 @@
 package org.pvoid.apteryxaustralis.types;
 
 import android.text.TextUtils;
+import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.apteryxaustralis.types.Terminal;
 import org.pvoid.apteryxaustralis.types.TerminalStatus;
 
 public class TerminalListRecord
 {
-  private static final int INVISIBLE_INTERVAL = 30*60*60*1000;
-
   private boolean _mIsVisible;
   private Terminal _mTerminal;
 	private TerminalStatus _mStatus;
@@ -85,7 +84,7 @@ public class TerminalListRecord
     if(_mStatus==null)
       return false;
 ////////
-    if(System.currentTimeMillis() - _mStatus.getLastActivityDate()>INVISIBLE_INTERVAL)
+    if(System.currentTimeMillis() - _mStatus.getLastActivityDate()> Storage.INVISIBLE_INTERVAL)
       return false;
 ////////
     return _mIsVisible;

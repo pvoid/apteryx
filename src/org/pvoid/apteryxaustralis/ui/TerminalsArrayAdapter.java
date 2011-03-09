@@ -18,6 +18,7 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.text.TextUtils;
+import org.pvoid.apteryxaustralis.types.DateFormat;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.types.Agent;
@@ -38,12 +39,14 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 {
   private long _mAgentId;
   private String _mAgentName;
+  private long _mAgentUpdateTime;
 
   public TerminalsArrayAdapter(Context context, Agent agent, int resource, int textViewResourceId)
   {
     super(context, resource, textViewResourceId);
     _mAgentId = agent.getId();
     _mAgentName = agent.getName();
+    _mAgentUpdateTime = agent.getUpdateDate();
   }
 
   @Override
@@ -124,19 +127,13 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
             {
               statusText.append(getContext().getString(R.string.last_payment));
               statusText.append(' ');
-              statusText.append(DateUtils.getRelativeTimeSpanString(paymentDate,
-                                                                    payment_record.getUpdateDate(),
-                                                                    DateUtils.MINUTE_IN_MILLIS,
-                                                                    DateUtils.FORMAT_ABBREV_RELATIVE));
+              statusText.append(DateFormat.formatDateSmart(getContext(),paymentDate));
             }
             else
             {
               statusText.append(getContext().getString(R.string.last_activity));
               statusText.append(' ');
-              statusText.append(DateUtils.getRelativeTimeSpanString(status_record.getLastActivityDate(),
-                                                                    status_record.getRequestDate(),
-                                                                    DateUtils.MINUTE_IN_MILLIS,
-                                                                    DateUtils.FORMAT_ABBREV_RELATIVE));
+              statusText.append(DateFormat.formatDateSmart(getContext(), status_record.getLastActivityDate()));
             }
           }
           status.setText(statusText.toString());
@@ -156,5 +153,15 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
   public String getAgentName()
   {
     return _mAgentName;
+  }
+
+  public long getAgentUpdateTime()
+  {
+    return _mAgentUpdateTime;
+  }
+
+  public void setAgentUpdateTime(long agentUpdateTime)
+  {
+    _mAgentUpdateTime = agentUpdateTime;
   }
 }

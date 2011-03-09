@@ -23,6 +23,9 @@ public class Agent
   private String _mName;
   private String _mPhone;
   private long _mAccountId;
+  private long _mUpdateDate;
+  private float _mBalance;
+  private float _mOverdraft;
 
   public Agent(long id, String name, String phone)
   {
@@ -35,6 +38,22 @@ public class Agent
   {
     _mId = id;
     _mName = name;
+  }
+
+  public Agent(long id, String name, long updateDate)
+  {
+    _mId = id;
+    _mName = name;
+    _mUpdateDate = updateDate;
+  }
+
+  public Agent(long id, String name, long updateDate, float balance, float overdraft)
+  {
+    _mId = id;
+    _mName = name;
+    _mUpdateDate = updateDate;
+    _mBalance = balance;
+    _mOverdraft = overdraft;
   }
 
   public Agent()
@@ -85,5 +104,35 @@ public class Agent
   public String toString()
   {
     return(_mName);
+  }
+
+  public long getUpdateDate()
+  {
+    return _mUpdateDate;
+  }
+
+  public void setUpdateDate(long updateDate)
+  {
+    _mUpdateDate = updateDate;
+  }
+
+  public float getBalance()
+  {
+    return _mBalance;
+  }
+
+  public void setBalance(float balance)
+  {
+    _mBalance = balance;
+  }
+
+  public float getOverdraft()
+  {
+    return _mOverdraft;
+  }
+
+  public void setOverdraft(float overdraft)
+  {
+    _mOverdraft = overdraft;
   }
 }

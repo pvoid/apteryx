@@ -26,6 +26,7 @@
   <string name="agents_list">Список агентов</string>
   <string name="last_activity">п. активность: </string>
   <string name="last_payment">п. платеж: </string>
+  <string name="refreshed">обновлено:</string>
 
   <string name="add_account">Новый аккаунт</string>
   <string name="settings">Настройки</string>
@@ -116,5 +117,6 @@
   <string name="activity_timeout_title">Не было активности</string>
   <string name="payment_timeout_title">Платежа не было</string>
 
-
+  <string name="yesterday">Вчера</string>
+  <string name="tomorrow">Завтра</string>
 </resources>

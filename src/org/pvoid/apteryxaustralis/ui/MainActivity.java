@@ -23,6 +23,7 @@ import android.app.Dialog;
 import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -216,8 +217,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     if(_mAgentsDialog==null)
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-      Iterable<Agent> agents = Storage.getAgents(this,Storage.AgentsTable.NAME);
-      ArrayAdapter<Agent> agentsAdapter = new ArrayAdapter<Agent>(this,android.R.layout.select_dialog_item);
+      Iterable<Agent> agents = Storage.getActiveAgents(this); //Storage.getAgents(this,Storage.AgentsTable.NAME);
+      AgentsArrayAdapter agentsAdapter = new AgentsArrayAdapter(this,R.layout.agent_dialog_item,R.id.agent_name);
       for(Agent agent : agents)
         agentsAdapter.add(agent);
       dialog.setAdapter(agentsAdapter,this);
@@ -252,9 +253,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     }
   }
 
-  protected void fillAgentsList(TerminalsArrayAdapter adapter)
+  protected int fillAgentsList(TerminalsArrayAdapter adapter)
   {
     Iterable<Terminal> terminals = Storage.getTerminals(MainActivity.this,adapter.getAgentId());
+    int visibleAgentsCount = 0;
     if(terminals!=null)
       for(Terminal terminal : terminals)
       {
@@ -267,8 +269,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
           Log.w(MainActivity.class.getCanonicalName(),"Record not found ID#"+terminal.getId());
         }
         if(record.isVisible())
+        {
           adapter.add(record);
+          ++visibleAgentsCount;
+        }
       }
+    return visibleAgentsCount;
   }
 
   @Override
@@ -293,6 +299,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       TextView title = (TextView) findViewById(R.id.agent_name);
       title.setText(adapter.getAgentName());
+      title = (TextView)findViewById(R.id.agent_update_time);
+      title.setText(getString(R.string.refreshed) + " " +
+                        DateUtils.getRelativeTimeSpanString(adapter.getAgentUpdateTime(),
+                                                            System.currentTimeMillis(),
+                                                            DateUtils.SECOND_IN_MILLIS,
+                                                            DateUtils.FORMAT_ABBREV_ALL));
     }
   }
 
@@ -422,13 +434,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
       synchronized(_sRefreshLock)
       {
         if(result)
-          for(int count=_mBand.getChildCount()-1;count>=0;--count)
-          {
-            ListView child = (ListView) _mBand.getChildAt(count);
-            TerminalsArrayAdapter statuses = (TerminalsArrayAdapter) child.getAdapter();
-            statuses.sort(_mComparator);
-            statuses.notifyDataSetChanged();
-          }
+        {
+          (new RefreshFromDbTask()).execute();
+        }
         _mCurrentRefreshTask = null;
         setSpinnerVisibility(false);
       }
@@ -446,14 +454,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected Iterable<Agent> doInBackground(Void... voids)
     {
-      Iterable<Agent> agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+      Iterable<Agent> agents = Storage.getActiveAgents(MainActivity.this);
       if(agents==null && Storage.isImported())
       {
         Receiver.RefreshAgents(MainActivity.this);
         Receiver.RefreshStates(MainActivity.this,null);
         if(Preferences.getReceivePayments(MainActivity.this))
           Receiver.RefreshPayments(MainActivity.this);
-        agents = Storage.getAgents(MainActivity.this,Storage.AgentsTable.NAME);
+        agents = Storage.getActiveAgents(MainActivity.this);
       }
 ///////////
       Iterable<TerminalStatus> statuses = Storage.getStatuses(MainActivity.this);
@@ -483,8 +491,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 ///////////
       if(agents!=null)
       {
+        AgentsArrayAdapter agentsAdapter = null;
+///////////
+        if(_mAgentsDialog!=null)
+        {
+          agentsAdapter = (AgentsArrayAdapter)_mAgentsDialog.getListView().getAdapter();
+          agentsAdapter.clear();
+        }
+///////////
         for(Agent agent : agents)
         {
+          if(agentsAdapter!=null)
+            agentsAdapter.add(agent);
           if(index>=count)
           {
             adapter = addAgentToList(agent,index,false);
@@ -498,6 +516,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
               addAgentToList(agent,index,false);
               count = _mBand.getChildCount();
             }
+            else
+              adapter.setAgentUpdateTime(agent.getUpdateDate());
           }
   /////////////
           adapter.sort(_mComparator);
@@ -505,9 +525,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
           ++index;
         }
 ///////////
-        setAgentTitle((TerminalsArrayAdapter)((ListView)_mBand.getCurrentView()).getAdapter());
-        if(_mBand.getChildCount()>1)
+        if(_mBand.getChildCount()>0)
         {
+          setAgentTitle((TerminalsArrayAdapter)((ListView)_mBand.getCurrentView()).getAdapter());
           View button = findViewById(R.id.agent_list_button);
           button.setVisibility(View.VISIBLE);
         }

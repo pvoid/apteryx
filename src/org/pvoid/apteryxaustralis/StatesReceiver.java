@@ -91,7 +91,7 @@ public class StatesReceiver extends BroadcastReceiver
         }
       }
 
-      if(!notify && Preferences.getReceivePayments(_mContext))
+      /*if(!notify && Preferences.getReceivePayments(_mContext))
       {
         Iterable<Payment> payments = Storage.getPayments(_mContext);
         for(Payment payment : payments)
@@ -110,7 +110,7 @@ public class StatesReceiver extends BroadcastReceiver
             }
           }
         }
-      }
+      }*/
 
       if(notify)
         Notifier.ShowNotification(_mContext,Notifier.ERROR_COMMON);

@@ -22,6 +22,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import org.pvoid.apteryxaustralis.OnBootReceiver;
@@ -32,11 +33,11 @@ import java.io.File;
 public class Storage
 {
   private static final String DB_NAME = "apx_storage";
-  private static final int DB_VERSION = 1;
+  private static final int DB_VERSION = 3;
 
   private static boolean _sImported = false;
-
-//+--------------------------------------------------------------------+
+  public static final int INVISIBLE_INTERVAL = 30*60*60*1000;
+  //+--------------------------------------------------------------------+
 //|                                                                    |
 //| Аккаунты                                                           |
 //|                                                                    |
@@ -86,8 +87,11 @@ public class Storage
     static final String NAME = "name";
     static final String PHONE = "phone";
     static final String ACCOUNT = "account";
+    static final String BALANCE = "balance";
+    static final String OVERDRAFT = "overdraft";
+    static final String UPDATE_DATE = "update_date";
 
-    static final String[] COLUMNS_SHORT = new String[] {ID,NAME};
+    static final String[] COLUMNS_SHORT = new String[] {ID,NAME,UPDATE_DATE};
     static final String[] COLUMNS_FULL = new String[] {ID,NAME,PHONE,ACCOUNT};
   }
 
@@ -95,6 +99,9 @@ public class Storage
                                     AgentsTable.ID +" INTEGER PRIMARY KEY,"+
                                     AgentsTable.NAME+" TEXT NOT NULL,"+
                                     AgentsTable.PHONE+" TEXT NOT NULL,"+
+                                    AgentsTable.UPDATE_DATE+" INTEGER NOT NULL,"+
+                                    AgentsTable.BALANCE+" REAL NOT NULL,"+
+                                    AgentsTable.OVERDRAFT+" REAL NOT NULL,"+
                                     AgentsTable.ACCOUNT+" INTEGER NOT NULL);";
   private static final String AGENT_NAME_INDEX = "CREATE INDEX idx_agents_name ON "+
                                     AgentsTable.TABLE_NAME+"("+AgentsTable.NAME+");";
@@ -302,6 +309,33 @@ public class Storage
   }
 //+--------------------------------------------------------------------+
 //|                                                                    |
+//| Информация по активным агентам                                     |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private static interface ActiveAgentsQuery
+  {
+    static final String
+        QUERY = "select a."+AgentsTable.ID+","+
+                       "a."+AgentsTable.NAME+","+
+                       "a."+AgentsTable.UPDATE_DATE+","+
+                       "a."+AgentsTable.BALANCE+","+
+                       "a."+AgentsTable.OVERDRAFT+
+                " from "+AgentsTable.TABLE_NAME+" a inner join "+TerminalsTable.TABLE_NAME+" t"+
+                    " on a."+AgentsTable.ID+"=t."+TerminalsTable.AGENT+
+                " inner join "+StatusesTable.TABLE_NAME+" s on s."+StatusesTable.ID+"=t."+TerminalsTable.ID+
+                " and (CAST(? as INTEGER)-s."+StatusesTable.LAST_ACTIVITY+"<CAST(? as INTEGER)) group by a."+AgentsTable.ID;
+
+    static final String ORDERED_QUERY = QUERY+" order by a."+AgentsTable.NAME;
+
+
+    static final int COLUMN_ID = 0;
+    static final int COLUMN_NAME = 1;
+    static final int COLUMN_UPDATE_DATE = 2;
+    static final int COLUMN_BALANCE = 3;
+    static final int COLUMN_OVERDRAFT = 4;
+  }
+//+--------------------------------------------------------------------+
+//|                                                                    |
 //| Сама база данных                                                   |
 //|                                                                    |
 //+--------------------------------------------------------------------+
@@ -382,9 +416,16 @@ public class Storage
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1)
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
-      // nope
+      switch(oldVersion)
+      {
+        case 1:
+          db.execSQL("alter table "+AgentsTable.TABLE_NAME +" add column "+AgentsTable.UPDATE_DATE+" INTEGER NOT NULL DEFAULT 0");
+        case 2:
+          db.execSQL("alter table "+AgentsTable.TABLE_NAME +" add column "+AgentsTable.BALANCE+" REAL NOT NULL DEFAULT 0");
+          db.execSQL("alter table "+AgentsTable.TABLE_NAME +" add column "+AgentsTable.OVERDRAFT+" REAL NOT NULL DEFAULT 0");
+      }
     }
   }
 //+--------------------------------------------------------------------+
@@ -441,7 +482,10 @@ public class Storage
     @Override
     protected Agent getItem(Cursor cursor)
     {
-      return new Agent(cursor.getLong(0),cursor.getString(1));
+      if(cursor.getColumnCount()==3)
+        return new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2));
+      else
+        return new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2),cursor.getFloat(3),cursor.getFloat(4));
     }
   }
 //+--------------------------------------------------------------------+
@@ -613,6 +657,44 @@ public class Storage
   public static Iterable<Agent> getAgents(Context context)
   {
     return getAgents(context,null);
+  }
+
+  public static Iterable<Agent> getActiveAgents(Context context)
+  {
+    SQLiteDatabase db = read(context);
+    final Cursor cursor = db.rawQuery(ActiveAgentsQuery.ORDERED_QUERY,
+                                      new String[]{Long.toString(System.currentTimeMillis()),
+                                                                 Long.toString(INVISIBLE_INTERVAL)});
+    if(cursor.isAfterLast())
+    {
+      cursor.close();
+      db.close();
+      return null;
+    }
+    return new AgentsIterable(cursor);
+  }
+
+  public static Agent getAgent(Context context,long agentId)
+  {
+    SQLiteDatabase db = read(context);
+    Agent result = null;
+    final Cursor cursor = db.query(AgentsTable.TABLE_NAME,
+                                   AgentsTable.COLUMNS_SHORT,
+                                   AgentsTable.ID+"=?",
+                                   new String[] {Long.toString(agentId)},
+                                   null,null,null);
+    try
+    {
+      if(cursor.moveToNext())
+        result = new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2));
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    db.close();
+    return result;
   }
 
   public static Iterable<Terminal> getTerminals(Context context, long agentId)
@@ -1010,4 +1092,32 @@ public class Storage
 ////////
     return new PaymentsIterable(cursor);
   }
+
+  public static void setAccountUpdateDate(Context context, long accountId, long time)
+  {
+    SQLiteDatabase db = write(context);
+    db.execSQL("update "+AgentsTable.TABLE_NAME+" set "+AgentsTable.UPDATE_DATE+"=? where "+AgentsTable.ACCOUNT+"=?",
+               new String[] {Long.toString(time),Long.toString(accountId)});
+    db.close();
+  }
+
+  public static void updateAgentBalance(Context context, Agent agent)
+  {
+    SQLiteDatabase db = write(context);
+    ContentValues values = new ContentValues();
+    values.put(AgentsTable.BALANCE,agent.getBalance());
+    values.put(AgentsTable.OVERDRAFT,agent.getOverdraft());
+    try
+    {
+      db.update(AgentsTable.TABLE_NAME,values,AgentsTable.ID+"=?",new String[] {Long.toString(agent.getId())});
+    }
+    catch(SQLiteException e)
+    {
+      e.printStackTrace();
+    }
+    db.close();
+  }
+
+
+  //select a.* from agents a inner join terminals t on a.id = t.agent inner join statuses s on s.id=t.id and  ? - s.last_activity<? group by a.id
 }

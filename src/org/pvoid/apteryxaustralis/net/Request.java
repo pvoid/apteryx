@@ -17,8 +17,6 @@
 
 package org.pvoid.apteryxaustralis.net;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -113,7 +111,15 @@ public class Request
     _mAgentInterface.append("<getAgents/>");
     return this;
   }
-  
+
+  public Request getBalance(long agentId)
+  {
+    _mAgentInterface.append("<getBalance><target-agent>");
+    _mAgentInterface.append(agentId);
+    _mAgentInterface.append("</target-agent></getBalance>");
+    return this;
+  }
+
   public Request getTerminals()
   {
     _mTerminalsInterface.append("<getTerminals />");

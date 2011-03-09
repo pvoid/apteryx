@@ -75,6 +75,8 @@ public class Notifier
         notification.sound = Uri.parse(sound);
       }
     }
+    else
+      notification.icon = R.drawable.ic_terminal_active;
 
     notification.when = System.currentTimeMillis();
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);

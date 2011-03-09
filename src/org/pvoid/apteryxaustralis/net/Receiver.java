@@ -22,11 +22,9 @@ import android.util.Log;
 import org.pvoid.apteryxaustralis.protocol.*;
 import org.pvoid.apteryxaustralis.storage.IterableCursor;
 import org.pvoid.apteryxaustralis.storage.Storage;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.types.Terminal;
-import org.pvoid.apteryxaustralis.types.TerminalListRecord;
-import org.pvoid.apteryxaustralis.types.TerminalStatus;
+import org.pvoid.apteryxaustralis.types.*;
 
+import java.util.List;
 import java.util.TreeMap;
 
 public class Receiver
@@ -54,6 +52,9 @@ public class Receiver
       for(Account account : accounts)
       {
         Request request = new Request(account.getLogin(),account.getPassword(),Long.toString(account.getTerminalId()));
+        Iterable<Agent> agents = Storage.getAgents(context, Storage.AgentsTable.ID);
+        for(Agent agent : agents)
+          request.getBalance(agent.getId());
         request.getTerminalsStatus();
         Response response = request.getResponse();
         if(response!=null)
@@ -82,6 +83,24 @@ public class Receiver
 
             if(loadTerminals)
               RefreshTerminals(context,account);
+
+            Storage.setAccountUpdateDate(context,account.getId(),System.currentTimeMillis());
+          }
+
+          AgentsSection agentsSection = response.Agents();
+          if(agentsSection!=null)
+          {
+            List<AgentsSection.BalanceInfo> balances = agentsSection.getBalances();
+            agents = Storage.getAgents(context, Storage.AgentsTable.ID);
+            int index = 0;
+            for(Agent agent : agents)
+            {
+              AgentsSection.BalanceInfo balanceInfo = balances.get(index);
+              agent.setBalance(balanceInfo.getBalance());
+              agent.setOverdraft(balanceInfo.getOverdraft());
+              Storage.updateAgentBalance(context, agent);
+              ++index;
+            }
           }
         }
       }
