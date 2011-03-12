@@ -85,14 +85,13 @@ public class UpdateStatusService extends Service
   {
     _ServiceRuning = true;
 ////////
-    long interval = Preferences.getUpdateInterval(this);
-    if(interval<=0)
+    if(Preferences.getUpdateInterval(this)<=0)
       return;
 ///////
     Intent intent = new Intent(this,StatesReceiver.class);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
     _AlarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    _AlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,pendingIntent);
+    _AlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+1000,pendingIntent);
 /////// Иконку поставим
     if(_StartForeground!=null)
     {

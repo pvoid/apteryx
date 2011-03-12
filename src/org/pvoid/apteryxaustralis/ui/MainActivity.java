@@ -44,6 +44,10 @@ import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Comparator;
 import java.util.TreeMap;
 
@@ -153,6 +157,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 ///////
     IntentFilter filter = new IntentFilter(StatesReceiver.REFRESH_BROADCAST_MESSAGE);
     registerReceiver(_mUpdateMessageReceiver, filter);
+
+///////
+    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
   }
 
   @Override
@@ -536,6 +543,72 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         showDialog(DIALOG_NEED_SETTINGS);
 ///////////
       setSpinnerVisibility(false);
+    }
+  }
+
+  private class ExceptionHandler implements Thread.UncaughtExceptionHandler
+  {
+    public String joinStackTrace(Throwable e)
+    {
+      StringWriter writer = null;
+      try
+      {
+        writer = new StringWriter();
+        joinStackTrace(e, writer);
+        return writer.toString();
+      }
+      finally
+      {
+        if(writer != null)
+          try
+          {
+            writer.close();
+          }
+          catch(IOException e1)
+          {
+            // ignore
+          }
+      }
+    }
+
+    public void joinStackTrace(Throwable e, StringWriter writer)
+    {
+      PrintWriter printer = null;
+      try
+      {
+        printer = new PrintWriter(writer);
+
+        while (e != null)
+        {
+          printer.println(e);
+          StackTraceElement[] trace = e.getStackTrace();
+          for (int i = 0; i < trace.length; i++)
+              printer.println("\tat " + trace[i]);
+
+          e = e.getCause();
+          if (e != null)
+              printer.println("Caused by:\r\n");
+        }
+      }
+      finally
+      {
+        if(printer != null)
+            printer.close();
+      }
+    }
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e)
+    {
+      Intent sendIntent;
+      sendIntent = new Intent(Intent.ACTION_SEND);
+      sendIntent.putExtra(Intent.EXTRA_SUBJECT,"Apteryx промахнулся");
+      sendIntent.putExtra(Intent.EXTRA_TEXT,joinStackTrace(e));
+      sendIntent.putExtra(Intent.EXTRA_EMAIL,new String[] {"apteryx.project@gmail.com"});
+      sendIntent.setType("text/plain");
+      startActivity(sendIntent);
+      e.printStackTrace();
+      android.os.Process.killProcess(android.os.Process.myPid());
     }
   }
 }

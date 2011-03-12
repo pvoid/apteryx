@@ -42,6 +42,18 @@ public class AgentsArrayAdapter extends ArrayAdapter<Agent>
       Agent agent = getItem(position);
       if(text!=null && agent!=null)
         text.setText(getContext().getString(R.string.balance)+": "+Float.toString(agent.getBalance()));
+
+      text = (TextView) result.findViewById(R.id.agent_overdraft);
+      if(text!=null)
+      {
+        if(agent!=null && agent.getOverdraft()>0)
+        {
+          text.setText(getContext().getString(R.string.overdraft)+": "+Float.toString(agent.getOverdraft()));
+          text.setVisibility(View.VISIBLE);
+        }
+        else
+          text.setVisibility(View.GONE);
+      }
     }
     return result;
   }
