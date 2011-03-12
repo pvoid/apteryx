@@ -149,7 +149,7 @@ public class Response extends DefaultHandler
 
     int length = _mText.length();
     if(length>0)
-      _mText.delete(0,length-1);
+      _mText.delete(0,length);
   }
   
   @Override
