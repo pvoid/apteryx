@@ -135,4 +135,15 @@ public class Agent
   {
     _mOverdraft = overdraft;
   }
+
+  public void update(Agent agent)
+  {
+    if(agent.getId()!=_mId)
+      return;
+    _mName = agent.getName();
+    _mPhone = agent.getPhone();
+    _mUpdateDate = agent.getUpdateDate();
+    _mBalance = agent.getBalance();
+    _mOverdraft = agent.getOverdraft();
+  }
 }

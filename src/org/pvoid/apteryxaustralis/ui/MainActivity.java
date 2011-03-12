@@ -45,7 +45,6 @@ import org.pvoid.apteryxaustralis.storage.Storage;
 import org.pvoid.common.views.SlideBand;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Comparator;
@@ -129,7 +128,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
   private Animation _mSpinnerAnimation;
   private SlideBand _mBand;
-  private TreeMap<Long,TerminalListRecord> _mStatuses;
+  private TreeMap<Long,TerminalListRecord> _mStatuses = new TreeMap<Long,TerminalListRecord>();
+  private TreeMap<Long,Agent> _mAgents = new TreeMap<Long, Agent>();
   private AlertDialog _mAgentsDialog;
   private RefreshTask _mCurrentRefreshTask = null;
   private static final int DIALOG_NEED_SETTINGS = 1;
@@ -142,7 +142,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
     _mBand = new SlideBand(this);
     _mBand.setOnCurrentViewChangeListener(this);
-    _mStatuses = new TreeMap<Long,TerminalListRecord>();
 ////////
     LinearLayout layout = (LinearLayout) findViewById(R.id.mainscreen);
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0);
@@ -306,6 +305,23 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     {
       TextView title = (TextView) findViewById(R.id.agent_name);
       title.setText(adapter.getAgentName());
+//////////
+      title = (TextView)findViewById(R.id.agent_balance);
+      if(!Preferences.getShowBalance(this))
+        title.setVisibility(View.GONE);
+      else
+      {
+        StringBuffer balance = new StringBuffer(getString(R.string.balance));
+        balance.append(": ");
+        balance.append(adapter.getBalance());
+        if(adapter.getOverdraft()>0)
+        {
+          balance.append(" / ");
+          balance.append(adapter.getOverdraft());
+        }
+        title.setText(balance.toString());
+      }
+//////////
       title = (TextView)findViewById(R.id.agent_update_time);
       title.setText(getString(R.string.refreshed) + " " +
                         DateUtils.getRelativeTimeSpanString(adapter.getAgentUpdateTime(),
@@ -508,6 +524,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 ///////////
         for(Agent agent : agents)
         {
+          if(_mAgents.containsKey(agent.getId()))
+            _mAgents.get(agent.getId()).update(agent);
+          else
+            _mAgents.put(agent.getId(),agent);
+///////////
           if(agentsAdapter!=null)
             agentsAdapter.add(agent);
           if(index>=count)
@@ -523,8 +544,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
               addAgentToList(agent,index,false);
               count = _mBand.getChildCount();
             }
-            else
-              adapter.setAgentUpdateTime(agent.getUpdateDate());
           }
   /////////////
           adapter.sort(_mComparator);

@@ -46,6 +46,7 @@ public class Preferences
   private static String _mSound = null;
   private static int _mActivityTimeout = VALUE_UNKNOWN;
   private static int _mPaymentTimeout = VALUE_UNKNOWN;
+  private static boolean _mShowBalance = true;
 
   static public boolean getReceivePayments(Context context)
   {
@@ -202,5 +203,15 @@ public class Preferences
     SharedPreferences.Editor editor = preferences.edit();
     editor.putInt(PREF_PAYMENT_TIMEOUT,timeout);
     editor.commit();
+  }
+
+  static public boolean getShowBalance(Context context)
+  {
+    return _mShowBalance;
+  }
+
+  public static void set_mShowBalance(Context context, boolean showBalance)
+  {
+    _mShowBalance = showBalance;
   }
 }

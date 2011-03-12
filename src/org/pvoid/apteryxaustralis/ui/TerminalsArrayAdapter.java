@@ -37,16 +37,12 @@ import android.widget.TextView;
 
 public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 {
-  private long _mAgentId;
-  private String _mAgentName;
-  private long _mAgentUpdateTime;
+  private Agent _mAgent;
 
   public TerminalsArrayAdapter(Context context, Agent agent, int resource, int textViewResourceId)
   {
     super(context, resource, textViewResourceId);
-    _mAgentId = agent.getId();
-    _mAgentName = agent.getName();
-    _mAgentUpdateTime = agent.getUpdateDate();
+    _mAgent = agent;
   }
 
   @Override
@@ -123,7 +119,13 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 
           if(statusText.length()==0)
           {
-            if(paymentDate>0 && payment_record!=null)
+            if(image == R.drawable.ic_terminal_inactive)
+            {
+              statusText.append(getContext().getString(R.string.last_activity));
+              statusText.append(' ');
+              statusText.append(DateFormat.formatDateSmart(getContext(), status_record.getLastActivityDate()));
+            }
+            else if(paymentDate>0 && payment_record!=null)
             {
               statusText.append(getContext().getString(R.string.last_payment));
               statusText.append(' ');
@@ -147,21 +149,26 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
 
   public long getAgentId()
   {
-    return _mAgentId;
+    return _mAgent.getId();
   }
 
   public String getAgentName()
   {
-    return _mAgentName;
+    return _mAgent.getName();
   }
 
   public long getAgentUpdateTime()
   {
-    return _mAgentUpdateTime;
+    return _mAgent.getUpdateDate();
   }
 
-  public void setAgentUpdateTime(long agentUpdateTime)
+  public float getBalance()
   {
-    _mAgentUpdateTime = agentUpdateTime;
+    return _mAgent.getBalance();
+  }
+
+  public float getOverdraft()
+  {
+    return _mAgent.getOverdraft();
   }
 }
