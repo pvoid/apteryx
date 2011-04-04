@@ -314,7 +314,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         StringBuffer balance = new StringBuffer(getString(R.string.balance));
         balance.append(": ");
         balance.append(adapter.getBalance());
-        if(adapter.getOverdraft()>0)
+        if(adapter.getOverdraft()!=0)
         {
           balance.append(" / ");
           balance.append(adapter.getOverdraft());

@@ -46,7 +46,7 @@ public class AgentsArrayAdapter extends ArrayAdapter<Agent>
       text = (TextView) result.findViewById(R.id.agent_overdraft);
       if(text!=null)
       {
-        if(agent!=null && agent.getOverdraft()>0)
+        if(agent!=null && agent.getOverdraft()!=0)
         {
           text.setText(getContext().getString(R.string.overdraft)+": "+Float.toString(agent.getOverdraft()));
           text.setVisibility(View.VISIBLE);

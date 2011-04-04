@@ -19,10 +19,10 @@ package org.pvoid.apteryxaustralis.protocol;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.TimeZone;
+import java.util.*;
 
 import android.text.TextUtils;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.net.IResponseParser;
 import org.pvoid.apteryxaustralis.types.Payment;
 import org.pvoid.apteryxaustralis.types.TerminalStatus;
@@ -33,12 +33,14 @@ public class ReportsSection implements IResponseParser
   private static final int STATE_NONE = 0;
   private static final int STATE_TERMINALS_STATUSES = 1;
   private static final int STATE_PAYMENTS = 2;
+  private static final int STATE_CASH = 3;
   
   private int _mCurrentState;
   private SimpleDateFormat _mDateFormat;
-  private ArrayList<TerminalStatus> _mStatuses = null;
-  private ArrayList<Payment> _mPayments = null;
-  private ArrayList<PaymentsRequest> _mRequests = null;
+  private Vector<TerminalStatus> _mStatuses = null;
+  private Vector<Payment> _mPayments = null;
+  private Vector<PaymentsRequest> _mRequests = null;
+  private Vector<CashRecord> _mCash = null;
 
   public ReportsSection()
   {
@@ -53,6 +55,31 @@ public class ReportsSection implements IResponseParser
   @Override
   public void SectionEnd()
   {
+    if(_mCash==null || _mCash.size()<=0)
+      return;
+///////
+    CashRecord[] cashes = new CashRecord[_mCash.size()];
+    _mCash.toArray(cashes);
+    Comparator<CashRecord> comparator = new Comparator<CashRecord>()
+    {
+      @Override
+      public int compare(CashRecord a, CashRecord b)
+      {
+        return (int)(a.terminalId - b.terminalId);
+      }
+    };
+///////
+    Arrays.sort(cashes,comparator);
+    CashRecord needle = new CashRecord();
+    for(TerminalStatus status : _mStatuses)
+    {
+      needle.terminalId = status.getId();
+      int pos = Arrays.binarySearch(cashes,needle,comparator);
+      if(pos>=0)
+      {
+        status.setCash(cashes[pos].cash);
+      }
+    }
   }
 
   public static ReportsSection getParser()
@@ -111,8 +138,51 @@ public class ReportsSection implements IResponseParser
         result = Integer.parseInt(text);
 
       if(_mRequests==null)
-        _mRequests = new ArrayList<PaymentsRequest>();
+        _mRequests = new Vector<PaymentsRequest>();
       _mRequests.add(new PaymentsRequest(queId,state,result));
+
+      return;
+    }
+////////
+    if("getTerminalsCash".equals(name))
+    {
+      _mCurrentState = STATE_CASH;
+      return;
+    }
+////////
+    if("terminal".equals(name) && _mCurrentState==STATE_CASH)
+    {
+      try
+      {
+        CashRecord record = new CashRecord(Long.parseLong(attributes.getValue("id")));
+        if(_mCash==null)
+          _mCash = new Vector<CashRecord>();
+        _mCash.add(record);
+      }
+      catch(NumberFormatException e)
+      {
+        e.printStackTrace();
+      }
+      return;
+    }
+////////
+    if("notes".equals(name) && _mCash!=null && _mCurrentState==STATE_CASH)
+    {
+      String sum = attributes.getValue("sum");
+      try
+      {
+        _mCash.lastElement().cash = Float.parseFloat(sum);
+      }
+      catch(NumberFormatException e)
+      {
+        e.printStackTrace();
+        _mCash.lastElement().cash = 0;
+      }
+      return;
+    }
+////////
+    if("nominal".equals(name) && _mCurrentState==STATE_CASH)
+    {
 
       return;
     }
@@ -218,7 +288,7 @@ public class ReportsSection implements IResponseParser
         status.setRequestDate(System.currentTimeMillis());
   /////////////
         if(_mStatuses ==null)
-          _mStatuses = new ArrayList<TerminalStatus>();
+          _mStatuses = new Vector<TerminalStatus>();
         _mStatuses.add(status);
       }
       else if(_mCurrentState == STATE_PAYMENTS)
@@ -230,19 +300,47 @@ public class ReportsSection implements IResponseParser
         Payment payment = new Payment(Long.parseLong(id),Long.parseLong(terminal));
         String text = attributes.getValue("from-amount");
         if(!TextUtils.isEmpty(text))
-          payment.setFromAmount(Float.parseFloat(text));
+          try
+          {
+            payment.setFromAmount(Float.parseFloat(text));
+          }
+          catch(NumberFormatException e)
+          {
+            e.printStackTrace();
+          }
 ///////////
         text = attributes.getValue("to-amount");
         if(!TextUtils.isEmpty(text))
-          payment.setToAmount(Float.parseFloat(text));
+          try
+          {
+            payment.setToAmount(Float.parseFloat(text));
+          }
+          catch(NumberFormatException e)
+          {
+            e.printStackTrace();
+          }
 ///////////
         text = attributes.getValue("status");
         if(!TextUtils.isEmpty(text))
-          payment.setStatus(Integer.parseInt(text));
+          try
+          {
+            payment.setStatus(Integer.parseInt(text));
+          }
+          catch(NumberFormatException e)
+          {
+            e.printStackTrace();
+          }
 ///////////
         text = attributes.getValue("to-prv-id");
         if(!TextUtils.isEmpty(text))
-          payment.setProviderId(Long.parseLong(text));
+          try
+          {
+            payment.setProviderId(Long.parseLong(text));
+          }
+          catch(NumberFormatException e)
+          {
+            e.printStackTrace();
+          }
 ///////////
         text = attributes.getValue("to-prv-short-name");
         if(!TextUtils.isEmpty(text))
@@ -261,7 +359,7 @@ public class ReportsSection implements IResponseParser
         }
 ///////////
         if(_mPayments == null)
-          _mPayments = new ArrayList<Payment>();
+          _mPayments = new Vector<Payment>();
         _mPayments.add(payment);
       }
   }
@@ -276,6 +374,12 @@ public class ReportsSection implements IResponseParser
     }
 ////////
     if("getPayments".equals(name))
+    {
+      _mCurrentState = STATE_NONE;
+      return;
+    }
+////////
+    if("getTerminalsCash".equals(name))
     {
       _mCurrentState = STATE_NONE;
       return;
@@ -308,6 +412,22 @@ public class ReportsSection implements IResponseParser
       this.queId = queId;
       this.status = status;
       this.result = result;
+    }
+  }
+
+  public static class CashRecord
+  {
+    public long terminalId;
+    public float cash;
+
+    public CashRecord(long terminalId)
+    {
+      this.terminalId = terminalId;
+    }
+
+    public CashRecord()
+    {
+
     }
   }
 }

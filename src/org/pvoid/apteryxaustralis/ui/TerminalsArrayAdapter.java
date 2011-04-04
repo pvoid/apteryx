@@ -133,9 +133,9 @@ public class TerminalsArrayAdapter extends ArrayAdapter<TerminalListRecord>
             }
             else
             {
-              statusText.append(getContext().getString(R.string.last_activity));
+              statusText.append(getContext().getString(R.string.fullinfo_cash));
               statusText.append(' ');
-              statusText.append(DateFormat.formatDateSmart(getContext(), status_record.getLastActivityDate()));
+              statusText.append(status_record.getCash());
             }
           }
           status.setText(statusText.toString());

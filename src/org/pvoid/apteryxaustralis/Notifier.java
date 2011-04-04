@@ -76,7 +76,11 @@ public class Notifier
       }
     }
     else
+    {
       notification.icon = R.drawable.ic_terminal_active;
+      notification.sound = null;
+      notification.defaults &= ~Notification.DEFAULT_VIBRATE;
+    }
 
     notification.when = System.currentTimeMillis();
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);

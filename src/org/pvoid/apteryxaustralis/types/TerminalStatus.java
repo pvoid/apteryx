@@ -85,6 +85,7 @@ public class TerminalStatus
   private short _mWdtDoorAlarmCount;
   private short _mWdtEvent;
   private long _mInfoDate;
+  private float _mCash;
 
   public TerminalStatus(long id)
   {
@@ -457,5 +458,15 @@ public class TerminalStatus
     }
 
     return items;
+  }
+
+  public float getCash()
+  {
+    return _mCash;
+  }
+
+  public void setCash(float cash)
+  {
+    _mCash = cash;
   }
 }

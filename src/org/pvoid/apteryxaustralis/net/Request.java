@@ -173,6 +173,12 @@ public class Request
     return this;
   }
 
+  public Request getTerminalsCash()
+  {
+    _mReportsInterface.append("<getTerminalsCash/>");
+    return this;
+  }
+
   public Response getResponse()
   {
     if(_mAgentInterface.length()>0)

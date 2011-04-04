@@ -29,11 +29,12 @@ import org.pvoid.apteryxaustralis.OnBootReceiver;
 import org.pvoid.apteryxaustralis.types.*;
 
 import java.io.File;
+import java.util.Vector;
 
 public class Storage
 {
   private static final String DB_NAME = "apx_storage";
-  private static final int DB_VERSION = 3;
+  private static final int DB_VERSION = 6;
 
   private static boolean _sImported = false;
   public static final int INVISIBLE_INTERVAL = 30*60*60*1000;
@@ -92,7 +93,6 @@ public class Storage
     static final String UPDATE_DATE = "update_date";
 
     static final String[] COLUMNS_SHORT = new String[] {ID,NAME,UPDATE_DATE};
-    static final String[] COLUMNS_FULL = new String[] {ID,NAME,PHONE,ACCOUNT};
   }
 
   private static final String AGENT_TABLE = "CREATE TABLE "+AgentsTable.TABLE_NAME+" ("+
@@ -159,15 +159,17 @@ public class Storage
     static final String DOOR_OPEN = "door_open";
     static final String DOOR_ALARM = "door_alarm";
     static final String EVENT = "event";
+    static final String CASH = "cash";
 
     static final String[] COLUMNS_FULL = new String[] {ID,AGENT,LAST_ACTIVITY,PRINTER_ERROR,
-                                                       NOTE_ERROR,SIGNAL_LEVEL,BALANCE,STATUS,DOOR_OPEN,DOOR_ALARM,EVENT,DATE};
+                                                       NOTE_ERROR,SIGNAL_LEVEL,BALANCE,STATUS,DOOR_OPEN,DOOR_ALARM,EVENT,DATE,CASH};
   }
 
   private static final String STATUS_TABLE = "CREATE TABLE "+StatusesTable.TABLE_NAME+" ("+
                                     StatusesTable.ID +" INTEGER PRIMARY KEY,"+
                                     StatusesTable.DATE+" INTEGER NOT NULL,"+
                                     StatusesTable.AGENT+" INTEGER NOT NULL,"+
+                                    StatusesTable.CASH+" REAL NOT NULL,"+
                                     StatusesTable.LAST_ACTIVITY+" INTEGER NOT NULL,"+
                                     StatusesTable.PRINTER_ERROR+" TEXT NOT NULL,"+
                                     StatusesTable.NOTE_ERROR+" TEXT NOT NULL,"+
@@ -230,6 +232,23 @@ public class Storage
                                     PaymentsTable.TABLE_NAME+"("+PaymentsTable.TERMINAL+");";
 //+--------------------------------------------------------------------+
 //|                                                                    |
+//| Информация о платежах                                              |
+//|                                                                    |
+//+--------------------------------------------------------------------+
+  private interface BondsTable
+  {
+    static final String TABLE_NAME = "bonds";
+
+    static final String TERMINAL = "terminal_id";
+    static final String BOND = "bond";
+    static final String COUNT = "count";
+  }
+
+  private static final String BONDS_TABLE = "CREATE TABLE "+BondsTable.TABLE_NAME + " ("+
+                                            BondsTable.TERMINAL + " INTEGER NOT NULL"+
+                                            BondsTable.BOND + "INTEGER NOT NULL";
+//+--------------------------------------------------------------------+
+//|                                                                    |
 //| Полная информация по терминалу                                     |
 //|                                                                    |
 //+--------------------------------------------------------------------+
@@ -250,6 +269,7 @@ public class Storage
                                        ",s."+StatusesTable.DOOR_ALARM+
                                        ",s."+StatusesTable.EVENT+
                                        ",s."+StatusesTable.DATE+
+                                       ",s."+StatusesTable.CASH+
 
                                        ",a."+AgentsTable.NAME+
                                        ",a."+AgentsTable.PHONE+
@@ -281,11 +301,12 @@ public class Storage
     static final int COLUMN_DOOR_ALARM = 10;
     static final int COLUMN_EVENT = 11;
     static final int COLUMN_DATE = 12;
-    static final int COLUMN_AGENT_NAME = 13;
-    static final int COLUMN_AGENT_PHONE=14;
-    static final int COLUMN_ACCOUNT=15;
-    static final int COLUMN_PAYMENT_DATE=16;
-    static final int COLUMN_PROCESSING_DATE=17;
+    static final int COLUMN_CASH = 13;
+    static final int COLUMN_AGENT_NAME = 14;
+    static final int COLUMN_AGENT_PHONE=15;
+    static final int COLUMN_ACCOUNT=16;
+    static final int COLUMN_PAYMENT_DATE=17;
+    static final int COLUMN_PROCESSING_DATE=18;
   }
 //+--------------------------------------------------------------------+
 //|                                                                    |
@@ -425,146 +446,13 @@ public class Storage
         case 2:
           db.execSQL("alter table "+AgentsTable.TABLE_NAME +" add column "+AgentsTable.BALANCE+" REAL NOT NULL DEFAULT 0");
           db.execSQL("alter table "+AgentsTable.TABLE_NAME +" add column "+AgentsTable.OVERDRAFT+" REAL NOT NULL DEFAULT 0");
+        case 3:
+        case 4:
+        case 5:
+          db.execSQL("alter table "+StatusesTable.TABLE_NAME+" add column "+StatusesTable.CASH+" REAL NOT NULL DEFAULT 0");
       }
     }
   }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечесление аккаунтов для отображения из курсора                  |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class AccountsIterable extends IterableCursor<Account>
-  {
-    public AccountsIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected Account getItem(Cursor cursor)
-    {
-      return new Account(cursor.getLong(AccountTable.COLUMN_ID),cursor.getString(AccountTable.COLUMN_TITLE));
-    }
-  }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечесление аккаунтов для авторизации из курсора                  |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class AuthsIterable extends IterableCursor<Account>
-  {
-    public AuthsIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected Account getItem(Cursor cursor)
-    {
-      return new Account(cursor.getLong(AccountTable.COLUMN_ID),
-                         cursor.getString(AccountTable.COLUMN_LOGIN),
-                         cursor.getString(AccountTable.COLUMN_PASSWORD),
-                         cursor.getLong(AccountTable.COLUMN_TERMINAL));
-    }
-  }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечисление агентов из курсора                                    |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class AgentsIterable extends IterableCursor<Agent>
-  {
-    public AgentsIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected Agent getItem(Cursor cursor)
-    {
-      if(cursor.getColumnCount()==3)
-        return new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2));
-      else
-        return new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2),cursor.getFloat(3),cursor.getFloat(4));
-    }
-  }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечисление терминалов из курсора                                 |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class TerminalsIterable extends  IterableCursor<Terminal>
-  {
-    public TerminalsIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected Terminal getItem(Cursor cursor)
-    {
-      return new Terminal(cursor.getLong(0),cursor.getString(2),cursor.getString(1),cursor.getLong(3));
-    }
-  }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечисление статусов из курсора                                   |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class StatusIterable extends IterableCursor<TerminalStatus>
-  {
-    public StatusIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected TerminalStatus getItem(Cursor cursor)
-    {
-      final TerminalStatus status = new TerminalStatus(cursor.getLong(0));
-      status.setAgentId(cursor.getLong(1));
-      status.setLastActivityDate(cursor.getLong(2));
-      status.setPrinterErrorId(cursor.getString(3));
-      status.setNoteErrorId(cursor.getString(4));
-      status.setSignalLevel(cursor.getInt(5));
-      status.setSimProviderBalance(cursor.getFloat(6));
-      status.setMachineStatus(cursor.getInt(7));
-      status.setWdtDoorOpenCount(cursor.getShort(8));
-      status.setWdtDoorAlarmCount(cursor.getShort(9));
-      status.setWdtEvent(cursor.getShort(10));
-      status.setRequestDate(cursor.getLong(11));
-
-      return status;
-    }
-  }
-//+--------------------------------------------------------------------+
-//|                                                                    |
-//| Перечисление платежей из курсора                                   |
-//|                                                                    |
-//+--------------------------------------------------------------------+
-  private static class PaymentsIterable extends IterableCursor<Payment>
-  {
-    public PaymentsIterable(Cursor cursor)
-    {
-      super(cursor);
-    }
-
-    @Override
-    protected Payment getItem(Cursor cursor)
-    {
-      final Payment payment = new Payment(cursor.getLong(PaymentsTable.COLUMN_ID),cursor.getLong(PaymentsTable.COLUMN_TERMINAL));
-      payment.setDateInProcessing(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_PROCESSING));
-      payment.setDateInTerminal(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_TERMINAL));
-      payment.setFromAmount(cursor.getFloat(PaymentsTable.COLUMN_FROM_AMOUNT));
-      payment.setToAmount(cursor.getFloat(PaymentsTable.COLUMN_TO_AMOUNT));
-      payment.setProviderId(cursor.getLong(PaymentsTable.COLUMN_PROVIDER_ID));
-      payment.setProviderName(cursor.getString(PaymentsTable.COLUMN_PROVIDER_NAME));
-      payment.setStatus(cursor.getInt(PaymentsTable.COLUMN_STATUS));
-      payment.setUpdateDate(cursor.getLong(PaymentsTable.COLUMN_UPDATE_DATE));
-      return payment;
-    }
-  }
-
   private static final Object _mDataBaseLock = new Object();
   private static DataBase _mDatabase = null;
 
@@ -597,26 +485,41 @@ public class Storage
   {
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_SHORT,null,null,null,null,null);
-    if(cursor.isAfterLast())
+    Vector<Account> accounts = new Vector<Account>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          accounts.add(new Account(cursor.getLong(AccountTable.COLUMN_ID),cursor.getString(AccountTable.COLUMN_TITLE)));
     }
-    return new AccountsIterable(cursor);
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return accounts;
   }
 
   public static Iterable<Account> getAccounts(Context context)
   {
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.query(AccountTable.TABLE_NAME,AccountTable.COLUMNS_AUTH,null,null,null,null,null);
-    if(cursor.isAfterLast())
+    Vector<Account> accounts = new Vector<Account>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          accounts.add(new Account(cursor.getLong(AccountTable.COLUMN_ID),
+                         cursor.getString(AccountTable.COLUMN_LOGIN),
+                         cursor.getString(AccountTable.COLUMN_PASSWORD),
+                         cursor.getLong(AccountTable.COLUMN_TERMINAL)));
     }
-    return new AuthsIterable(cursor);
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return accounts;
   }
 
   public static Account getAccount(Context context, long accountId)
@@ -632,12 +535,10 @@ public class Storage
                                       cursor.getString(AccountTable.COLUMN_PASSWORD),
                                       cursor.getLong(AccountTable.COLUMN_TERMINAL));
         cursor.close();
-        db.close();
         return account;
       }
       cursor.close();
     }
-    db.close();
     return null;
   }
 
@@ -645,13 +546,19 @@ public class Storage
   {
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.query(AgentsTable.TABLE_NAME,AgentsTable.COLUMNS_SHORT,null,null,null,null,order);
-    if(cursor.isAfterLast())
+    Vector<Agent> agents = new Vector<Agent>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          agents.add(new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2)));
     }
-    return new AgentsIterable(cursor);
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return agents;
   }
 
   public static Iterable<Agent> getAgents(Context context)
@@ -665,13 +572,19 @@ public class Storage
     final Cursor cursor = db.rawQuery(ActiveAgentsQuery.ORDERED_QUERY,
                                       new String[]{Long.toString(System.currentTimeMillis()),
                                                                  Long.toString(INVISIBLE_INTERVAL)});
-    if(cursor.isAfterLast())
+    Vector<Agent> agents = new Vector<Agent>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          agents.add(new Agent(cursor.getLong(0),cursor.getString(1),cursor.getLong(2),cursor.getFloat(3),cursor.getFloat(4)));
     }
-    return new AgentsIterable(cursor);
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return agents;
   }
 
   public static Agent getAgent(Context context,long agentId)
@@ -693,7 +606,6 @@ public class Storage
       if(cursor!=null)
         cursor.close();
     }
-    db.close();
     return result;
   }
 
@@ -710,14 +622,22 @@ public class Storage
 
     SQLiteDatabase db = read(context);
     final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,TerminalsTable.COLUMNS_FULL,selection,clause,null,null,null);
-    if(cursor.isAfterLast())
+    Vector<Terminal> terminals = new Vector<Terminal>();
+
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          terminals.add(new Terminal(cursor.getLong(0),cursor.getString(2),cursor.getString(1),cursor.getLong(3)));
+
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
     }
 ////////
-    return new TerminalsIterable(cursor);
+    return terminals;
   }
 
   public static Iterable<Terminal> getTerminals(Context context)
@@ -729,28 +649,55 @@ public class Storage
   {
     SQLiteDatabase db = read(context);
     Cursor cursor = db.rawQuery(TerminalsForAccountQuery.QUERY,new String[] {Long.toString(account.getId())});
-    if(cursor.isAfterLast())
+    Vector<Terminal> terminals = new Vector<Terminal>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+          terminals.add(new Terminal(cursor.getLong(0),cursor.getString(2),cursor.getString(1),cursor.getLong(3)));
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
     }
 ////////
-    return new TerminalsIterable(cursor);
+    return terminals;
   }
 
   public static Iterable<TerminalStatus> getStatuses(Context context)
   {
     SQLiteDatabase db = read(context);
     Cursor cursor = db.query(StatusesTable.TABLE_NAME,StatusesTable.COLUMNS_FULL,null,null,null,null,null);
-    if(cursor.isAfterLast())
+    Vector<TerminalStatus> statuses = new Vector<TerminalStatus>();
+    try
     {
-      cursor.close();
-      db.close();
-      return null;
+      if(cursor!=null)
+        while(cursor.moveToNext())
+        {
+          final TerminalStatus status = new TerminalStatus(cursor.getLong(0));
+          status.setAgentId(cursor.getLong(1));
+          status.setLastActivityDate(cursor.getLong(2));
+          status.setPrinterErrorId(cursor.getString(3));
+          status.setNoteErrorId(cursor.getString(4));
+          status.setSignalLevel(cursor.getInt(5));
+          status.setSimProviderBalance(cursor.getFloat(6));
+          status.setMachineStatus(cursor.getInt(7));
+          status.setWdtDoorOpenCount(cursor.getShort(8));
+          status.setWdtDoorAlarmCount(cursor.getShort(9));
+          status.setWdtEvent(cursor.getShort(10));
+          status.setRequestDate(cursor.getLong(11));
+          status.setCash(cursor.getFloat(12));
+          statuses.add(status);
+        }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
     }
 ////////
-    return new StatusIterable(cursor);
+    return statuses;
   }
 
   public static boolean addAccount(Context context, Account account)
@@ -863,6 +810,7 @@ public class Storage
     values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
     values.put(StatusesTable.EVENT,status.getWdtEvent());
     values.put(StatusesTable.DATE,status.getRequestDate());
+    values.put(StatusesTable.CASH,status.getCash());
     db.replace(StatusesTable.TABLE_NAME, null, values);
   }
 
@@ -899,66 +847,31 @@ public class Storage
     return true;
   }
 
-  public static boolean updateStatus(Context context, TerminalStatus status)
-  {
-    SQLiteDatabase db = write(context);
-    try
-    {
-      ContentValues values = new ContentValues();
-      values.put(StatusesTable.ID,status.getId());
-      values.put(StatusesTable.AGENT,status.getAgentId());
-      values.put(StatusesTable.LAST_ACTIVITY,status.getLastActivityDate());
-      values.put(StatusesTable.PRINTER_ERROR,status.getPrinterErrorId());
-      values.put(StatusesTable.NOTE_ERROR,status.getNoteErrorId());
-      values.put(StatusesTable.SIGNAL_LEVEL,status.getSignalLevel());
-      values.put(StatusesTable.BALANCE,status.getSimProviderBalance());
-      values.put(StatusesTable.STATUS,status.getMachineStatus());
-      values.put(StatusesTable.DOOR_OPEN,status.getWdtDoorOpenCount());
-      values.put(StatusesTable.DOOR_ALARM,status.getWdtDoorAlarmCount());
-      values.put(StatusesTable.EVENT,status.getWdtEvent());
-      values.put(StatusesTable.DATE,status.getRequestDate());
-      db.replace(StatusesTable.TABLE_NAME, null, values);
-    }
-    finally
-    {
-      if(db!=null)
-        db.close();
-    }
-    return true;
-  }
-
   public static Terminal getTerminal(Context context, long id)
   {
     SQLiteDatabase db = read(context);
     if(db!=null)
     {
-      try
-      {
-        final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,
-                                       TerminalsTable.COLUMNS_FULL,
-                                       TerminalsTable.ID+"=?",
-                                       new String[] {Long.toString(id)},
-                                       null,null,null);
-        if(cursor!=null)
-          try
+      final Cursor cursor = db.query(TerminalsTable.TABLE_NAME,
+                                     TerminalsTable.COLUMNS_FULL,
+                                     TerminalsTable.ID+"=?",
+                                     new String[] {Long.toString(id)},
+                                     null,null,null);
+      if(cursor!=null)
+        try
+        {
+          if(cursor.moveToNext())
           {
-            if(cursor.moveToNext())
-            {
-              return new Terminal(cursor.getLong(TerminalsTable.COLUMN_ID),
-                                  cursor.getString(TerminalsTable.COLUMN_ADDRESS),
-                                  cursor.getString(TerminalsTable.COLUMN_NAME),
-                                  cursor.getLong(TerminalsTable.COLUMN_AGENT));
-            }
+            return new Terminal(cursor.getLong(TerminalsTable.COLUMN_ID),
+                                cursor.getString(TerminalsTable.COLUMN_ADDRESS),
+                                cursor.getString(TerminalsTable.COLUMN_NAME),
+                                cursor.getLong(TerminalsTable.COLUMN_AGENT));
           }
-          finally
-          {
-            cursor.close();
-          }
-      }
-      finally
-      {
-        db.close();
-      }
+        }
+        finally
+        {
+          cursor.close();
+        }
     }
     return null;
   }
@@ -987,6 +900,7 @@ public class Storage
         status.setWdtDoorOpenCount(cursor.getShort(TerminalInfoQuery.COLUMN_DOOR_OPEN));
         status.setWdtEvent(cursor.getShort(TerminalInfoQuery.COLUMN_EVENT));
         status.setRequestDate(cursor.getLong(TerminalInfoQuery.COLUMN_DATE));
+        status.setCash(cursor.getFloat(TerminalInfoQuery.COLUMN_CASH));
 //////////// Заполняем агента
         agent.setId(cursor.getLong(TerminalInfoQuery.COLUMN_AGENT));
         agent.setName(cursor.getString(TerminalInfoQuery.COLUMN_AGENT_NAME));
@@ -1036,7 +950,6 @@ public class Storage
       if(cursor!=null)
         cursor.close();
     }
-    db.close();
 
     if(agents.length()>0)
     {
@@ -1083,14 +996,31 @@ public class Storage
   {
     SQLiteDatabase db = read(context);
     Cursor cursor = db.query(PaymentsTable.TABLE_NAME,PaymentsTable.COLUMNS_FULL,null,null,null,null,null);
-    if(cursor.isAfterLast())
-    {
-      cursor.close();
-      db.close();
-      return null;
-    }
 ////////
-    return new PaymentsIterable(cursor);
+    Vector<Payment> payments = new Vector<Payment>(cursor.getCount());
+    try
+    {
+      if(cursor!=null)
+        while(cursor.moveToNext())
+        {
+          final Payment payment = new Payment(cursor.getLong(PaymentsTable.COLUMN_ID),cursor.getLong(PaymentsTable.COLUMN_TERMINAL));
+          payment.setDateInProcessing(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_PROCESSING));
+          payment.setDateInTerminal(cursor.getLong(PaymentsTable.COLUMN_DATE_IN_TERMINAL));
+          payment.setFromAmount(cursor.getFloat(PaymentsTable.COLUMN_FROM_AMOUNT));
+          payment.setToAmount(cursor.getFloat(PaymentsTable.COLUMN_TO_AMOUNT));
+          payment.setProviderId(cursor.getLong(PaymentsTable.COLUMN_PROVIDER_ID));
+          payment.setProviderName(cursor.getString(PaymentsTable.COLUMN_PROVIDER_NAME));
+          payment.setStatus(cursor.getInt(PaymentsTable.COLUMN_STATUS));
+          payment.setUpdateDate(cursor.getLong(PaymentsTable.COLUMN_UPDATE_DATE));
+          payments.add(payment);
+        }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return payments;
   }
 
   public static void setAccountUpdateDate(Context context, long accountId, long time)
@@ -1103,6 +1033,7 @@ public class Storage
 
   public static void updateAgentBalance(Context context, Agent agent)
   {
+
     SQLiteDatabase db = write(context);
     ContentValues values = new ContentValues();
     values.put(AgentsTable.BALANCE,agent.getBalance());
@@ -1117,7 +1048,4 @@ public class Storage
     }
     db.close();
   }
-
-
-  //select a.* from agents a inner join terminals t on a.id = t.agent inner join statuses s on s.id=t.id and  ? - s.last_activity<? group by a.id
 }

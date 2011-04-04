@@ -18,6 +18,7 @@
 package org.pvoid.apteryxaustralis.preference;
 
 import android.text.TextUtils;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.types.Account;
@@ -187,6 +188,7 @@ public class CommonSettings extends PreferenceActivity
       @Override
       public boolean onPreferenceChange(Preference preference, Object value)
       {
+        Log.d(CommonSettings.class.getSimpleName(),(String)value);
         Preferences.setSound(CommonSettings.this,(String)value);
         return(CommonSettings.this.setSoundSummary((String)value));
       }

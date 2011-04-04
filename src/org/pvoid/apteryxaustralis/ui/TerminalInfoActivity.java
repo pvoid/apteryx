@@ -148,11 +148,14 @@ public class TerminalInfoActivity extends Activity
     View line = findViewById(R.id.sep_line);
     line.setVisibility(first?View.GONE:View.VISIBLE);
     statesContainer.setVisibility(first?View.GONE:View.VISIBLE);
+////////// Сумма в терминале
+    FullInfoItem info = (FullInfoItem)findViewById(R.id.cash);
+    info.setText(Float.toString(status.getCash()));
 ////////// Дата последней активности
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeZone(TimeZone.getDefault());
     calendar.setTimeInMillis(status.getLastActivityDate());
-    FullInfoItem info = (FullInfoItem)findViewById(R.id.last_activity);
+    info = (FullInfoItem)findViewById(R.id.last_activity);
     info.setText(DateFormat.format(DATE_FORMAT,calendar.getTime()));
 ////////// Уровень сигнала
     info = (FullInfoItem)findViewById(R.id.signal_level);
