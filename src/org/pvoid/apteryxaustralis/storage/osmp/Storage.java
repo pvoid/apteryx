@@ -1,9 +1,29 @@
-package org.pvoid.apteryxaustralis.accounts;
+/*
+ * Copyright (C) 2010-2011  Dmitry Petuhov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.pvoid.apteryxaustralis.storage.osmp;
 
 import java.util.List;
 import java.util.Set;
 
 import org.pvoid.apteryxaustralis.Consts;
+import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
 
 import android.content.ContentValues;
@@ -12,8 +32,9 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import org.pvoid.apteryxaustralis.storage.IStorage;
 
-public class Accounts
+class Storage
 {
   private static final String CREATE_ACCOUNTS_TABLE = 
       "create table accounts (id text primary key,"
@@ -76,7 +97,7 @@ public class Accounts
     return(_database.getReadableDatabase());
   }
   
-  public Accounts(Context context)
+  public Storage(Context context)
   {
     _context = context;
   }
@@ -107,7 +128,7 @@ public class Accounts
     _database.close();
   }
   
-  public void DeleteAccount(Long id)
+  public void DeleteAccount(long id)
   {
     SQLiteDatabase db = OpenWrite();
     db.delete(Consts.ACCOUNTS_TABLE, Consts.COLUMN_ID + "=" + id,null);
@@ -116,9 +137,9 @@ public class Accounts
   }
 /**
  * Возвращает все имеющиеся учетные записи
- * @param adapter Куда записать 
+ * @param adapter Куда записать
  */
-  public void GetAccounts(final List<Account> adapter)
+  public void getAccounts(final List<Account> adapter)
   {
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(true, Consts.ACCOUNTS_TABLE, new String[] {Consts.COLUMN_ID,Consts.COLUMN_TITLE,Consts.COLUMN_LOGIN,Consts.COLUMN_PASSWORD,Consts.COLUMN_TERMINAL},
@@ -200,7 +221,7 @@ public class Accounts
     edit.commit();
   }
   
-  public boolean HasAccounts()
+  public boolean hasAccounts()
   {
     boolean result = false;
     SQLiteDatabase db = OpenRead();

@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2010-2011  Dmitry Petuhov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.pvoid.apteryxaustralis.ui;
 
 import java.text.DateFormat;
@@ -10,7 +27,7 @@ import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Notifyer;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Accounts;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
@@ -41,6 +58,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
+import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
+import org.pvoid.apteryxaustralis.preference.CommonSettings;
 
 public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
 {
@@ -50,7 +69,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private TerminalsProcessData _Terminals;
   private ListView _TerminalsList;
   private TerminalsArrayAdapter _TerminalsAdapter;
-  private Accounts _Accounts;
+  private OsmpStorage _mStorage;
   
   private boolean _Refreshing;
   private Object _RefreshLock;
@@ -101,7 +120,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     _Terminals = new TerminalsProcessData();
     _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
     _TerminalsList = (ListView)findViewById(R.id.terminals_list);
-    _Accounts = new Accounts(this);
+    _mStorage = new OsmpStorage(this);
     _Refreshing = false;
     _RefreshLock = new Object();
     if(_TerminalsList!=null)
@@ -162,7 +181,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private void ShowPreferencesActivity()
   {
-    Intent intent = new Intent(this,Preferences.class);
+    Intent intent = new Intent(this,CommonSettings.class);
     startActivityForResult(intent, 0); 
   }
   
@@ -174,13 +193,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       setProgressBarIndeterminateVisibility(true);
       ArrayList<Account> accounts = new ArrayList<Account>();
       HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
-      _Accounts.GetAccounts(accounts);
+      _mStorage.getAccounts(accounts);
       if(accounts.size()>0)
       {
         for(Account account : accounts)
         {
           ArrayList<Agent> agents_line = new ArrayList<Agent>();
-          _Accounts.GetAgents(account.Id, agents_line);
+          _mStorage.getGroups(account.Id, agents_line);
           if(agents_line.size()>0)
             agents.put(account.Id, agents_line);
         }
@@ -245,13 +264,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         return;
     }
 //////
-    if(!_Accounts.HasAccounts())
+    if(_mStorage.isEmpty())
     {
       ShowSettingsAlarm();
       return;
     }
 ///////
-    _Accounts.GetTerminals(_Terminals);
+    // TODO: _mStorage.GetTerminals(_Terminals);
     DrawTerminals();
 ///////
     ShowStateInfo();
@@ -310,7 +329,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     }
 //////
     DrawTerminals();
-    _Accounts.SaveStates(_Terminals);
+    // TODO: _mStorage.SaveStates(_Terminals);
     setProgressBarIndeterminateVisibility(false);
 //////
     ShowStateInfo();
@@ -345,7 +364,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     int index = 0;
 ///////
     ArrayList<Account> accounts = new ArrayList<Account>();
-    _Accounts.GetAccounts(accounts);
+    _mStorage.getAccounts(accounts);
 ///////
     TextView view;
     for(Account account : accounts)
