@@ -102,7 +102,7 @@ class Storage
     _context = context;
   }
   
-  public boolean AddAccount(long id, String title, String login, String password, String terminal)
+  public boolean addAccount(long id, String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
     values.put(Consts.COLUMN_ID, Long.toString(id));
@@ -358,7 +358,7 @@ class Storage
     return(result);
   }
   
-  public boolean SaveAgents(long account, List<Agent> agents)
+  public boolean saveAgents(long account, List<Agent> agents)
   {
     SQLiteDatabase db = OpenWrite();
     ContentValues values = new ContentValues();
@@ -380,7 +380,7 @@ class Storage
     _database.close();
   }
   
-  public void GetAgents(long account, List<Agent> agents)
+  public void getAgents(long account, List<Agent> agents)
   {
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(Consts.AGENTS_TABLE, new String[] {Consts.COLUMN_AGENTID}, null, null, Consts.COLUMN_ACCOUNT+"="+account, null, null);

@@ -36,6 +36,7 @@ public interface IStorage
   void getAccounts(final List<Account> adapter);
   void deleteAccount(long id);
   int addAccount(Account account);
+  Account getAccount(long id);
   int updateAccount(Account account);
   void getGroups(long accountId, List<Agent> agents);
   void getTerminals(long accountId, Agent group, List<Terminal> terminals);

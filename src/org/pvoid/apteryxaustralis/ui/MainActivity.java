@@ -27,6 +27,7 @@ import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Notifyer;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
@@ -72,7 +73,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private OsmpStorage _mStorage;
   
   private boolean _Refreshing;
-  private Object _RefreshLock;
+  private final Object _RefreshLock = new Object();
   
   public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
@@ -119,10 +120,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     setProgressBarIndeterminateVisibility(false);
     _Terminals = new TerminalsProcessData();
     _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
-    _TerminalsList = (ListView)findViewById(R.id.terminals_list);
     _mStorage = new OsmpStorage(this);
+    /*_TerminalsList = (ListView)findViewById(R.id.terminals_list);
     _Refreshing = false;
-    _RefreshLock = new Object();
     if(_TerminalsList!=null)
     {
       _TerminalsList.setAdapter(_TerminalsAdapter);
@@ -131,10 +131,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     
     ViewFlipper fliper = (ViewFlipper)findViewById(R.id.balances_flipper);
     fliper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_in));
-    fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));
+    fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));*/
     
-    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-    if(prefs.getBoolean(Consts.PREF_AUTOCHECK, false))
+    if(Preferences.getAutoUpdate(this))
     {
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
       startService(serviceIntent);
@@ -199,9 +198,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         for(Account account : accounts)
         {
           ArrayList<Agent> agents_line = new ArrayList<Agent>();
-          _mStorage.getGroups(account.Id, agents_line);
+          _mStorage.getGroups(account.id, agents_line);
           if(agents_line.size()>0)
-            agents.put(account.Id, agents_line);
+            agents.put(account.id, agents_line);
         }
         
         Account[] ac = new Account[accounts.size()];
@@ -214,8 +213,6 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   
   private void ShowSettingsAlarm()
   {
-    ViewFlipper flipper = (ViewFlipper)findViewById(R.id.balances_flipper);
-    flipper.setVisibility(View.GONE);
     setTitle(R.string.app_name);
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setMessage(getString(R.string.add_account_message))
@@ -234,26 +231,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   private void ShowStateInfo()
   {
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-    ViewFlipper flipper = (ViewFlipper)findViewById(R.id.balances_flipper);
 //////
-    if(_Terminals.hasAccounts())
-    {
-      DrawBalances(flipper);
-      flipper.setVisibility(View.VISIBLE);
-      
-      long time = prefs.getLong(Consts.PREF_LASTUPDATE, 0);
-      if(time!=0)
-      {
-        setTitle(getString(R.string.last_update) + " (" + 
-                 DateUtils.formatSameDayTime(time, System.currentTimeMillis(), DateFormat.DEFAULT, DateFormat.DEFAULT)
-                 +")");
-      }
-    }
-    else
-    {
-      flipper.setVisibility(View.GONE);
+    if(!_Terminals.hasAccounts())
       Toast.makeText(this, getString(R.string.network_error), Toast.LENGTH_LONG).show();
-    }
   }
   
   private void RestoreStates()
@@ -380,7 +360,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         flipper.addView(view, LayoutParams.WRAP_CONTENT);
       }
 
-      view.setText(Html.fromHtml("<b>"+account.Title+"</b><br>"+_Terminals.Balance(account.Id)));
+      view.setText(Html.fromHtml("<b>"+account.title +"</b><br>"+_Terminals.Balance(account.id)));
     }
     
     if(accounts.size()>1)

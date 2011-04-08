@@ -17,28 +17,59 @@
 
 package org.pvoid.apteryxaustralis.accounts;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import org.pvoid.apteryxaustralis.Utils;
 
-public class Account
+public class Account implements Parcelable
 {
-  public final long Id;
-  public final String Title;
-  public final String Login;
-  public final String PasswordHash;
-  public final String Terminal;
+  public long id;
+  public String title;
+  public String login;
+  public String passwordHash;
+  public String terminal;
   
   public Account(long id, String title, String login,String password,String terminal)
   {
-    Id = id;
-    Title = title;
-    Login = login;
-    PasswordHash = password;
-    Terminal = terminal;
+    this.id = id;
+    this.title = title;
+    this.login = login;
+    passwordHash = password;
+    this.terminal = terminal;
   }
   public String toString()
   {
-    if(Utils.isEmptyString(Title))
-      return(Login);
-    return(Title);      
+    if(Utils.isEmptyString(title))
+      return(login);
+    return(title);
   }
+
+  @Override
+  public int describeContents()
+  {
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel parcel, int i)
+  {
+    parcel.writeLong(id);
+    parcel.writeString(title);
+    parcel.writeString(login);
+    parcel.writeString(passwordHash);
+    parcel.writeString(terminal);
+  }
+
+  public static final Parcelable.Creator<Account> CREATOR = new Parcelable.Creator<Account>()
+  {
+    public Account createFromParcel(Parcel parcel)
+    {
+      return new Account(parcel.readLong(),parcel.readString(),parcel.readString(),parcel.readString(),parcel.readString());
+    }
+
+    public Account[] newArray(int size)
+    {
+      return new Account[size];
+    }
+  };
 }

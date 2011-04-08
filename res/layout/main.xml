@@ -17,19 +17,85 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-  <ViewFlipper android:id="@+id/balances_flipper"
-               android:layout_width="fill_parent"
-               android:layout_height="wrap_content"
-               android:flipInterval="5000"
-               android:padding="8dip">
-  </ViewFlipper>
-  <ListView android:layout_width="fill_parent"
-            android:layout_height="0px"
-            android:layout_weight="1"
-            android:choiceMode="singleChoice"
-            android:id="@+id/terminals_list" />
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:id="@+id/mainscreen">
+  <RelativeLayout android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:background="@drawable/top_bar"
+                  android:paddingTop="4dp"
+                  android:paddingBottom="4dp">
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginLeft="5dp"
+              android:textColor="#ffffff"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:shadowColor="#000000"
+              android:shadowRadius="2"
+              android:shadowDx="0"
+              android:shadowDy="0"
+              android:textStyle="bold"
+              android:singleLine="true"
+              android:ellipsize="middle"
+              android:layout_alignParentLeft="true"
+              android:layout_alignParentTop="true"
+              android:id="@+id/agent_name"/>
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginLeft="5dp"
+              android:textColor="#ffffff"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:shadowColor="#000000"
+              android:shadowRadius="2"
+              android:shadowDx="0"
+              android:shadowDy="0"
+              android:singleLine="true"
+              android:ellipsize="middle"
+              android:layout_alignParentLeft="true"
+              android:layout_below="@id/agent_name"
+              android:id="@+id/agent_balance"/>
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginLeft="5dp"
+              android:textColor="#ffffff"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:shadowColor="#000000"
+              android:shadowRadius="2"
+              android:shadowDx="0"
+              android:shadowDy="0"
+              android:singleLine="true"
+              android:ellipsize="middle"
+              android:layout_alignParentLeft="true"
+              android:layout_below="@id/agent_balance"
+              android:id="@+id/agent_update_time"/>
+
+    <ImageView android:layout_height="wrap_content"
+               android:layout_width="wrap_content"
+               android:onClick="agentsListClick"
+               android:focusable="true"
+               android:clickable="true"
+               android:id="@+id/agent_list_button"
+               android:layout_gravity="center_vertical"
+               android:scaleType="center"
+               android:padding="4dp"
+               android:background="@drawable/button"
+               android:layout_alignParentRight="true"
+               android:layout_centerVertical="true"
+               android:src="@drawable/ic_list" />
+    <ImageView android:layout_height="wrap_content"
+               android:layout_width="wrap_content"
+               android:focusable="true"
+               android:clickable="true"
+               android:id="@+id/refresh_spinner"
+               android:layout_gravity="center_vertical"
+               android:scaleType="center"
+               android:layout_marginRight="4dp"
+               android:layout_toLeftOf="@id/agent_list_button"
+               android:layout_centerVertical="true"
+               android:src="@drawable/spinner" />
+  </RelativeLayout>
 </LinearLayout>

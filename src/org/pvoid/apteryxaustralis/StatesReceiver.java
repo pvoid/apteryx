@@ -81,9 +81,9 @@ public class StatesReceiver extends BroadcastReceiver
       for(Account account : accounts)
       {
         ArrayList<Agent> agents_line = new ArrayList<Agent>();
-        storage.GetAgents(account.Id, agents_line);
+        storage.getAgents(account.id, agents_line);
         if(agents_line.size()>0)
-          agents.put(account.Id, agents_line);
+          agents.put(account.id, agents_line);
       }
       Account[] ac = new Account[accounts.size()];
       StatesRequestWorker worker = new StatesRequestWorker(terminals,agents);
