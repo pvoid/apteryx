@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
 
 import android.os.AsyncTask;
 
@@ -30,7 +30,7 @@ public class StatesRequestTask extends AsyncTask<Account, Integer, Boolean>
   private IStatesRespnseHandler _Handler;
   private StatesRequestWorker _Worker;
   
-  public StatesRequestTask(IStatesRespnseHandler handler,HashMap<Long, ArrayList<Agent>> filter, TerminalsProcessData terminals)
+  public StatesRequestTask(IStatesRespnseHandler handler,HashMap<Long, ArrayList<Group>> filter, TerminalsProcessData terminals)
   {
     _Handler = handler;
     _Worker = new StatesRequestWorker(terminals,filter);

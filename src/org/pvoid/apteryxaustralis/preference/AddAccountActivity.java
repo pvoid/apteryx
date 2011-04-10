@@ -96,7 +96,7 @@ public class AddAccountActivity extends Activity
   }
 
   @SuppressWarnings("unused")
-  public void CheckAccount(View view)
+  public void checkAccount(View view)
   {
 ////////
     String login = _mLoginEdit.getText().toString();
@@ -170,6 +170,17 @@ public class AddAccountActivity extends Activity
         intent.putExtra("account",_mAccount);
         setResult(RESULT_OK,intent);
         finish();
+      }
+      else
+      {
+        int textId = 0;
+        if(result == IStorage.RES_ERR_NETWORK_ERROR)
+          textId = R.string.network_error;
+        else if(result<IStorage.RES_ERR_CUSTOM_FIRST)
+          textId = _mStorage.errorMessage(-result+IStorage.RES_ERR_CUSTOM_FIRST);
+
+        if(textId>0)
+          Toast.makeText(AddAccountActivity.this,textId,Toast.LENGTH_SHORT).show();
       }
     }
   }

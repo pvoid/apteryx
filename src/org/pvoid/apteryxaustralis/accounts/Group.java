@@ -20,11 +20,15 @@ package org.pvoid.apteryxaustralis.accounts;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Agent implements Parcelable
+public class Group// implements Parcelable
 {
-  public long Id;
-  public String Name;
-  @Override
+  public long id;
+  public String name;
+  public long accountId;
+  public double balance;
+  public double overdraft;
+
+/*  @Override
   public int describeContents()
   {
     return 0;
@@ -32,30 +36,30 @@ public class Agent implements Parcelable
   @Override
   public void writeToParcel(Parcel dest, int flags)
   {
-    dest.writeLong(Id);
-    dest.writeString(Name);
+    dest.writeLong(id);
+    dest.writeString(name);
   }
   
-  public static final Parcelable.Creator<Agent> CREATOR = new Parcelable.Creator<Agent>()
+  public static final Parcelable.Creator<Group> CREATOR = new Parcelable.Creator<Group>()
   {
     @Override
-    public Agent[] newArray(int size)
+    public Group[] newArray(int size)
     {
-      return(new Agent[size]);
+      return(new Group[size]);
     }
     
     @Override
-    public Agent createFromParcel(Parcel source)
+    public Group createFromParcel(Parcel source)
     {
-      Agent agent = new Agent();
-      agent.Id = source.readLong();
-      agent.Name = source.readString();
-      return(agent);
+      Group group = new Group();
+      group.id = source.readLong();
+      group.name = source.readString();
+      return(group);
     }
-  };
+  };*/
   
   public String toString()
   {
-    return(Name);
+    return(name);
   }
 }

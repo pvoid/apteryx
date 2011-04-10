@@ -77,10 +77,10 @@ public class StatesReceiver extends BroadcastReceiver
     storage.getAccounts(accounts);
     if(accounts.size()>0)
     {
-      HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
+      HashMap<Long, ArrayList<Group>> agents = new HashMap<Long, ArrayList<Group>>();
       for(Account account : accounts)
       {
-        ArrayList<Agent> agents_line = new ArrayList<Agent>();
+        ArrayList<Group> agents_line = new ArrayList<Group>();
         storage.getAgents(account.id, agents_line);
         if(agents_line.size()>0)
           agents.put(account.id, agents_line);
@@ -93,7 +93,7 @@ public class StatesReceiver extends BroadcastReceiver
         {
           if(storage.CheckStates(terminals, inactive_terminals))
             Notifyer.ShowNotification(context, inactive_terminals);
-          storage.SaveStates(terminals);
+          storage.saveTerminals(terminals);
         }
         else
           Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);

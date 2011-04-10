@@ -23,7 +23,7 @@
               >
   <ImageView android:layout_width="wrap_content"
              android:layout_height="fill_parent"
-             android:src="@drawable/terminal_active"
+             android:src="@drawable/ic_terminal_active"
              android:scaleType="fitStart"
              android:layout_marginRight="5dip"
              android:id="@+id/notify_icon"

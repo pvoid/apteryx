@@ -18,11 +18,10 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
-import android.widget.Toast;
+import android.widget.ArrayAdapter;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.net.ErrorCodes;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 
 import java.util.ArrayList;
@@ -54,19 +53,23 @@ public class OsmpStorage implements IStorage
   @Override
   public int addAccount(Account account)
   {
-    ArrayList<Agent> agents = new ArrayList<Agent>();
-    int result = OsmpRequest.checkAccount(account,agents);
+    ArrayList<Group> groups = new ArrayList<Group>();
+    int result = OsmpRequest.checkAccount(account, groups);
     if(result==0)
     {
       _mStorage.addAccount(account.id,account.title,account.login,account.passwordHash,account.terminal);
-      _mStorage.saveAgents(account.id,agents);
+      _mStorage.saveAgents(account.id, groups);
+/////// Вытащим сразу терминалы
+      ArrayList<Terminal> terminals = new ArrayList<Terminal>();
+      if(OsmpRequest.getTerminals(account,terminals)==0)
+        _mStorage.saveTerminals(account.id,terminals);
       return RES_OK;
     }
 ///////
     if(result>0)
-      Toast.makeText(_mContext, ErrorCodes.Message(result),Toast.LENGTH_LONG).show();
+      return RES_ERR_CUSTOM_FIRST - result;
 ///////
-    return RES_ERR_INVALID_ACCOUNT;
+    return result;
   }
 
   @Override
@@ -82,20 +85,54 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
-  public void getGroups(long accountId, List<Agent> agents)
+  public void getGroups(long accountId, List<Group> groups)
   {
-    _mStorage.getAgents(accountId, agents);
+    _mStorage.getAgents(accountId, groups);
   }
 
   @Override
-  public void getTerminals(long accountId, Agent group, List<Terminal> terminals)
+  public void getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals)
   {
-    throw new RuntimeException("Not implemented!");
+    ArrayList<Terminal> terminalsList = new ArrayList<Terminal>();
+    _mStorage.getTerminals(group.id,terminalsList);
+    int adapterIndex = 0;
+    while(adapterIndex<terminals.getCount())
+    {
+//////// Ищем имеющийся в новых
+      Terminal current = terminals.getItem(adapterIndex);
+      boolean found = false;
+      for(Terminal terminal : terminalsList)
+      {
+        if(terminal.id() == current.id())
+        {
+          current.update(terminal);
+          terminalsList.remove(terminal);
+          found = true;
+          break;
+        }
+      }
+//////// если нашли увеличим индекс, если нет удалим текущий
+      if(found)
+        ++adapterIndex;
+      else
+        terminals.remove(current);
+    }
+//////// то что осталось в списке новое. добавим его.
+    for(Terminal terminal : terminalsList)
+      {
+        terminals.add(terminal);
+      }
   }
 
   @Override
   public boolean isEmpty()
   {
     return !_mStorage.hasAccounts();
+  }
+
+  @Override
+  public int errorMessage(int errorCode)
+  {
+    return ErrorCodes.Message(errorCode);
   }
 }

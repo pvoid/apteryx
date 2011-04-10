@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.pvoid.apteryxaustralis.Utils;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-public class TerminalsProcessData extends DefaultHandler implements Iterable<String>
+public class TerminalsProcessData extends DefaultHandler implements Iterable<Long>
 {
   private final int TAG_NONE   = 0;
   private final int TAG_EXTRA  = 1;
@@ -40,7 +40,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   private final int EXTRA_BALANCE  = 1;
   private final int EXTRA_OVERDRAFT  = 2;
   
-  private HashMap<String,Terminal> _Terminals;
+  private HashMap<Long,Terminal> _Terminals;
   private int _Status;
   private long _AgentId;
   private HashMap<Long,Double> _Balances;
@@ -58,7 +58,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
   
   public TerminalsProcessData()
   {
-    _Terminals = new HashMap<String,Terminal>();
+    _Terminals = new HashMap<Long,Terminal>();
     _Balances = new HashMap<Long, Double>();
     _Overdrafts = new HashMap<Long, Double>();
     _Cash = new HashMap<Long, Integer>();
@@ -131,7 +131,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
       if(_AgentsFilter==null || Arrays.binarySearch(_AgentsFilter, agentId)>=0)
       {
         Terminal terminal;
-        terminal = new Terminal(tid,address);
+        terminal = new Terminal(Long.parseLong(tid),address);
         // статус
         terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
         // состояние принтера
@@ -166,7 +166,7 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
         terminal.agentId         = agentId;
         terminal.agentName       = getString(attributes, "an");
         
-        _Terminals.put(tid, terminal);
+        _Terminals.put(terminal.id(), terminal);
         _Agents.put(terminal.agentId, terminal.agentName);
         int cash = 0;
         if(_Cash.containsKey(agentId))
@@ -231,12 +231,12 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     return(_Terminals.isEmpty());
   }
   
-  public Iterator<String> iterator()
+  public Iterator<Long> iterator()
   {
     return(_Terminals.keySet().iterator());
   }
   
-  public Terminal at(String index)
+  public Terminal at(Long index)
   {
     return _Terminals.get(index);
   }
@@ -324,19 +324,19 @@ public class TerminalsProcessData extends DefaultHandler implements Iterable<Str
     _IsEmpty = true;
   }
 
-  public void SetAgentsFilter(List<Agent> agents)
+  public void SetAgentsFilter(List<Group> groups)
   {
-    if(agents==null)
+    if(groups ==null)
     {
       _AgentsFilter = null;
       return;
     }
     
-    _AgentsFilter = new long[agents.size()];
+    _AgentsFilter = new long[groups.size()];
     int index = 0;
-    for(Agent agent : agents)
+    for(Group group : groups)
     {
-      _AgentsFilter[index] = agent.Id;
+      _AgentsFilter[index] = group.id;
       index++;
     }
     Arrays.sort(_AgentsFilter);

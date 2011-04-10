@@ -20,7 +20,7 @@ package org.pvoid.apteryxaustralis.accounts;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Terminal implements Parcelable
+public class Terminal// implements Parcelable
 {
   public final static int STATE_OK = 0;
   public final static int STATE_WARRNING = 2;
@@ -49,11 +49,12 @@ public class Terminal implements Parcelable
   public String paysPerHour;
   public long agentId;
   public String agentName;
+  public int ms;
   
   protected String address;
-  protected String tid;
+  protected long tid;
   
-  public Terminal(String id, String address)
+  public Terminal(long id, String address)
   {
     this.tid = id;
     this.address = address;
@@ -65,7 +66,7 @@ public class Terminal implements Parcelable
     return address;
   }
   
-  public String id()
+  public long id()
   {
     return(tid);
   }
@@ -80,7 +81,7 @@ public class Terminal implements Parcelable
     return(state);
   }
   
-  @Override
+  /*@Override
   public int describeContents()
   {
     return 0;
@@ -89,7 +90,7 @@ public class Terminal implements Parcelable
   @Override
   public void writeToParcel(Parcel dest, int flags)
   {
-    dest.writeString(tid);
+    dest.writeLong(tid);
     dest.writeString(address);
     dest.writeInt(state);
     dest.writeString(printer_state);
@@ -121,7 +122,7 @@ public class Terminal implements Parcelable
     @Override
     public Terminal createFromParcel(Parcel src)
     {
-      Terminal terminal = new Terminal(src.readString(), src.readString());
+      Terminal terminal = new Terminal(src.readLong(), src.readString());
       terminal.State(src.readInt());
       terminal.printer_state = src.readString();
       terminal.cashbin_state = src.readString();
@@ -154,5 +155,39 @@ public class Terminal implements Parcelable
       return new Terminal[size];
     }
     
-  };
+  };*/
+
+  public void update(Terminal terminal)
+  {
+    state = terminal.State();
+    printer_state = terminal.printer_state;
+    cashbin_state = terminal.cashbin_state;
+    lpd = terminal.lpd;
+    cash = terminal.cash;
+    lastActivity = terminal.lastActivity;
+    lastPayment = terminal.lastPayment;
+    bondsCount = terminal.bondsCount;
+    balance = terminal.balance;
+    signalLevel = terminal.signalLevel;
+    softVersion = terminal.softVersion;
+    printerModel = terminal.printerModel;
+    cashbinModel = terminal.cashbinModel;
+    bonds10count = terminal.bonds10count;
+    bonds50count = terminal.bonds50count;
+    bonds100count = terminal.bonds100count;
+    bonds500count = terminal.bonds500count;
+    bonds1000count = terminal.bonds1000count;
+    bonds5000count = terminal.bonds5000count;
+    bonds10000count = terminal.bonds10000count;
+    paysPerHour = terminal.paysPerHour;
+    agentId = terminal.agentId;
+    agentName = terminal.agentName;
+    address = terminal.address;
+  }
+
+  @Override
+  public String toString()
+  {
+    return address;
+  }
 }

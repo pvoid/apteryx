@@ -18,47 +18,131 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import java.util.List;
-import java.util.Set;
 
-import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import org.pvoid.apteryxaustralis.storage.IStorage;
 
 class Storage
 {
-  private static final String CREATE_ACCOUNTS_TABLE = 
-      "create table accounts (id text primary key,"
-      + "title text not null,login text not null, password text not null,"
-      +"terminal text not null);";
-  
-  private static final String CREATE_TERMINALS_TABLE = 
-      "create table terminals (id integer not null primary key asc, address text not null, state integer," +
-      "printer_state text not null, cashbin_state text not null," +
-      "lpd text not null, cash integer not null," +
-      "last_activity text not null, last_payment text not null, bonds_count integer not null," +
-      "balance text not null, signal_level integer not null, soft_version text not null," +
-      "printer_model text not null, cashbin_model text null," +
-      "bonds_10 integer not null,bonds_50 integer not null,bonds_100 integer not null," +
-      "bonds_500 integer not null,bonds_1000 integer not null,bonds_5000 integer not null," +
-      "bonds_10000 integer not null,pays_per_hour text not null,agent_id text not null," +
-      "agent_name text not null);";
-  
-  private static final String CREATE_BALANCE_TABLE = 
-      "create table balances (agent_id text not null primary key, balance real not null, overdraft real not null);";
-  
-  private static final String CREATE_AGENTS_TABLE = 
-      "create table agents (account text not null, agent_id text not null)";
-  
+  public static final String DB_NAME = "apteryx";
+  public static final int DB_VERSION = 4;
+  /**
+   * Описание таблицы аккаунтов
+   */
+  private static interface Accounts
+  {
+    static final String TABLE_NAME = "accounts";
+//////// Колонки
+    static final String COLUMN_ID = "id";
+    static final String COLUMN_TITLE = "title";
+    static final String COLUMN_LOGIN = "login";
+    static final String COLUMN_PASSWORD = "password";
+    static final String COLUMN_TERMINAL = "terminal";
+//////// Запросы
+    static final String CREATE_SQL = "create table " + TABLE_NAME + " (" +
+                                     COLUMN_ID + " text primary key," +
+                                     COLUMN_TITLE + " text not null," +
+                                     COLUMN_LOGIN + " text not null," +
+                                     COLUMN_PASSWORD + " text not null," +
+                                     COLUMN_TERMINAL + " text not null);";
+    static final String ID_CLAUSE = COLUMN_ID+"=?";
+  }
+  /**
+   * Описание таблицы агентов
+   */
+  private static interface Agents
+  {
+    static final String TABLE_NAME = "agents";
+
+    static final String COLUMN_ACCOUNT = "account";
+    static final String COLUMN_AGENT = "agent_id";
+    static final String COLUMN_AGENT_NAME = "agent_name";
+    static final String COLUMN_BALANCE = "agent_balance";
+    static final String COLUMN_OVERDRAFT = "agent_overdraft";
+
+    static final String CREATE_SQL = "create table " + TABLE_NAME +" ("+
+                                     COLUMN_ACCOUNT+" text not null," +
+                                     COLUMN_AGENT_NAME+" text not null," +
+                                     COLUMN_BALANCE+" text not null," +
+                                     COLUMN_OVERDRAFT+" text not null," +
+                                     COLUMN_AGENT+" text not null)";
+
+    static final String ACCOUNT_CLAUSE = COLUMN_ACCOUNT + "=?";
+  }
+  /**
+   * Описание таблицы терминалов
+   */
+  private static interface Terminals
+  {
+    static final String TABLE_NAME = "terminals";
+//////// Колонки
+    static final String COLUMN_ID = "id";
+    static final String COLUMN_ADDRESS = "address";
+    static final String COLUMN_STATE = "state";
+    static final String COLUMN_MS = "ms";
+    static final String COLUMN_PRINTERSTATE = "printer_state";
+    static final String COLUMN_CASHBINSTATE = "cashbin_state";
+    static final String COLUMN_LPD = "lpd";
+    static final String COLUMN_CASH = "cash";
+    static final String COLUMN_LASTACTIVITY = "last_activity";
+    static final String COLUMN_LASTPAYMENT = "last_payment";
+    static final String COLUMN_BONDS = "bonds_count";
+    static final String COLUMN_BALANCE = "balance";
+    static final String COLUMN_SIGNALLEVEL = "signal_level";
+    static final String COLUMN_SOFTVERSION = "soft_version";
+    static final String COLUMN_PRINTERMODEL = "printer_model";
+    static final String COLUMN_CASHBINMODEL = "cashbin_model";
+    static final String COLUMN_BONDS10 = "bonds_10";
+    static final String COLUMN_BONDS50 = "bonds_50";
+    static final String COLUMN_BONDS100 = "bonds_100";
+    static final String COLUMN_BONDS500 = "bonds_500";
+    static final String COLUMN_BONDS1000 = "bonds_1000";
+    static final String COLUMN_BONDS5000 = "bonds_5000";
+    static final String COLUMN_BONDS10000 = "bonds_10000";
+    static final String COLUMN_PAYSPERHOUR = "pays_per_hour";
+    static final String COLUMN_AGENTID = "agent_id";
+    static final String COLUMN_AGENTNAME = "agent_name";
+    static final String COLUMN_ACCOUNTID = "account_id";
+//////// Запросы
+    static final String CREATE_SQL = "create table "+TABLE_NAME+" ("+
+                                     COLUMN_ID +" integer not null primary key asc,"+
+                                     COLUMN_ADDRESS + " text not null,"+
+                                     COLUMN_STATE + " integer," +
+                                     COLUMN_MS + " integer not null," +
+                                     COLUMN_ACCOUNTID + " integer not null,"+
+                                     COLUMN_PRINTERSTATE + " text not null,"+
+                                     COLUMN_CASHBINSTATE + " text not null," +
+                                     COLUMN_LPD + " text not null,"+
+                                     COLUMN_CASH + " integer not null,"+
+                                     COLUMN_LASTACTIVITY + " text not null,"+
+                                     COLUMN_LASTPAYMENT + " text not null,"+
+                                     COLUMN_BONDS + " integer not null," +
+                                     COLUMN_BALANCE + " text not null,"+
+                                     COLUMN_SIGNALLEVEL + " integer not null,"+
+                                     COLUMN_SOFTVERSION + " text not null," +
+                                     COLUMN_PRINTERMODEL + " text not null,"+
+                                     COLUMN_CASHBINMODEL + " text null," +
+                                     COLUMN_BONDS10 + " integer not null,"+
+                                     COLUMN_BONDS50 + " integer not null,"+
+                                     COLUMN_BONDS100 + "  integer not null," +
+                                     COLUMN_BONDS500 + " integer not null,"+
+                                     COLUMN_BONDS1000 + " integer not null,"+
+                                     COLUMN_BONDS5000 + " integer not null," +
+                                     COLUMN_BONDS10000 + " integer not null,"+
+                                     COLUMN_PAYSPERHOUR + " text not null,"+
+                                     COLUMN_AGENTID + " text not null," +
+                                     COLUMN_AGENTNAME + " text not null);";
+    static final String AGENT_ID_CLAUSE = COLUMN_AGENTID+"=?";
+  }
+
   private DatabaseHelper _database;
   private Context _context;
   
@@ -66,22 +150,31 @@ class Storage
   {
     public DatabaseHelper(Context context)
     {
-      super(context,Consts.DB_NAME,null,Consts.DB_VERSION);
+      super(context,DB_NAME,null,DB_VERSION);
     }
     
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-      db.execSQL(CREATE_ACCOUNTS_TABLE);
-      db.execSQL(CREATE_TERMINALS_TABLE);
-      db.execSQL(CREATE_BALANCE_TABLE);
-      db.execSQL(CREATE_AGENTS_TABLE);
+      db.execSQL(Accounts.CREATE_SQL);
+      db.execSQL(Terminals.CREATE_SQL);
+      db.execSQL(Agents.CREATE_SQL);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
-      // TODO Auto-generated method stub
+      switch(oldVersion)
+      {
+        case 2:
+          db.execSQL("alter table " + Terminals.TABLE_NAME + " add column " + Terminals.COLUMN_ACCOUNTID + " integer not null default 0");
+          db.execSQL("alter table " + Agents.TABLE_NAME + " add column " + Agents.COLUMN_AGENT_NAME + " text not null default ''");
+          db.execSQL("alter table " + Agents.TABLE_NAME + " add column " + Agents.COLUMN_BALANCE + " text not null default '0'");
+          db.execSQL("alter table " + Agents.TABLE_NAME + " add column " + Agents.COLUMN_OVERDRAFT + " text not null default '0'");
+          db.execSQL("drop table balances");
+        case 3:
+          db.execSQL("alter table " + Terminals.TABLE_NAME + " add column " + Terminals.COLUMN_MS + " integer not null default 0");
+      }
     }
   }
   
@@ -105,13 +198,13 @@ class Storage
   public boolean addAccount(long id, String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
-    values.put(Consts.COLUMN_ID, Long.toString(id));
-    values.put(Consts.COLUMN_TITLE, title);
-    values.put(Consts.COLUMN_LOGIN, login);
-    values.put(Consts.COLUMN_PASSWORD, password);
-    values.put(Consts.COLUMN_TERMINAL, terminal);    
+    values.put(Accounts.COLUMN_ID, Long.toString(id));
+    values.put(Accounts.COLUMN_TITLE, title);
+    values.put(Accounts.COLUMN_LOGIN, login);
+    values.put(Accounts.COLUMN_PASSWORD, password);
+    values.put(Accounts.COLUMN_TERMINAL, terminal);
     SQLiteDatabase db = OpenWrite();
-    boolean result = db.insert(Consts.ACCOUNTS_TABLE, null, values)!=-1;
+    boolean result = db.insert(Accounts.TABLE_NAME, null, values)!=-1;
     _database.close();
     return(result);
   }
@@ -119,20 +212,20 @@ class Storage
   public void EditAccount(long id,String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
-    values.put(Consts.COLUMN_TITLE, title);
-    values.put(Consts.COLUMN_LOGIN, login);
-    values.put(Consts.COLUMN_PASSWORD, password);
-    values.put(Consts.COLUMN_TERMINAL, terminal);
+    values.put(Accounts.COLUMN_TITLE, title);
+    values.put(Accounts.COLUMN_LOGIN, login);
+    values.put(Accounts.COLUMN_PASSWORD, password);
+    values.put(Accounts.COLUMN_TERMINAL, terminal);
     SQLiteDatabase db = OpenWrite();
-    db.update(Consts.ACCOUNTS_TABLE, values, Consts.COLUMN_ID+'='+id, null);
+    db.update(Accounts.TABLE_NAME, values, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
     _database.close();
   }
   
   public void DeleteAccount(long id)
   {
     SQLiteDatabase db = OpenWrite();
-    db.delete(Consts.ACCOUNTS_TABLE, Consts.COLUMN_ID + "=" + id,null);
-    db.delete(Consts.BALANCES_TABLE, Consts.COLUMN_AGENTID + "=" + id, null);
+    db.delete(Accounts.TABLE_NAME, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
+    // TODO: Удалить агентов и терминалы
     _database.close();
   }
 /**
@@ -142,7 +235,11 @@ class Storage
   public void getAccounts(final List<Account> adapter)
   {
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(true, Consts.ACCOUNTS_TABLE, new String[] {Consts.COLUMN_ID,Consts.COLUMN_TITLE,Consts.COLUMN_LOGIN,Consts.COLUMN_PASSWORD,Consts.COLUMN_TERMINAL},
+    Cursor cursor = db.query(true, Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
+                                                                      Accounts.COLUMN_TITLE,
+                                                                      Accounts.COLUMN_LOGIN,
+                                                                      Accounts.COLUMN_PASSWORD,
+                                                                      Accounts.COLUMN_TERMINAL},
                              null, null, null, null, null, null);
     if(cursor!=null)
     {
@@ -163,46 +260,45 @@ class Storage
     _database.close();
   }
   
-  public void SaveStates(final TerminalsProcessData terminals)
+  public void saveTerminals(long accountId, final List<Terminal> terminals)
   {
     ContentValues values = new ContentValues();
     
     SQLiteDatabase db = OpenWrite();
-    db.delete(Consts.TERMINALS_TABLE, null, null);    
-    for(String terminal_id : terminals)
+    db.delete(Terminals.TABLE_NAME, Terminals.COLUMN_ACCOUNTID + "=?", new String[] {Long.toString(accountId)});
+    for(Terminal terminal : terminals )
     {
-      Terminal terminal = terminals.at(terminal_id);
+      values.put(Terminals.COLUMN_ID, terminal.id());
+      values.put(Terminals.COLUMN_ADDRESS, terminal.Address());
+      values.put(Terminals.COLUMN_STATE, terminal.State());
+      values.put(Terminals.COLUMN_PRINTERSTATE,terminal.printer_state);
+      values.put(Terminals.COLUMN_CASHBINSTATE,terminal.cashbin_state);
+      values.put(Terminals.COLUMN_LPD,terminal.lpd);
+      values.put(Terminals.COLUMN_CASH,terminal.cash);
+      values.put(Terminals.COLUMN_LASTACTIVITY,terminal.lastActivity);
+      values.put(Terminals.COLUMN_LASTPAYMENT,terminal.lastPayment);
+      values.put(Terminals.COLUMN_BONDS,terminal.bondsCount);
+      values.put(Terminals.COLUMN_BALANCE,terminal.balance);
+      values.put(Terminals.COLUMN_SIGNALLEVEL,terminal.signalLevel);
+      values.put(Terminals.COLUMN_SOFTVERSION,terminal.softVersion);
+      values.put(Terminals.COLUMN_PRINTERMODEL,terminal.printerModel);
+      values.put(Terminals.COLUMN_CASHBINMODEL,terminal.cashbinModel);
+      values.put(Terminals.COLUMN_BONDS10,terminal.bonds10count);
+      values.put(Terminals.COLUMN_BONDS50,terminal.bonds50count);
+      values.put(Terminals.COLUMN_BONDS100,terminal.bonds100count);
+      values.put(Terminals.COLUMN_BONDS500,terminal.bonds500count);
+      values.put(Terminals.COLUMN_BONDS1000,terminal.bonds1000count);
+      values.put(Terminals.COLUMN_BONDS5000,terminal.bonds5000count);
+      values.put(Terminals.COLUMN_BONDS10000,terminal.bonds10000count);
+      values.put(Terminals.COLUMN_PAYSPERHOUR,terminal.paysPerHour);
+      values.put(Terminals.COLUMN_AGENTID,terminal.agentId);
+      values.put(Terminals.COLUMN_AGENTNAME,terminal.agentName);
+      values.put(Terminals.COLUMN_ACCOUNTID,accountId);
       
-      values.put(Consts.COLUMN_ID, terminal.id());
-      values.put(Consts.COLUMN_ADDRESS, terminal.Address());
-      values.put(Consts.COLUMN_STATE, terminal.State());
-      values.put(Consts.COLUMN_PRINTERSTATE,terminal.printer_state);
-      values.put(Consts.COLUMN_CASHBINSTATE,terminal.cashbin_state);
-      values.put(Consts.COLUMN_LPD,terminal.lpd);
-      values.put(Consts.COLUMN_CASH,terminal.cash);
-      values.put(Consts.COLUMN_LASTACTIVITY,terminal.lastActivity);
-      values.put(Consts.COLUMN_LASTPAYMENT,terminal.lastPayment);
-      values.put(Consts.COLUMN_BONDS,terminal.bondsCount);
-      values.put(Consts.COLUMN_BALANCE,terminal.balance);
-      values.put(Consts.COLUMN_SIGNALLEVEL,terminal.signalLevel);
-      values.put(Consts.COLUMN_SOFTVERSION,terminal.softVersion);
-      values.put(Consts.COLUMN_PRINTERMODEL,terminal.printerModel);
-      values.put(Consts.COLUMN_CASHBINMODEL,terminal.cashbinModel);
-      values.put(Consts.COLUMN_BONDS10,terminal.bonds10count);
-      values.put(Consts.COLUMN_BONDS50,terminal.bonds50count);
-      values.put(Consts.COLUMN_BONDS100,terminal.bonds100count);
-      values.put(Consts.COLUMN_BONDS500,terminal.bonds500count);
-      values.put(Consts.COLUMN_BONDS1000,terminal.bonds1000count);
-      values.put(Consts.COLUMN_BONDS5000,terminal.bonds5000count);
-      values.put(Consts.COLUMN_BONDS10000,terminal.bonds10000count);
-      values.put(Consts.COLUMN_PAYSPERHOUR,terminal.paysPerHour);
-      values.put(Consts.COLUMN_AGENTID,terminal.agentId);
-      values.put(Consts.COLUMN_AGENTNAME,terminal.agentName);
-      
-      db.insert(Consts.TERMINALS_TABLE, null, values);
+      db.insert(Terminals.TABLE_NAME, null, values);
     }
 ///////
-    Set<Long> keys = terminals.Accounts();
+    /*Set<Long> keys = terminals.Accounts();
     values.clear();
     db.delete(Consts.BALANCES_TABLE, null, null);
     for(Long agentId : keys)
@@ -212,20 +308,15 @@ class Storage
       values.put(Consts.COLUMN_OVERDRAFT, terminals.Overdraft(agentId));
       
       db.insert(Consts.BALANCES_TABLE, null, values);
-    }
+    }*/
     _database.close();
-///////
-    SharedPreferences prefs = _context.getSharedPreferences(Consts.APTERYX_PREFS,Context.MODE_PRIVATE);
-    SharedPreferences.Editor edit = prefs.edit();
-    edit.putLong(Consts.PREF_LASTUPDATE, System.currentTimeMillis());
-    edit.commit();
   }
   
   public boolean hasAccounts()
   {
     boolean result = false;
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.rawQuery("select count(*) from "+Consts.ACCOUNTS_TABLE, null);
+    Cursor cursor = db.rawQuery("select count(*) from "+Accounts.TABLE_NAME, null);
     if(cursor!=null)
     {
       if(cursor.moveToFirst())
@@ -239,43 +330,42 @@ class Storage
     return(result);
   }
   
-  public void GetTerminals(final TerminalsProcessData terminals)
+  public void getTerminals(final long agentId, final List<Terminal> terminals)
   {
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Consts.TERMINALS_TABLE, new String[] {Consts.COLUMN_ID,
-                                                                   Consts.COLUMN_ADDRESS,
-                                                                   Consts.COLUMN_STATE,
-                                                                   Consts.COLUMN_PRINTERSTATE,
-                                                                   Consts.COLUMN_CASHBINSTATE,
-                                                                   Consts.COLUMN_LPD,
-                                                                   Consts.COLUMN_CASH,
-                                                                   Consts.COLUMN_LASTACTIVITY,
-                                                                   Consts.COLUMN_LASTPAYMENT,
-                                                                   Consts.COLUMN_BONDS,
-                                                                   Consts.COLUMN_BALANCE,
-                                                                   Consts.COLUMN_SIGNALLEVEL,
-                                                                   Consts.COLUMN_SOFTVERSION,
-                                                                   Consts.COLUMN_PRINTERMODEL,
-                                                                   Consts.COLUMN_CASHBINMODEL,
-                                                                   Consts.COLUMN_BONDS10,
-                                                                   Consts.COLUMN_BONDS50,
-                                                                   Consts.COLUMN_BONDS100,
-                                                                   Consts.COLUMN_BONDS500,
-                                                                   Consts.COLUMN_BONDS1000,
-                                                                   Consts.COLUMN_BONDS5000,
-                                                                   Consts.COLUMN_BONDS10000,
-                                                                   Consts.COLUMN_PAYSPERHOUR,
-                                                                   Consts.COLUMN_AGENTID,
-                                                                   Consts.COLUMN_AGENTNAME},
-                             null,null,null,null,null,null);
+    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
+                                                                 Terminals.COLUMN_ADDRESS,
+                                                                 Terminals.COLUMN_STATE,
+                                                                 Terminals.COLUMN_PRINTERSTATE,
+                                                                 Terminals.COLUMN_CASHBINSTATE,
+                                                                 Terminals.COLUMN_LPD,
+                                                                 Terminals.COLUMN_CASH,
+                                                                 Terminals.COLUMN_LASTACTIVITY,
+                                                                 Terminals.COLUMN_LASTPAYMENT,
+                                                                 Terminals.COLUMN_BONDS,
+                                                                 Terminals.COLUMN_BALANCE,
+                                                                 Terminals.COLUMN_SIGNALLEVEL,
+                                                                 Terminals.COLUMN_SOFTVERSION,
+                                                                 Terminals.COLUMN_PRINTERMODEL,
+                                                                 Terminals.COLUMN_CASHBINMODEL,
+                                                                 Terminals.COLUMN_BONDS10,
+                                                                 Terminals.COLUMN_BONDS50,
+                                                                 Terminals.COLUMN_BONDS100,
+                                                                 Terminals.COLUMN_BONDS500,
+                                                                 Terminals.COLUMN_BONDS1000,
+                                                                 Terminals.COLUMN_BONDS5000,
+                                                                 Terminals.COLUMN_BONDS10000,
+                                                                 Terminals.COLUMN_PAYSPERHOUR,
+                                                                 Terminals.COLUMN_AGENTID,
+                                                                 Terminals.COLUMN_AGENTNAME},
+                             Terminals.AGENT_ID_CLAUSE,new String[] {Long.toString(agentId)},null,null,null,null);
     if(cursor!=null)
     {
       if(cursor.moveToFirst())
       {
-        terminals.startDocument();
         do
         {
-          Terminal terminal = new Terminal(cursor.getString(0), cursor.getString(1));
+          Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
           terminal.State(cursor.getInt(2));
           terminal.printer_state = cursor.getString(3);
           terminal.cashbin_state = cursor.getString(4);
@@ -304,24 +394,6 @@ class Storage
         while(cursor.moveToNext());
       }
       cursor.close();      
-      cursor = db.query(Consts.BALANCES_TABLE, new String[] {Consts.COLUMN_AGENTID,
-                                                              Consts.COLUMN_BALANCE,
-                                                              Consts.COLUMN_OVERDRAFT},
-                        null,null,null,null,null,null);
-      if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
-        {
-          do
-          {
-            long agentId = Long.parseLong(cursor.getString(0));
-            terminals.Balance(agentId, cursor.getDouble(1));
-            terminals.Overdraft(agentId, cursor.getDouble(2));
-          }
-          while(cursor.moveToNext());
-        }
-        cursor.close();
-      }
     }
     _database.close();
   }
@@ -330,7 +402,7 @@ class Storage
   {
     Boolean result = false;
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Consts.TERMINALS_TABLE, new String[] {Consts.COLUMN_ID, Consts.COLUMN_STATE},
+    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID, Terminals.COLUMN_STATE},
                              null,null,null,null,null,null);
     if(cursor!=null)
     {
@@ -338,7 +410,7 @@ class Storage
       {
         do
         {
-          String terminal_id = cursor.getString(0);
+          long terminal_id = cursor.getLong(0);
           int terminal_state = cursor.getInt(1);
           Terminal terminal = terminals.at(terminal_id);
           if(terminal!=null)
@@ -358,16 +430,19 @@ class Storage
     return(result);
   }
   
-  public boolean saveAgents(long account, List<Agent> agents)
+  public boolean saveAgents(long account, List<Group> groups)
   {
     SQLiteDatabase db = OpenWrite();
     ContentValues values = new ContentValues();
-    values.put(Consts.COLUMN_ACCOUNT, Long.toString(account));
+    values.put(Agents.COLUMN_ACCOUNT, Long.toString(account));
     
-    for(Agent agent : agents)
+    for(Group group : groups)
     {
-      values.put(Consts.COLUMN_AGENTID, agent.Id);
-      db.insert(Consts.AGENTS_TABLE, null, values);
+      values.put(Agents.COLUMN_AGENT, group.id);
+      values.put(Agents.COLUMN_AGENT_NAME, group.name);
+      values.put(Agents.COLUMN_BALANCE, group.balance);
+      values.put(Agents.COLUMN_OVERDRAFT, group.overdraft);
+      db.insert(Agents.TABLE_NAME, null, values);
     }
     _database.close();
     return(true);
@@ -376,23 +451,30 @@ class Storage
   public void ClearAgents(long account)
   {
     SQLiteDatabase db = OpenWrite();
-    db.delete(Consts.AGENTS_TABLE, Consts.COLUMN_ACCOUNT+"="+account,null);
+    db.delete(Agents.TABLE_NAME, Agents.ACCOUNT_CLAUSE,new String[] {Long.toString(account)});
     _database.close();
   }
   
-  public void getAgents(long account, List<Agent> agents)
+  public void getAgents(long account, List<Group> groups)
   {
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Consts.AGENTS_TABLE, new String[] {Consts.COLUMN_AGENTID}, null, null, Consts.COLUMN_ACCOUNT+"="+account, null, null);
+    Cursor cursor = db.query(Agents.TABLE_NAME,
+                             new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT},
+                             Agents.ACCOUNT_CLAUSE,
+                             new String[] {Long.toString(account)},
+                             null, null, null);
     if(cursor!=null)
     {
       if(cursor.moveToFirst())
       {
         do
         {
-          Agent agent = new Agent();
-          agent.Id = cursor.getLong(0);
-          agents.add(agent);
+          Group group = new Group();
+          group.id = cursor.getLong(0);
+          group.name = cursor.getString(1);
+          group.balance = cursor.getDouble(2);
+          group.overdraft = cursor.getDouble(3);
+          groups.add(group);
         }
         while(cursor.moveToNext());
       }

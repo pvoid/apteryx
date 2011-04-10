@@ -15,35 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.storage;
+package org.pvoid.apteryxaustralis.ui;
 
-
+import android.content.Context;
 import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 
-import java.util.List;
-
-public interface IStorage
+public class GroupArrayAdapter extends ArrayAdapter<Terminal>
 {
-  static final int RES_OK = 0;
-  static final int RES_OK_TERMINAL_ALARM = 1;
+  Group _mGroup;
 
-  static final int RES_ERR_INVALID_ACCOUNT = -1;
-  static final int RES_ERR_NETWORK_ERROR = -2;
-  static final int RES_ERR_INCORRECT_RESPONSE = -3;
+  public GroupArrayAdapter(Context context, Group group)
+  {
+    super(context, R.layout.terminal,R.id.list_title);
+    _mGroup = group;
+  }
 
-  static final int RES_ERR_CUSTOM_FIRST = -20;
-
-
-  void getAccounts(final List<Account> adapter);
-  void deleteAccount(long id);
-  int addAccount(Account account);
-  Account getAccount(long id);
-  int updateAccount(Account account);
-  void getGroups(long accountId, List<Group> groups);
-  void getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals);
-  boolean isEmpty();
-  int errorMessage(int errorCode);
+  public long getGroupId()
+  {
+    if(_mGroup==null)
+      return 0;
+////////
+    return _mGroup.id;
+  }
 }

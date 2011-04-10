@@ -19,11 +19,10 @@ package org.pvoid.apteryxaustralis.net;
 
 import java.util.ArrayList;
 
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import org.pvoid.apteryxaustralis.accounts.Agent;
 
 public class AgentInfoProcessData extends DefaultHandler
 {
@@ -33,12 +32,12 @@ public class AgentInfoProcessData extends DefaultHandler
   private StringBuilder _Text;
   private int _Code;
   private int _TagCode;
-  private ArrayList<Agent> _Agents;
+  private ArrayList<Group> _mGroups;
   
   public AgentInfoProcessData()
   {
     _Text = new StringBuilder();
-    _Agents = new ArrayList<Agent>();
+    _mGroups = new ArrayList<Group>();
   }
   
   @Override
@@ -46,7 +45,7 @@ public class AgentInfoProcessData extends DefaultHandler
   {
     _TagCode = TAG_NONE;
     _Text.delete(0, _Text.length());
-    _Agents.clear();
+    _mGroups.clear();
   }
   
   @Override
@@ -54,10 +53,10 @@ public class AgentInfoProcessData extends DefaultHandler
   {
     if(localName.compareToIgnoreCase("agt")==0)
     {
-      Agent agent = new Agent();
-      agent.Id = Long.parseLong(attributes.getValue("aid"));
-      agent.Name = attributes.getValue("an");
-      _Agents.add(agent);
+      Group group = new Group();
+      group.id = Long.parseLong(attributes.getValue("aid"));
+      group.name = attributes.getValue("an");
+      _mGroups.add(group);
     }
     else if(localName.compareToIgnoreCase("result-code")==0)
     {
@@ -89,9 +88,9 @@ public class AgentInfoProcessData extends DefaultHandler
     return(_Code);
   }
   
-  public ArrayList<Agent> Agents()
+  public ArrayList<Group> Agents()
   {
-    return(_Agents);
+    return(_mGroups);
   }
 }
   

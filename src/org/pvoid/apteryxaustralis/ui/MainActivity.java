@@ -17,23 +17,20 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 
+import android.view.ViewGroup;
+import android.view.animation.Animation;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Notifyer;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.accounts.Agent;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.net.IStatesRespnseHandler;
-import org.pvoid.apteryxaustralis.net.StatesRequestTask;
-import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -45,42 +42,39 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Html;
-import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements IStatesRespnseHandler, OnItemClickListener
+public class MainActivity extends Activity
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
   
-  private TerminalsProcessData _Terminals;
-  private ListView _TerminalsList;
-  private TerminalsArrayAdapter _TerminalsAdapter;
+  //private TerminalsProcessData _Terminals;
+  //private ListView _TerminalsList;
+  //private TerminalsArrayAdapter _TerminalsAdapter;
   private OsmpStorage _mStorage;
   
   private boolean _Refreshing;
   private final Object _RefreshLock = new Object();
+  private int _mSpinnerCount = 0;
+  private Animation _mSpinnerAnimation;
+  private ArrayList<GroupArrayAdapter> _mGroups;
+  private SlideBand _mSlider;
   
   public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      MainActivity.this.RefreshStates();
+      MainActivity.this.refreshData();
     }
   };
   
@@ -115,12 +109,16 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main);
-    setProgressBarIndeterminateVisibility(false);
-    _Terminals = new TerminalsProcessData();
-    _TerminalsAdapter = new TerminalsArrayAdapter(this, R.layout.terminal);
+    _mSlider = (SlideBand) findViewById(R.id.groups);
+    _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
+/////////
+    _mGroups = new ArrayList<GroupArrayAdapter>();
     _mStorage = new OsmpStorage(this);
+/////////
+    refreshData();
+    fillAgents();
+
     /*_TerminalsList = (ListView)findViewById(R.id.terminals_list);
     _Refreshing = false;
     if(_TerminalsList!=null)
@@ -132,7 +130,8 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     ViewFlipper fliper = (ViewFlipper)findViewById(R.id.balances_flipper);
     fliper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_in));
     fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));*/
-    
+
+    setSpinnerVisibility(true);
     if(Preferences.getAutoUpdate(this))
     {
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
@@ -177,27 +176,105 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     }
     return(result);
   }
-  
+
+  private void setSpinnerVisibility(boolean visible)
+  {
+    View spinner = findViewById(R.id.refresh_spinner);
+    if(!visible)
+    {
+      if(_mSpinnerCount>0)
+        --_mSpinnerCount;
+    }
+    else
+      ++_mSpinnerCount;
+
+    if(_mSpinnerCount==0)
+    {
+      spinner.clearAnimation();
+      spinner.setVisibility(View.GONE);
+    }
+    else
+    {
+      spinner.setVisibility(View.VISIBLE);
+      spinner.startAnimation(_mSpinnerAnimation);
+    }
+  }
+
   private void ShowPreferencesActivity()
   {
     Intent intent = new Intent(this,CommonSettings.class);
     startActivityForResult(intent, 0); 
   }
-  
-  private void RefreshStates()
+
+  protected void refreshData()
+  {
+    ArrayList<Account> accounts = new ArrayList<Account>();
+    ArrayList<Group> groups = new ArrayList<Group>();
+    _mStorage.getAccounts(accounts);
+////////
+    for(Account account : accounts)
+    {
+      groups.clear();
+      _mStorage.getGroups(account.id, groups);
+      for(Group group : groups)
+      {
+        GroupArrayAdapter adapter = null;
+/////////////////
+        for(int i=0,len=_mGroups.size();i<len;++i)
+        {
+          if(_mGroups.get(i).getGroupId()== group.id)
+          {
+            adapter = _mGroups.get(i);
+            break;
+          }
+        }
+////////////////
+        if(adapter==null)
+        {
+          adapter = new GroupArrayAdapter(this, group);
+          _mGroups.add(adapter);
+        }
+        else
+        {
+          // TODO: update агента
+        }
+//////////////// Вытащим терминалы
+        _mStorage.getTerminals(account.id, group,adapter);
+        // TODO: Сортировка
+      }
+    }
+  }
+
+  private void fillAgents()
+  {
+    int index = 0;
+    for(GroupArrayAdapter adapter : _mGroups)
+    {
+      if(_mSlider.getChildCount()<=index)
+      {
+        ListView list = new ListView(this);
+        list.setAdapter(adapter);
+        list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT));
+        _mSlider.addView(list);
+      }
+    }
+  }
+
+////////////// пересмотреть
+  /*private void RefreshStates()
   {
     synchronized (_RefreshLock)
     {
       _Refreshing = true;
       setProgressBarIndeterminateVisibility(true);
       ArrayList<Account> accounts = new ArrayList<Account>();
-      HashMap<Long, ArrayList<Agent>> agents = new HashMap<Long, ArrayList<Agent>>();
+      HashMap<Long, ArrayList<Group>> agents = new HashMap<Long, ArrayList<Group>>();
       _mStorage.getAccounts(accounts);
       if(accounts.size()>0)
       {
         for(Account account : accounts)
         {
-          ArrayList<Agent> agents_line = new ArrayList<Agent>();
+          ArrayList<Group> agents_line = new ArrayList<Group>();
           _mStorage.getGroups(account.id, agents_line);
           if(agents_line.size()>0)
             agents.put(account.id, agents_line);
@@ -209,7 +286,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       else
         ShowSettingsAlarm();
     }
-  }
+  }*/
   
   private void ShowSettingsAlarm()
   {
@@ -232,7 +309,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   {
     SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
 //////
-    if(!_Terminals.hasAccounts())
+    if(!_mStorage.isEmpty())
       Toast.makeText(this, getString(R.string.network_error), Toast.LENGTH_LONG).show();
   }
   
@@ -250,7 +327,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       return;
     }
 ///////
-    // TODO: _mStorage.GetTerminals(_Terminals);
+    // TODO: _mStorage.getTerminals(_Terminals);
     DrawTerminals();
 ///////
     ShowStateInfo();
@@ -264,7 +341,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
         ShowPreferencesActivity();
         break;
       case REFRESH_MENU_ID:
-        RefreshStates();
+        //RefreshStates();
         break;
     }
     return(super.onOptionsItemSelected(item));
@@ -274,13 +351,13 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
   {
     if(resultCode==Consts.RESULT_RELOAD)
     {
-      RefreshStates();
+      //RefreshStates();
     }
   }
   
   private void DrawTerminals()
   {
-    _TerminalsAdapter.clear();
+    /*_TerminalsAdapter.clear();
     for(String terminal_key : _Terminals)
     {
       _TerminalsAdapter.add(_Terminals.at(terminal_key));
@@ -297,10 +374,10 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       _TerminalsAdapter.add(terminal);
     }
     
-    _TerminalsAdapter.sort(_TerminalComparer);
+    _TerminalsAdapter.sort(_TerminalComparer);*/
   }
   
-  @Override
+  /*@Override
   public void onSuccessRequest()
   {
     synchronized (_RefreshLock)
@@ -309,7 +386,7 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
     }
 //////
     DrawTerminals();
-    // TODO: _mStorage.SaveStates(_Terminals);
+    // TODO: _mStorage.saveTerminals(_Terminals);
     setProgressBarIndeterminateVisibility(false);
 //////
     ShowStateInfo();
@@ -325,8 +402,9 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
 //////
     setProgressBarIndeterminateVisibility(false);
     Toast.makeText(this, R.string.network_error, 300).show();
-  }
-  @Override
+  }*/
+
+  /*@Override
   public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
   {
     Terminal terminal = _TerminalsAdapter.getItem(position);
@@ -336,36 +414,6 @@ public class MainActivity extends Activity implements IStatesRespnseHandler, OnI
       intent.putExtra("terminal", terminal);
       startActivity(intent);
     }
-  }
-  
-  public void DrawBalances(ViewFlipper flipper)
-  {
-    int childs = flipper.getChildCount();
-    int index = 0;
-///////
-    ArrayList<Account> accounts = new ArrayList<Account>();
-    _mStorage.getAccounts(accounts);
-///////
-    TextView view;
-    for(Account account : accounts)
-    {
-      if(index<childs)
-      {
-        view = (TextView)flipper.getChildAt(index);
-        ++index;
-      }
-      else
-      {
-        view = new TextView(this);
-        flipper.addView(view, LayoutParams.WRAP_CONTENT);
-      }
+  }*/
 
-      view.setText(Html.fromHtml("<b>"+account.title +"</b><br>"+_Terminals.Balance(account.id)));
-    }
-    
-    if(accounts.size()>1)
-      flipper.startFlipping();
-    else
-      flipper.stopFlipping();
-  }
 }

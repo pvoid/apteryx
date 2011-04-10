@@ -28,16 +28,16 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class StatesRequestWorker
 {
   private final TerminalsProcessData _Terminals;
-  private final HashMap<Long, ArrayList<Agent>> _Filter;
+  private final HashMap<Long, ArrayList<Group>> _Filter;
 
-  public StatesRequestWorker(TerminalsProcessData terminals,HashMap<Long, ArrayList<Agent>> filter)
+  public StatesRequestWorker(TerminalsProcessData terminals,HashMap<Long, ArrayList<Group>> filter)
   {
     _Terminals = terminals;
     _Filter = filter;

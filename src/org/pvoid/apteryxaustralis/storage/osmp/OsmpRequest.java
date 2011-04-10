@@ -17,10 +17,11 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import android.util.Log;
 import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Agent;
+import org.pvoid.apteryxaustralis.accounts.Group;
+import org.pvoid.apteryxaustralis.accounts.Terminal;
 import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -38,6 +39,7 @@ import java.util.TimeZone;
 public class OsmpRequest
 {
   private static final URL _sNewApiURL;
+  private static final URL _sOldApiURL;
   private static final int _sOffset;
   private static final SAXParserFactory _sSAXFactory = SAXParserFactory.newInstance();
 
@@ -55,6 +57,17 @@ public class OsmpRequest
       url = null;
     }
     _sNewApiURL = url;
+/////// Создадим URL для запросов к прежнему API
+    try
+    {
+      url = new URL("http://xml1.osmp.ru/term2/xml.jsp");
+    }
+    catch(MalformedURLException e)
+    {
+      e.printStackTrace();
+      url = null;
+    }
+    _sOldApiURL = url;
 /////// Получим локальное смещение временное
     TimeZone zone = TimeZone.getDefault();
     _sOffset = zone.getOffset(System.currentTimeMillis())/3600000;
@@ -71,14 +84,30 @@ public class OsmpRequest
     request.append("\" signAlg=\"MD5\"/><client terminal=\"");
     request.append(account.terminal);
     request.append("\" software=\"Dealer v0\" timezone=\"GMT");
-
+//////////
     if(_sOffset>0)
       request.append('+');
     request.append(_sOffset);
     request.append("\"/>");
   }
 
-  static public int checkAccount(Account account, List<Agent> agents)
+  static private void startRequestOld(StringBuilder request,Account account,int requestType, boolean fullRequest)
+  {
+    request.append("<?xml version=\"1.0\" encoding=\"windows-1251\"?><request><protocol-version>3.00</protocol-version>")
+           .append("<request-type>").append(requestType).append("</request-type>")
+           .append("<terminal-id>").append(account.terminal).append("</terminal-id>")
+           .append("<extra name=\"login\">").append(account.login).append("</extra>")
+           .append("<extra name=\"password-md5\">").append(account.passwordHash).append("</extra>")
+           .append("<extra name=\"client-software\">Dealer v1.9</extra>");
+////////
+    if(fullRequest)
+    {
+      request.append("<extra name=\"cashs\">true</extra><extra name=\"statistics\">true</extra>");
+    }
+    request.append("</request>");
+  }
+
+  static public int checkAccount(Account account, List<Group> groups)
   {
     StringBuilder data = new StringBuilder();
     startRequestNew(data,account);
@@ -86,49 +115,72 @@ public class OsmpRequest
     data.append("<agents><getAgentInfo/><getAgents/></agents></request>");
 /////// и что же нам ответили
     Request.Response response = Request.Send(_sNewApiURL,data.toString(),"utf-8");
+    if(response==null)
+      return IStorage.RES_ERR_NETWORK_ERROR;
+///////
     if(response.code!=200)
       return -response.code;
-    else
+///////
+    ResponseParser parser = new ResponseParser();
+    parser.setAccount(account).setGroups(groups);
+    if(!parseResponse(parser,response))
+      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+///////
+    return parser.getAccountResult();
+  }
+
+  static public int getTerminals(Account account, List<Terminal> terminals)
+  {
+    StringBuilder data = new StringBuilder();
+    startRequestOld(data, account, 16, true);
+//////////
+    Request.Response response = Request.Send(_sOldApiURL,data.toString(),"windows-1251");
+    if(response.code!=200)
+      return -response.code;
+///////
+    ResponseParser parser = new ResponseParser();
+    parser.setTerminals(terminals);
+    if(!parseResponse(parser,response))
+      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+///////
+    return 0;
+  }
+
+  protected static boolean parseResponse(ResponseParser parser, Request.Response response)
+  {
+    try
     {
+      SAXParser saxParser = _sSAXFactory.newSAXParser();
+      InputSource source = new InputSource();
+      ByteArrayInputStream stream;
       try
       {
-        Log.v(OsmpRequest.class.getSimpleName(),response.data);
-
-        SAXParser parser = _sSAXFactory.newSAXParser();
-        InputSource source = new InputSource();
-        ByteArrayInputStream stream;
-        try
-        {
-          stream = new ByteArrayInputStream(response.data.getBytes("UTF-8"));
-        }
-        catch (UnsupportedEncodingException e)
-        {
-          e.printStackTrace();
-          return -1;
-        }
-        source.setByteStream(stream);
-        source.setEncoding("UTF-8");
-
-        ResponseParser rParser = new ResponseParser(account,agents);
-
-        parser.parse(source,rParser);
-
-        return rParser.getAccountResult();
+        stream = new ByteArrayInputStream(response.data.getBytes("UTF-8"));
       }
-      catch(ParserConfigurationException e)
+      catch (UnsupportedEncodingException e)
       {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        e.printStackTrace();
+        return false;
       }
-      catch(SAXException e)
-      {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      }
-      catch(IOException e)
-      {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      }
-      Log.v(OsmpRequest.class.getSimpleName(),response.data);
+      source.setByteStream(stream);
+      source.setEncoding("UTF-8");
+      saxParser.parse(source,parser);
+////////
+      return true;
     }
-    return -1;
+    catch(ParserConfigurationException e)
+    {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+    catch(SAXException e)
+    {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+    catch(IOException e)
+    {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+////////
+    return false;
   }
 }

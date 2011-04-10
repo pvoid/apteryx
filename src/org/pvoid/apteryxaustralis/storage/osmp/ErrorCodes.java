@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.net;
+package org.pvoid.apteryxaustralis.storage.osmp;
 import org.pvoid.apteryxaustralis.R;
 
 public class ErrorCodes 

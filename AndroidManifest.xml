@@ -32,8 +32,6 @@
       <activity android:name=".preference.AddAccountActivity" />
       <activity android:name=".preference.CommonSettings" />
       <activity android:name=".ui.FullInfo" />
-      <activity android:name=".ui.SelectMainAgent" />
-      <activity android:name=".ui.SelectActiveAgents" />
       <service android:name=".UpdateStatusService" android:label="@string/update_service" />
       <receiver android:name=".StatesReceiver" android:process=":remote"/>
       <receiver android:name=".OnBootReceiver" android:enabled="true" android:exported="false">
@@ -43,10 +41,10 @@
       </receiver>
     </application>
     
-    <uses-permission android:name="android.permission.INTERNET" ></uses-permission>
-    <uses-permission android:name="android.permission.VIBRATE" ></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     
-    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"></uses-sdk>
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"/>
     <supports-screens android:normalScreens="true" />
 </manifest> 

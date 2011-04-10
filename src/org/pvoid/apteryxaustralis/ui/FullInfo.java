@@ -31,7 +31,7 @@ public class FullInfo extends Activity
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    Terminal terminal = getIntent().getParcelableExtra("terminal");
+    /*Terminal terminal = getIntent().getParcelableExtra("terminal");
     if(terminal!=null)
     {
       setTitle(terminal.Address());
@@ -40,7 +40,7 @@ public class FullInfo extends Activity
 //////
     TextView view = (TextView) findViewById(R.id.fullinfo_tid);
     if(view!=null)
-      view.setText(terminal.id());
+      view.setText(Long.toString(terminal.id()));
     
     view = (TextView) findViewById(R.id.fullinfo_aid);
     if(view!=null)
@@ -114,6 +114,6 @@ public class FullInfo extends Activity
     
     view = (TextView) findViewById(R.id.fullinfo_pays_per_hour);
     if(view!=null)
-      view.setText(Html.fromHtml("<b>"+getString(R.string.fullinfo_pays_per_hour)+"</b> "+terminal.paysPerHour));
+      view.setText(Html.fromHtml("<b>"+getString(R.string.fullinfo_pays_per_hour)+"</b> "+terminal.paysPerHour));*/
   }
 }
