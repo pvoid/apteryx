@@ -60,7 +60,7 @@ public class Notifyer
   public static void ShowNotification(Context context, List<Terminal> terminals)
   {
     Notification notification = GetIcon(context);
-    notification.icon = R.drawable.terminal_inactive;
+    notification.icon = R.drawable.ic_terminal_inactive;
     
     StringBuilder bulder = new StringBuilder(2000);
     for(Terminal terminal : terminals)
@@ -80,7 +80,7 @@ public class Notifyer
     
     RemoteViews view = notification.contentView;
     view.setTextViewText(R.id.notify_text, Html.fromHtml(bulder.toString()));
-    view.setImageViewResource(R.id.notify_icon, R.drawable.terminal_inactive);
+    view.setImageViewResource(R.id.notify_icon, R.drawable.ic_terminal_inactive);
     
     PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0);
     notification.contentIntent  = contentIntent;

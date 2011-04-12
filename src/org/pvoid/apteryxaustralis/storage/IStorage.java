@@ -43,6 +43,7 @@ public interface IStorage
   Account getAccount(long id);
   int updateAccount(Account account);
   void getGroups(long accountId, List<Group> groups);
+  void getGroups(List<Group> groups);
   void getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals);
   boolean isEmpty();
   int errorMessage(int errorCode);

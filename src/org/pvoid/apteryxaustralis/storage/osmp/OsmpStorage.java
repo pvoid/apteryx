@@ -58,6 +58,8 @@ public class OsmpStorage implements IStorage
     if(result==0)
     {
       _mStorage.addAccount(account.id,account.title,account.login,account.passwordHash,account.terminal);
+/////// Вытащим балансы
+      OsmpRequest.getBalances(account,groups);
       _mStorage.saveAgents(account.id, groups);
 /////// Вытащим сразу терминалы
       ArrayList<Terminal> terminals = new ArrayList<Terminal>();
@@ -88,6 +90,12 @@ public class OsmpStorage implements IStorage
   public void getGroups(long accountId, List<Group> groups)
   {
     _mStorage.getAgents(accountId, groups);
+  }
+
+  @Override
+  public void getGroups(List<Group> groups)
+  {
+    _mStorage.getAgents(0,groups);
   }
 
   @Override

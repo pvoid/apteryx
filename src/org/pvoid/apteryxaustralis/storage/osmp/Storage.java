@@ -294,6 +294,7 @@ class Storage
       values.put(Terminals.COLUMN_AGENTID,terminal.agentId);
       values.put(Terminals.COLUMN_AGENTNAME,terminal.agentName);
       values.put(Terminals.COLUMN_ACCOUNTID,accountId);
+      values.put(Terminals.COLUMN_MS,terminal.ms);
       
       db.insert(Terminals.TABLE_NAME, null, values);
     }
@@ -457,11 +458,20 @@ class Storage
   
   public void getAgents(long account, List<Group> groups)
   {
+    String clause = null;
+    String[] args = null;
+//////////
+    if(account!=0)
+    {
+      clause = Agents.ACCOUNT_CLAUSE;
+      args = new String[] {Long.toString(account)};
+    }
+
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(Agents.TABLE_NAME,
                              new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT},
-                             Agents.ACCOUNT_CLAUSE,
-                             new String[] {Long.toString(account)},
+                             clause,
+                             args,
                              null, null, null);
     if(cursor!=null)
     {

@@ -20,8 +20,10 @@ package org.pvoid.apteryxaustralis.ui;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import android.os.AsyncTask;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.Consts;
 import org.pvoid.apteryxaustralis.Notifyer;
@@ -29,6 +31,7 @@ import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.preference.Preferences;
+import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
 
@@ -40,19 +43,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.ListView;
-import android.widget.Toast;
 import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity
+public class MainActivity extends Activity implements OnClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -60,7 +61,7 @@ public class MainActivity extends Activity
   //private TerminalsProcessData _Terminals;
   //private ListView _TerminalsList;
   //private TerminalsArrayAdapter _TerminalsAdapter;
-  private OsmpStorage _mStorage;
+  private IStorage _mStorage;
   
   private boolean _Refreshing;
   private final Object _RefreshLock = new Object();
@@ -68,6 +69,7 @@ public class MainActivity extends Activity
   private Animation _mSpinnerAnimation;
   private ArrayList<GroupArrayAdapter> _mGroups;
   private SlideBand _mSlider;
+  private AlertDialog _mAgentsDialog;
   
   public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
@@ -78,22 +80,11 @@ public class MainActivity extends Activity
     }
   };
   
-  // TODO: Перетащить сортировку и наполнение в AsyncTask 
-  private static final Comparator<Terminal> _TerminalComparer = new Comparator<Terminal>()
+  private static final Comparator<Terminal> _mTerminalComparator = new Comparator<Terminal>()
   {
     @Override
     public int compare(Terminal object1, Terminal object2)
     {
-      int result = (int)(object1.agentId - object2.agentId);
-      
-      if(result!=0)
-        return(result);
-      
-      if(object1.Address()==null)
-        return(-1);
-      if(object2.Address()==null)
-        return(1);
-      
       if(object1.State() == object2.State())
         return object1.Address().compareToIgnoreCase(object2.Address());
 
@@ -116,22 +107,6 @@ public class MainActivity extends Activity
     _mGroups = new ArrayList<GroupArrayAdapter>();
     _mStorage = new OsmpStorage(this);
 /////////
-    refreshData();
-    fillAgents();
-
-    /*_TerminalsList = (ListView)findViewById(R.id.terminals_list);
-    _Refreshing = false;
-    if(_TerminalsList!=null)
-    {
-      _TerminalsList.setAdapter(_TerminalsAdapter);
-      _TerminalsList.setOnItemClickListener(this);
-    }
-    
-    ViewFlipper fliper = (ViewFlipper)findViewById(R.id.balances_flipper);
-    fliper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_in));
-    fliper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_animation_out));*/
-
-    setSpinnerVisibility(true);
     if(Preferences.getAutoUpdate(this))
     {
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
@@ -143,6 +118,9 @@ public class MainActivity extends Activity
   public void onResume()
   {
     super.onResume();
+/////////
+    (new LoadFromStorageTask()).execute();
+/////////
     IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
     registerReceiver(UpdateMessageReceiver, filter);
   }
@@ -158,7 +136,7 @@ public class MainActivity extends Activity
   public void onStart()
   {
     super.onStart();
-    RestoreStates();
+    //RestoreStates();
     Notifyer.HideNotification(this);
   }
   
@@ -239,8 +217,8 @@ public class MainActivity extends Activity
           // TODO: update агента
         }
 //////////////// Вытащим терминалы
-        _mStorage.getTerminals(account.id, group,adapter);
-        // TODO: Сортировка
+        _mStorage.getTerminals(account.id, group, adapter);
+        adapter.sort(_mTerminalComparator);
       }
     }
   }
@@ -258,6 +236,44 @@ public class MainActivity extends Activity
         _mSlider.addView(list);
       }
     }
+  }
+
+  private void setCurrentAgentInfo()
+  {
+    GroupArrayAdapter group = (GroupArrayAdapter) ((ListView)_mSlider.getCurrentView()).getAdapter();
+//////////
+    TextView text = (TextView) findViewById(R.id.agent_name);
+    text.setText(group.getGroupName());
+//////////
+    text = (TextView) findViewById(R.id.agent_balance);
+    StringBuilder balance = new StringBuilder(getText(R.string.balance));
+    balance.append(": ").append(group.getGroupBalance());
+    if(group.getGroupOverdraft()!=0)
+      balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.getGroupOverdraft());
+    text.setText(balance.toString());
+  }
+
+   /**
+   * Щелчок по кнопке со списком агентов
+   * @param view сама кнопка вызывающая список агентов
+   */
+  public void agentsListClick(View view)
+  {
+    if(_mAgentsDialog==null)
+    {
+      AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+      ArrayList<Group> agents = new ArrayList<Group>();
+      _mStorage.getGroups(agents);
+      GroupsArrayAdapter adapter = new GroupsArrayAdapter(this,R.layout.agent_dialog_item,R.id.agent_name);
+      for(Group agent : agents)
+        adapter.add(agent);
+      dialog.setAdapter(adapter,this);
+      dialog.setTitle(R.string.agents_list);
+      _mAgentsDialog =  dialog.create();
+    }
+/////////////
+    _mAgentsDialog.show();
+    _mAgentsDialog.getListView().setSelection(_mSlider.getCurrentViewIndex());
   }
 
 ////////////// пересмотреть
@@ -304,35 +320,7 @@ public class MainActivity extends Activity
             })
            .show();
   }
-  
-  private void ShowStateInfo()
-  {
-    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, MODE_PRIVATE);
-//////
-    if(!_mStorage.isEmpty())
-      Toast.makeText(this, getString(R.string.network_error), Toast.LENGTH_LONG).show();
-  }
-  
-  private void RestoreStates()
-  {
-    synchronized (_RefreshLock)
-    {
-      if(_Refreshing)
-        return;
-    }
-//////
-    if(_mStorage.isEmpty())
-    {
-      ShowSettingsAlarm();
-      return;
-    }
-///////
-    // TODO: _mStorage.getTerminals(_Terminals);
-    DrawTerminals();
-///////
-    ShowStateInfo();
-  }
-  
+
   public boolean onOptionsItemSelected(MenuItem item)
   {
     switch(item.getItemId())
@@ -354,29 +342,40 @@ public class MainActivity extends Activity
       //RefreshStates();
     }
   }
-  
-  private void DrawTerminals()
+
+  @Override
+  public void onClick(DialogInterface dialogInterface, int index)
   {
-    /*_TerminalsAdapter.clear();
-    for(String terminal_key : _Terminals)
-    {
-      _TerminalsAdapter.add(_Terminals.at(terminal_key));
-    }
-    
-    HashMap<Long, String> agents = _Terminals.Agents();
-    for(Long agentId : agents.keySet())
-    {
-      Terminal terminal = new Terminal(null, null);
-      terminal.agentId = agentId;
-      terminal.agentName = agents.get(agentId);
-      terminal.cash = _Terminals.AgentCash(agentId);
-      terminal.State(0);
-      _TerminalsAdapter.add(terminal);
-    }
-    
-    _TerminalsAdapter.sort(_TerminalComparer);*/
+    _mSlider.setCurrentView(index);
   }
-  
+
+  private class LoadFromStorageTask extends AsyncTask<Void,Integer,Boolean>
+  {
+    @Override
+    protected void onPreExecute()
+    {
+      setSpinnerVisibility(true);
+    }
+
+    @Override
+    protected Boolean doInBackground(Void... voids)
+    {
+      refreshData();
+      return true;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean aBoolean)
+    {
+      if(aBoolean)
+      {
+        fillAgents();
+        setCurrentAgentInfo();
+      }
+      setSpinnerVisibility(false);
+    }
+  }
+
   /*@Override
   public void onSuccessRequest()
   {

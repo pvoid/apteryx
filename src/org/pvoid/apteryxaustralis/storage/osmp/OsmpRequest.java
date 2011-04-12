@@ -107,7 +107,7 @@ public class OsmpRequest
     request.append("</request>");
   }
 
-  static public int checkAccount(Account account, List<Group> groups)
+  static protected int checkAccount(Account account, List<Group> groups)
   {
     StringBuilder data = new StringBuilder();
     startRequestNew(data,account);
@@ -129,7 +129,35 @@ public class OsmpRequest
     return parser.getAccountResult();
   }
 
-  static public int getTerminals(Account account, List<Terminal> terminals)
+  static protected int getBalances(Account account, List<Group> groups)
+  {
+    StringBuilder data = new StringBuilder();
+    startRequestNew(data,account);
+    data.append("<agents>");
+/////// добавим в запрос агентов, для получения балансов
+    for(Group group : groups)
+    {
+      data.append("<getBalance><target-agent>").append(group.id).append("</target-agent></getBalance>");
+    }
+    data.append("</agents></request>");
+/////// и что же нам ответили
+    Request.Response response = Request.Send(_sNewApiURL,data.toString(),"utf-8");
+    if(response==null)
+      return IStorage.RES_ERR_NETWORK_ERROR;
+///////
+    if(response.code!=200)
+      return -response.code;
+///////
+    ResponseParser parser = new ResponseParser();
+    parser.setGroups(groups);
+    if(!parseResponse(parser,response))
+      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+///////
+    return 0;
+
+  }
+
+  static protected int getTerminals(Account account, List<Terminal> terminals)
   {
     StringBuilder data = new StringBuilder();
     startRequestOld(data, account, 16, true);
