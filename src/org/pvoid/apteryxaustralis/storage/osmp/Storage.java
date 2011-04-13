@@ -345,17 +345,6 @@ class Storage
       db.replace(Terminals.TABLE_NAME, null, values);
     }
 ///////
-    /*Set<Long> keys = terminals.Accounts();
-    values.clear();
-    db.delete(Consts.BALANCES_TABLE, null, null);
-    for(Long agentId : keys)
-    {
-      values.put(Consts.COLUMN_AGENTID, agentId);
-      values.put(Consts.COLUMN_BALANCE, terminals.Balance(agentId));
-      values.put(Consts.COLUMN_OVERDRAFT, terminals.Overdraft(agentId));
-      
-      db.insert(Consts.BALANCES_TABLE, null, values);
-    }*/
     _database.close();
   }
   

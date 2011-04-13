@@ -17,7 +17,7 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import org.pvoid.apteryxaustralis.Utils;
+import android.text.TextUtils;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
@@ -202,7 +202,7 @@ public class ResponseParser extends DefaultHandler
   static private int getInt(Attributes attributes, String name, int def)
   {
     String value = attributes.getValue(name);
-    if(Utils.isEmptyString(value))
+    if(TextUtils.isEmpty(value))
       return(def);
     try
     {
@@ -217,7 +217,7 @@ public class ResponseParser extends DefaultHandler
   static private long getLong(Attributes attributes, String name, int def)
   {
     String value = attributes.getValue(name);
-    if(Utils.isEmptyString(value))
+    if(TextUtils.isEmpty(value))
       return(def);
     try
     {
@@ -237,7 +237,7 @@ public class ResponseParser extends DefaultHandler
   static private String getString(Attributes attributes, String name, String def)
   {
     String value = attributes.getValue(name);
-    if(Utils.isEmptyString(value))
+    if(TextUtils.isEmpty(value))
       return(def);
     return value;
   }

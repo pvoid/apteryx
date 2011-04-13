@@ -19,7 +19,7 @@ package org.pvoid.apteryxaustralis.accounts;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import org.pvoid.apteryxaustralis.Utils;
+import android.text.TextUtils;
 
 public class Account implements Parcelable
 {
@@ -39,7 +39,7 @@ public class Account implements Parcelable
   }
   public String toString()
   {
-    if(Utils.isEmptyString(title))
+    if(TextUtils.isEmpty(title))
       return(login);
     return(title);
   }

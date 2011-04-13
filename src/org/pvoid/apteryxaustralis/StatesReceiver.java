@@ -30,9 +30,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class StatesReceiver extends BroadcastReceiver
 {
+  public static final String REFRESH_BROADCAST_MESSAGE = "org.pvoid.apteryx.StatusUpdatedMessage";
+
   @Override
   public void onReceive(Context context, Intent intent)
   {
@@ -55,11 +58,11 @@ public class StatesReceiver extends BroadcastReceiver
       }
     }
 
-    Intent broadcastIntent = new Intent(Consts.REFRESH_BROADCAST_MESSAGE);
+    Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
     context.sendBroadcast(broadcastIntent);
 
     if(warn)
-      Notifyer.ShowNotification(context, null);
+      Notifyer.ShowNotification(context);
 
     long interval = Preferences.getUpdateInterval(context);
     if(interval==0)
@@ -68,37 +71,6 @@ public class StatesReceiver extends BroadcastReceiver
     Intent startIntent = new Intent(context,StatesReceiver.class);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, startIntent, 0);
     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,pendingIntent);
-
-    /*TerminalsProcessData terminals = new TerminalsProcessData();
-    ArrayList<Terminal> inactive_terminals = new ArrayList<Terminal>();
-
-    OsmpStorage storage = new OsmpStorage(context);
-    ArrayList<Account> accounts = new ArrayList<Account>();
-    storage.getAccounts(accounts);
-    if(accounts.size()>0)
-    {
-      HashMap<Long, ArrayList<Group>> agents = new HashMap<Long, ArrayList<Group>>();
-      for(Account account : accounts)
-      {
-        ArrayList<Group> agents_line = new ArrayList<Group>();
-        storage.getAgents(account.id, agents_line);
-        if(agents_line.size()>0)
-          agents.put(account.id, agents_line);
-      }
-      Account[] ac = new Account[accounts.size()];
-      StatesRequestWorker worker = new StatesRequestWorker(terminals,agents);
-      if(worker.Work(accounts.toArray(ac)))
-      {
-        if(terminals.Success())
-        {
-          if(storage.CheckStates(terminals, inactive_terminals))
-            Notifyer.ShowNotification(context, inactive_terminals);
-          storage.saveTerminals(terminals);
-        }
-        else
-          Toast.makeText(context, context.getString(ErrorCodes.Message(terminals.Status())), Toast.LENGTH_LONG);
-      }
-    }*/
   }
 
 }

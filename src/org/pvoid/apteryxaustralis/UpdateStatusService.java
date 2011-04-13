@@ -25,7 +25,6 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -98,7 +97,7 @@ public class UpdateStatusService extends Service
     if(_StartForeground!=null)
     {
       Object[] args = new Object[2];
-      args[0] = Integer.valueOf(Consts.NOTIFICATION_ICON);
+      args[0] = Notifyer.NOTIFICATION_ICON;
       args[1] = Notifyer.GetIcon(this);
       
       try
@@ -121,7 +120,7 @@ public class UpdateStatusService extends Service
     }
 ////////
     setForeground(true);
-    _NotifyManager.notify(Consts.NOTIFICATION_ICON, Notifyer.GetIcon(this));
+    _NotifyManager.notify(Notifyer.NOTIFICATION_ICON, Notifyer.GetIcon(this));
   }
   
   private void handleStop()
@@ -158,7 +157,7 @@ public class UpdateStatusService extends Service
       return;
     }
 //////
-    _NotifyManager.cancel(Consts.NOTIFICATION_ICON);
+    _NotifyManager.cancel(Notifyer.NOTIFICATION_ICON);
     setForeground(false);
   }
   

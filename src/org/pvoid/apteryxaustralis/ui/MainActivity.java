@@ -25,10 +25,7 @@ import android.text.format.DateUtils;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.Consts;
-import org.pvoid.apteryxaustralis.Notifyer;
-import org.pvoid.apteryxaustralis.UpdateStatusService;
+import org.pvoid.apteryxaustralis.*;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.preference.Preferences;
@@ -56,16 +53,11 @@ import org.pvoid.common.views.SlideBand;
 
 public class MainActivity extends Activity implements OnClickListener
 {
-  private static final int SETTINGS_MENU_ID = Menu.FIRST+1; 
+  private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
   
-  //private TerminalsProcessData _Terminals;
-  //private ListView _TerminalsList;
-  //private TerminalsArrayAdapter _TerminalsAdapter;
   private IStorage _mStorage;
-  
-  private boolean _Refreshing;
-  private final Object _RefreshLock = new Object();
+
   private int _mSpinnerCount = 0;
   private Animation _mSpinnerAnimation;
   private ArrayList<GroupArrayAdapter> _mGroups;
@@ -122,7 +114,7 @@ public class MainActivity extends Activity implements OnClickListener
 /////////
     (new LoadFromStorageTask()).execute();
 /////////
-    IntentFilter filter = new IntentFilter(Consts.REFRESH_BROADCAST_MESSAGE);
+    IntentFilter filter = new IntentFilter(StatesReceiver.REFRESH_BROADCAST_MESSAGE);
     registerReceiver(UpdateMessageReceiver, filter);
   }
   
@@ -355,7 +347,7 @@ public class MainActivity extends Activity implements OnClickListener
       setSpinnerVisibility(false);
     }
   }
-
+  // TODO: Lock на обновление
   private class RefreshDataTask extends AsyncTask<Void,Integer,Boolean>
   {
     @Override
