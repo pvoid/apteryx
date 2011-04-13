@@ -37,14 +37,15 @@ public interface IStorage
   static final int RES_ERR_CUSTOM_FIRST = -20;
 
 
-  void getAccounts(final List<Account> adapter);
-  void deleteAccount(long id);
-  int addAccount(Account account);
+  void    getAccounts(final List<Account> adapter);
+  void    deleteAccount(long id);
+  int     addAccount(Account account);
   Account getAccount(long id);
-  int updateAccount(Account account);
-  void getGroups(long accountId, List<Group> groups);
-  void getGroups(List<Group> groups);
-  void getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals);
+  int     updateAccount(Account account);
+  void    getGroups(long accountId, List<Group> groups);
+  void    getGroups(List<Group> groups);
+  void    getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals);
+  int     refresh(Account account);
   boolean isEmpty();
   int errorMessage(int errorCode);
 }

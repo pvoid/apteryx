@@ -31,8 +31,8 @@ public class Terminal// implements Parcelable
   public String cashbin_state;
   public String lpd;
   public int cash;
-  public String lastActivity;
-  public String lastPayment;
+  public long lastActivity;
+  public long lastPayment;
   public int bondsCount;
   public String balance;
   public int signalLevel;

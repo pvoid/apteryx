@@ -17,12 +17,16 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
+import android.util.Log;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.net.TerminalsProcessData;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -33,7 +37,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 class Storage
 {
   public static final String DB_NAME = "apteryx";
-  public static final int DB_VERSION = 4;
+  public static final int DB_VERSION = 6;
   /**
    * Описание таблицы аккаунтов
    */
@@ -67,13 +71,15 @@ class Storage
     static final String COLUMN_AGENT_NAME = "agent_name";
     static final String COLUMN_BALANCE = "agent_balance";
     static final String COLUMN_OVERDRAFT = "agent_overdraft";
+    static final String COLUMN_LAST_UPDATE = "last_update";
 
     static final String CREATE_SQL = "create table " + TABLE_NAME +" ("+
                                      COLUMN_ACCOUNT+" text not null," +
                                      COLUMN_AGENT_NAME+" text not null," +
                                      COLUMN_BALANCE+" text not null," +
                                      COLUMN_OVERDRAFT+" text not null," +
-                                     COLUMN_AGENT+" text not null)";
+                                     COLUMN_LAST_UPDATE+" integer not null,"+
+                                     COLUMN_AGENT+" text not null primary key)";
 
     static final String ACCOUNT_CLAUSE = COLUMN_ACCOUNT + "=?";
   }
@@ -164,6 +170,7 @@ class Storage
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
+      Log.d(Storage.class.getSimpleName(),"Old db version: " + oldVersion + " new db version: " + newVersion);
       switch(oldVersion)
       {
         case 2:
@@ -174,6 +181,45 @@ class Storage
           db.execSQL("drop table balances");
         case 3:
           db.execSQL("alter table " + Terminals.TABLE_NAME + " add column " + Terminals.COLUMN_MS + " integer not null default 0");
+        case 4:
+          db.execSQL("alter table " + Agents.TABLE_NAME + " add column " + Agents.COLUMN_LAST_UPDATE + " integer not null default '0'");
+        case 5:
+          SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+          TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+          dateFormat.setTimeZone(timezone);
+          Cursor cursor = db.query(Terminals.TABLE_NAME,
+                                   new String[]{Terminals.COLUMN_ID, Terminals.COLUMN_LASTACTIVITY, Terminals.COLUMN_LASTPAYMENT},
+                                   null,null,null,null,null);
+          ArrayList<ContentValues> values = new ArrayList<ContentValues>();
+          if(cursor!=null)
+            try
+            {
+              while(cursor.moveToNext())
+              {
+                ContentValues value = new ContentValues();
+                value.put(Terminals.COLUMN_ID,cursor.getLong(0));
+                try
+                {
+                  value.put(Terminals.COLUMN_LASTACTIVITY,dateFormat.parse(cursor.getString(1)).getTime());
+                  value.put(Terminals.COLUMN_LASTPAYMENT,dateFormat.parse(cursor.getString(2)).getTime());
+                }
+                catch(ParseException e)
+                {
+                  e.printStackTrace();
+                  value.put(Terminals.COLUMN_LASTACTIVITY,0);
+                  value.put(Terminals.COLUMN_LASTPAYMENT,0);
+                }
+                values.add(value);
+              }
+            }
+            finally
+            {
+              cursor.close();
+            }
+          for(ContentValues value : values)
+          {
+            db.update(Terminals.TABLE_NAME,value,Terminals.COLUMN_ID+"=?",new String[] {value.getAsString(Terminals.COLUMN_ID)});
+          }
       }
     }
   }
@@ -296,7 +342,7 @@ class Storage
       values.put(Terminals.COLUMN_ACCOUNTID,accountId);
       values.put(Terminals.COLUMN_MS,terminal.ms);
       
-      db.insert(Terminals.TABLE_NAME, null, values);
+      db.replace(Terminals.TABLE_NAME, null, values);
     }
 ///////
     /*Set<Long> keys = terminals.Accounts();
@@ -333,6 +379,15 @@ class Storage
   
   public void getTerminals(final long agentId, final List<Terminal> terminals)
   {
+    String clause = null;
+    String[] clauseArgs = null;
+
+    if(agentId!=0)
+    {
+      clause = Terminals.AGENT_ID_CLAUSE;
+      clauseArgs = new String[] {Long.toString(agentId)};
+    }
+
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
                                                                  Terminals.COLUMN_ADDRESS,
@@ -359,7 +414,7 @@ class Storage
                                                                  Terminals.COLUMN_PAYSPERHOUR,
                                                                  Terminals.COLUMN_AGENTID,
                                                                  Terminals.COLUMN_AGENTNAME},
-                             Terminals.AGENT_ID_CLAUSE,new String[] {Long.toString(agentId)},null,null,null,null);
+                             clause,clauseArgs,null,null,null,null);
     if(cursor!=null)
     {
       if(cursor.moveToFirst())
@@ -372,8 +427,8 @@ class Storage
           terminal.cashbin_state = cursor.getString(4);
           terminal.lpd = cursor.getString(5);
           terminal.cash = cursor.getInt(6);
-          terminal.lastActivity = cursor.getString(7);
-          terminal.lastPayment = cursor.getString(8);
+          terminal.lastActivity = cursor.getLong(7);
+          terminal.lastPayment = cursor.getLong(8);
           terminal.bondsCount = cursor.getInt(9);
           terminal.balance = cursor.getString(10);
           terminal.signalLevel = cursor.getInt(11);
@@ -399,7 +454,7 @@ class Storage
     _database.close();
   }
   
-  public boolean CheckStates(final TerminalsProcessData terminals,List<Terminal> states)
+  /*public boolean CheckStates(final TerminalsProcessData terminals,List<Terminal> states)
   {
     Boolean result = false;
     SQLiteDatabase db = OpenRead();
@@ -429,7 +484,7 @@ class Storage
     }
     _database.close();
     return(result);
-  }
+  }*/
   
   public boolean saveAgents(long account, List<Group> groups)
   {
@@ -443,7 +498,9 @@ class Storage
       values.put(Agents.COLUMN_AGENT_NAME, group.name);
       values.put(Agents.COLUMN_BALANCE, group.balance);
       values.put(Agents.COLUMN_OVERDRAFT, group.overdraft);
-      db.insert(Agents.TABLE_NAME, null, values);
+      values.put(Agents.COLUMN_LAST_UPDATE,System.currentTimeMillis());
+      if(db.update(Agents.TABLE_NAME, values, Agents.COLUMN_AGENT+"=?",new String[] {Long.toString(group.id)})<1)
+        db.insert(Agents.TABLE_NAME, null, values);
     }
     _database.close();
     return(true);
@@ -469,7 +526,7 @@ class Storage
 
     SQLiteDatabase db = OpenRead();
     Cursor cursor = db.query(Agents.TABLE_NAME,
-                             new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT},
+                             new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT, Agents.COLUMN_LAST_UPDATE},
                              clause,
                              args,
                              null, null, null);
@@ -484,6 +541,7 @@ class Storage
           group.name = cursor.getString(1);
           group.balance = cursor.getDouble(2);
           group.overdraft = cursor.getDouble(3);
+          group.lastUpdate = cursor.getLong(4);
           groups.add(group);
         }
         while(cursor.moveToNext());

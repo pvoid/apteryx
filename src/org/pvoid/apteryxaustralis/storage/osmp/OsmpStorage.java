@@ -22,15 +22,27 @@ import android.widget.ArrayAdapter;
 import org.pvoid.apteryxaustralis.accounts.Account;
 import org.pvoid.apteryxaustralis.accounts.Group;
 import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class OsmpStorage implements IStorage
 {
   private Context _mContext;
   private Storage _mStorage;
+
+  private final Comparator<Terminal> _mComparatorById = new Comparator<Terminal>()
+  {
+    @Override
+    public int compare(Terminal o1, Terminal o2)
+    {
+      return (int) (o1.id() - o2.id());
+    }
+  };
 
   public OsmpStorage(Context context)
   {
@@ -83,7 +95,27 @@ public class OsmpStorage implements IStorage
   @Override
   public int updateAccount(Account account)
   {
-    throw new RuntimeException("Not implemented!");
+    ArrayList<Terminal> terminals = new ArrayList<Terminal>();
+    _mStorage.getTerminals(0,terminals);
+    int result = refresh(account);
+    if(result==IStorage.RES_OK)
+    {
+      Collections.sort(terminals,_mComparatorById);
+      ArrayList<Terminal> updatedTerminals = new ArrayList<Terminal>();
+      _mStorage.getTerminals(0,updatedTerminals);
+      for(Terminal terminal : updatedTerminals)
+      {
+        int index = Collections.binarySearch(terminals,terminal,_mComparatorById);
+        if(index>-1)
+        {
+          Terminal updatedTerminal = updatedTerminals.get(index);
+          if(updatedTerminal.State()!=Terminal.STATE_OK && terminal.State()==Terminal.STATE_OK)
+            return RES_OK_TERMINAL_ALARM;
+        }
+      }
+    }
+
+    return result;
   }
 
   @Override
@@ -130,6 +162,29 @@ public class OsmpStorage implements IStorage
       {
         terminals.add(terminal);
       }
+  }
+
+  @Override
+  public int refresh(Account account)
+  {
+    ArrayList<Group> groups = new ArrayList<Group>();
+    int result = OsmpRequest.checkAccount(account, groups);
+    if(result==0)
+    {
+/////// Вытащим балансы
+      OsmpRequest.getBalances(account,groups);
+      _mStorage.saveAgents(account.id, groups);
+/////// Вытащим сразу терминалы
+      ArrayList<Terminal> terminals = new ArrayList<Terminal>();
+      if(OsmpRequest.getTerminals(account,terminals)==0)
+        _mStorage.saveTerminals(account.id,terminals);
+      return RES_OK;
+    }
+///////
+    if(result>0)
+      return RES_ERR_CUSTOM_FIRST - result;
+///////
+    return result;
   }
 
   @Override

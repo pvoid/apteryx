@@ -27,52 +27,18 @@ public class Preferences
   private static final String PREF_AUTOCHECK = "apteryx.autoupdate";
   private static final String PREF_USEVIBRO = "apteryx.usevibro";
   private static final String PREF_SOUND = "apteryx.sound";
-  private static final String PREF_GET_PAYMENTS = "apteryx.payments";
-  private static final String PREF_ACTIVITY_TIMEOUT = "apteryx.activity-timeout";
-  private static final String PREF_PAYMENT_TIMEOUT = "apteryx.payment-timeout";
 
   private static final int DEFAULT_INTERVAL = 3600000;
-  private static final int DEFAULT_ACTIVITY_TIMEOUT = 900000;
-  private static final int DEFAULT_PAYMENT_TIMEOUT = 1200000;
 
   private static final int VALUE_UNKNOWN = -1;
   private static final int VALUE_TRUE = 1;
   private static final int VALUE_FALSE = 0;
 
-  private static int _mReceivePayments = VALUE_UNKNOWN;
   private static int _mAutoUpdate = VALUE_UNKNOWN;
   private static int _mUpdateInterval = VALUE_UNKNOWN;
   private static int _mUseVibration = VALUE_UNKNOWN;
   private static String _mSound = null;
-  private static int _mActivityTimeout = VALUE_UNKNOWN;
-  private static int _mPaymentTimeout = VALUE_UNKNOWN;
   private static boolean _mShowBalance = true;
-
-  static public boolean getReceivePayments(Context context)
-  {
-    if(_mReceivePayments==VALUE_UNKNOWN)
-    {
-      SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-      if(preferences.getBoolean(PREF_GET_PAYMENTS,false))
-        _mReceivePayments = VALUE_TRUE;
-      else
-        _mReceivePayments = VALUE_FALSE;
-    }
-    return _mReceivePayments==VALUE_TRUE;
-  }
-
-  static public void setReceivePayments(Context context, boolean receivePayments)
-  {
-    if(receivePayments)
-      _mReceivePayments = VALUE_TRUE;
-    else
-      _mReceivePayments = VALUE_FALSE;
-////////
-    SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.putBoolean(PREF_GET_PAYMENTS,receivePayments);
-    editor.commit();
-  }
 
   static public boolean getAutoUpdate(Context context)
   {
@@ -162,46 +128,6 @@ public class Preferences
     SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = preferences.edit();
     editor.putString(PREF_SOUND,soundUrl);
-    editor.commit();
-  }
-
-  static public int getActivityTimeout(Context context)
-  {
-    if(_mActivityTimeout==VALUE_UNKNOWN)
-    {
-      SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-      _mActivityTimeout = preferences.getInt(PREF_ACTIVITY_TIMEOUT,DEFAULT_ACTIVITY_TIMEOUT);
-    }
-    return _mActivityTimeout;
-  }
-
-  static public void setActivityTimeout(Context context, int timeout)
-  {
-    _mActivityTimeout = timeout;
-////////
-    SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.putInt(PREF_ACTIVITY_TIMEOUT,timeout);
-    editor.commit();
-  }
-
-  static public int getPaymentTimeout(Context context)
-  {
-    if(_mPaymentTimeout==VALUE_UNKNOWN)
-    {
-      SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-      _mPaymentTimeout = preferences.getInt(PREF_PAYMENT_TIMEOUT,DEFAULT_PAYMENT_TIMEOUT);
-    }
-    return _mPaymentTimeout;
-  }
-
-  static public void setPaymentTimeout(Context context, int timeout)
-  {
-    _mPaymentTimeout = timeout;
-////////
-    SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.putInt(PREF_PAYMENT_TIMEOUT,timeout);
     editor.commit();
   }
 

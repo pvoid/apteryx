@@ -27,6 +27,7 @@ public class Group// implements Parcelable
   public long accountId;
   public double balance;
   public double overdraft;
+  public long   lastUpdate;
 
 /*  @Override
   public int describeContents()

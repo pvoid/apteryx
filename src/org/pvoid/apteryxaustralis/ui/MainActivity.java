@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import android.os.AsyncTask;
+import android.text.format.DateUtils;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
@@ -76,7 +77,7 @@ public class MainActivity extends Activity implements OnClickListener
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      MainActivity.this.refreshData();
+      (new LoadFromStorageTask()).execute();
     }
   };
   
@@ -214,11 +215,10 @@ public class MainActivity extends Activity implements OnClickListener
         }
         else
         {
-          // TODO: update агента
+          adapter.setGroup(group);
         }
 //////////////// Вытащим терминалы
         _mStorage.getTerminals(account.id, group, adapter);
-        adapter.sort(_mTerminalComparator);
       }
     }
   }
@@ -228,6 +228,8 @@ public class MainActivity extends Activity implements OnClickListener
     int index = 0;
     for(GroupArrayAdapter adapter : _mGroups)
     {
+      adapter.sort(_mTerminalComparator);
+
       if(_mSlider.getChildCount()<=index)
       {
         ListView list = new ListView(this);
@@ -240,7 +242,12 @@ public class MainActivity extends Activity implements OnClickListener
 
   private void setCurrentAgentInfo()
   {
-    GroupArrayAdapter group = (GroupArrayAdapter) ((ListView)_mSlider.getCurrentView()).getAdapter();
+    ListView list = (ListView)_mSlider.getCurrentView();
+    if(list==null)
+      return;
+    GroupArrayAdapter group = (GroupArrayAdapter)list.getAdapter();
+    if(group==null)
+      return;
 //////////
     TextView text = (TextView) findViewById(R.id.agent_name);
     text.setText(group.getGroupName());
@@ -251,6 +258,13 @@ public class MainActivity extends Activity implements OnClickListener
     if(group.getGroupOverdraft()!=0)
       balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.getGroupOverdraft());
     text.setText(balance.toString());
+//////////
+    text = (TextView) findViewById(R.id.agent_update_time);
+    text.setText(getString(R.string.refreshed) + " " +
+                        DateUtils.getRelativeTimeSpanString(group.getLastUpdateTime(),
+                                                            System.currentTimeMillis(),
+                                                            DateUtils.SECOND_IN_MILLIS,
+                                                            DateUtils.FORMAT_ABBREV_ALL));
   }
 
    /**
@@ -276,34 +290,6 @@ public class MainActivity extends Activity implements OnClickListener
     _mAgentsDialog.getListView().setSelection(_mSlider.getCurrentViewIndex());
   }
 
-////////////// пересмотреть
-  /*private void RefreshStates()
-  {
-    synchronized (_RefreshLock)
-    {
-      _Refreshing = true;
-      setProgressBarIndeterminateVisibility(true);
-      ArrayList<Account> accounts = new ArrayList<Account>();
-      HashMap<Long, ArrayList<Group>> agents = new HashMap<Long, ArrayList<Group>>();
-      _mStorage.getAccounts(accounts);
-      if(accounts.size()>0)
-      {
-        for(Account account : accounts)
-        {
-          ArrayList<Group> agents_line = new ArrayList<Group>();
-          _mStorage.getGroups(account.id, agents_line);
-          if(agents_line.size()>0)
-            agents.put(account.id, agents_line);
-        }
-        
-        Account[] ac = new Account[accounts.size()];
-        (new StatesRequestTask(this,agents, _Terminals)).execute(accounts.toArray(ac));
-      }
-      else
-        ShowSettingsAlarm();
-    }
-  }*/
-  
   private void ShowSettingsAlarm()
   {
     setTitle(R.string.app_name);
@@ -329,18 +315,10 @@ public class MainActivity extends Activity implements OnClickListener
         ShowPreferencesActivity();
         break;
       case REFRESH_MENU_ID:
-        //RefreshStates();
+        (new RefreshDataTask()).execute();
         break;
     }
     return(super.onOptionsItemSelected(item));
-  }
-  @Override
-  public void onActivityResult(int requestCode,int resultCode, Intent intent)
-  {
-    if(resultCode==Consts.RESULT_RELOAD)
-    {
-      //RefreshStates();
-    }
   }
 
   @Override
@@ -348,7 +326,9 @@ public class MainActivity extends Activity implements OnClickListener
   {
     _mSlider.setCurrentView(index);
   }
-
+  /**
+   * Фоновое обновление данных из БД
+   */
   private class LoadFromStorageTask extends AsyncTask<Void,Integer,Boolean>
   {
     @Override
@@ -376,43 +356,37 @@ public class MainActivity extends Activity implements OnClickListener
     }
   }
 
-  /*@Override
-  public void onSuccessRequest()
+  private class RefreshDataTask extends AsyncTask<Void,Integer,Boolean>
   {
-    synchronized (_RefreshLock)
+    @Override
+    protected void onPreExecute()
     {
-      _Refreshing = false;
+      setSpinnerVisibility(true);
     }
-//////
-    DrawTerminals();
-    // TODO: _mStorage.saveTerminals(_Terminals);
-    setProgressBarIndeterminateVisibility(false);
-//////
-    ShowStateInfo();
+
+    @Override
+    protected Boolean doInBackground(Void... voids)
+    {
+      ArrayList<Account> accounts = new ArrayList<Account>();
+      _mStorage.getAccounts(accounts);
+      for(Account account : accounts)
+      {
+        if(_mStorage.refresh(account)!=IStorage.RES_OK)
+          return false;
+      }
+      refreshData();
+      return true;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean aBoolean)
+    {
+      if(aBoolean)
+      {
+        fillAgents();
+        setCurrentAgentInfo();
+      }
+      setSpinnerVisibility(false);
+    }
   }
-  
-  @Override
-  public void onRequestError()
-  {
-    synchronized (_RefreshLock)
-    {
-      _Refreshing = false;
-    }
-//////
-    setProgressBarIndeterminateVisibility(false);
-    Toast.makeText(this, R.string.network_error, 300).show();
-  }*/
-
-  /*@Override
-  public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
-  {
-    Terminal terminal = _TerminalsAdapter.getItem(position);
-    if(terminal!=null && terminal.id()!=null)
-    {
-      Intent intent = new Intent(this, FullInfo.class);
-      intent.putExtra("terminal", terminal);
-      startActivity(intent);
-    }
-  }*/
-
 }

@@ -41,14 +41,14 @@ public class GroupsArrayAdapter extends ArrayAdapter<Group>
       TextView text = (TextView) result.findViewById(R.id.agent_balance);
       Group group = getItem(position);
       if(text!=null && group!=null)
-        text.setText(getContext().getString(R.string.balance)+": "+Double.toString(group.balance));
+        text.setText(getContext().getString(R.string.balance)+Double.toString(group.balance));
 
       text = (TextView) result.findViewById(R.id.agent_overdraft);
       if(text!=null)
       {
         if(group!=null && group.overdraft!=0)
         {
-          text.setText(getContext().getString(R.string.overdraft)+": "+Double.toString(group.overdraft));
+          text.setText(getContext().getString(R.string.overdraft)+Double.toString(group.overdraft));
           text.setVisibility(View.VISIBLE);
         }
         else

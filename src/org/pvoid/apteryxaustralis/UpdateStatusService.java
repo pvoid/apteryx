@@ -27,9 +27,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 
 public class UpdateStatusService extends Service
 {
@@ -86,8 +86,7 @@ public class UpdateStatusService extends Service
   {
     _ServiceRuning = true;
 ////////
-    SharedPreferences prefs = getSharedPreferences(Consts.APTERYX_PREFS, Context.MODE_PRIVATE);
-    long interval = prefs.getInt(Consts.PREF_INTERVAL, Consts.INTERVALS[Consts.DEFAULT_INTERVAL]);
+    long interval = Preferences.getUpdateInterval(this);
     if(interval==0)
       return;
 ///////

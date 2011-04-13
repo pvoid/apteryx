@@ -25,7 +25,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 public class ResponseParser extends DefaultHandler
 {
@@ -41,6 +44,7 @@ public class ResponseParser extends DefaultHandler
   private int _mGroupIndex;
   private List<Terminal> _mTerminals;
   private int _mState = STATE_NONE;
+  SimpleDateFormat _mDateFormat;
 
   private StringBuilder _mText = new StringBuilder();
 
@@ -77,6 +81,9 @@ public class ResponseParser extends DefaultHandler
   public void startDocument() throws SAXException
   {
     _mGroupIndex = 0;
+    _mDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+    _mDateFormat.setTimeZone(timezone);
   }
 
   @Override
@@ -144,9 +151,25 @@ public class ResponseParser extends DefaultHandler
 //////// сумма
       terminal.cash = getInt(attributes, "cs");
 //////// последняя активность
-      terminal.lastActivity = getString(attributes, "lat");
+      try
+      {
+        terminal.lastActivity = _mDateFormat.parse(getString(attributes, "lat")).getTime();
+      }
+      catch(ParseException e)
+      {
+        e.printStackTrace();
+        terminal.lastActivity = 0;
+      }
 //////// последний платеж
-      terminal.lastPayment = getString(attributes, "lpd");
+      try
+      {
+        terminal.lastPayment = _mDateFormat.parse(getString(attributes, "lpd")).getTime();
+      }
+      catch(ParseException e)
+      {
+        e.printStackTrace();
+        terminal.lastPayment = 0;
+      }
 //////// Число купюр
       terminal.bondsCount= getInt(attributes, "nc");
 //////// Баланс сим карты
