@@ -26,12 +26,12 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.*;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -73,19 +73,12 @@ public class MainActivity extends Activity implements OnClickListener
     }
   };
   
-  private static final Comparator<Terminal> _mTerminalComparator = new Comparator<Terminal>()
+  private static final Comparator<ITerminal> _mTerminalComparator = new Comparator<ITerminal>()
   {
     @Override
-    public int compare(Terminal object1, Terminal object2)
+    public int compare(ITerminal left, ITerminal right)
     {
-      if(object1.State() == object2.State())
-        return object1.Address().compareToIgnoreCase(object2.Address());
-
-      if(object1.State()==0)
-        return(1);
-      if(object2.State()==0)
-        return(-1);
-      return(object1.State()-object2.State());
+      return(right.getState() - left.getState());
     }
   };
   
@@ -282,6 +275,7 @@ public class MainActivity extends Activity implements OnClickListener
     _mAgentsDialog.getListView().setSelection(_mSlider.getCurrentViewIndex());
   }
 
+  @SuppressWarnings("unused")
   private void ShowSettingsAlarm()
   {
     setTitle(R.string.app_name);

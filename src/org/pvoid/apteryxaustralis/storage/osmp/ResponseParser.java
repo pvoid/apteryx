@@ -18,9 +18,8 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.text.TextUtils;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

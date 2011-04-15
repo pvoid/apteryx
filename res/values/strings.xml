@@ -117,6 +117,6 @@
   <string name="activity_timeout_title">Не было активности</string>
   <string name="payment_timeout_title">Платежа не было</string>
 
-  <string name="yesterday">Вчера</string>
-  <string name="tomorrow">Завтра</string>
+  <string name="yesterday">вчера</string>
+  <string name="tomorrow">завтра</string>
 </resources>

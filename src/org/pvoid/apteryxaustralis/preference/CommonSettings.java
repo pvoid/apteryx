@@ -40,7 +40,7 @@ import android.preference.PreferenceCategory;
 import android.preference.RingtonePreference;
 import android.provider.Settings;
 import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 
 import java.util.ArrayList;

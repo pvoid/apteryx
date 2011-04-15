@@ -15,10 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.accounts;
-
-import android.os.Parcel;
-import android.os.Parcelable;
+package org.pvoid.apteryxaustralis.types;
 
 public class Group// implements Parcelable
 {

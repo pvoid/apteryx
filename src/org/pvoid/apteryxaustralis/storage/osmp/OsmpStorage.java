@@ -19,11 +19,10 @@ package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
 import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.storage.IStorage;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +130,7 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
-  public void getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals)
+  public void getTerminals(long accountId, Group group, ArrayAdapter<ITerminal> terminals)
   {
     ArrayList<Terminal> terminalsList = new ArrayList<Terminal>();
     _mStorage.getTerminals(group.id,terminalsList);
@@ -139,7 +138,7 @@ public class OsmpStorage implements IStorage
     while(adapterIndex<terminals.getCount())
     {
 //////// Ищем имеющийся в новых
-      Terminal current = terminals.getItem(adapterIndex);
+      Terminal current = (Terminal)terminals.getItem(adapterIndex);
       boolean found = false;
       for(Terminal terminal : terminalsList)
       {

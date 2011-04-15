@@ -19,7 +19,7 @@ package org.pvoid.apteryxaustralis;
 
 import java.util.ArrayList;
 
-import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
@@ -30,7 +30,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
-import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class StatesReceiver extends BroadcastReceiver
 {

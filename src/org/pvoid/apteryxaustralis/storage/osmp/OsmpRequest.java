@@ -17,9 +17,8 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.xml.sax.InputSource;

@@ -19,9 +19,9 @@ package org.pvoid.apteryxaustralis.storage;
 
 
 import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ public interface IStorage
   int     updateAccount(Account account);
   void    getGroups(long accountId, List<Group> groups);
   void    getGroups(List<Group> groups);
-  void    getTerminals(long accountId, Group group, ArrayAdapter<Terminal> terminals);
+  void    getTerminals(long accountId, Group group, ArrayAdapter<ITerminal> terminals);
   int     refresh(Account account);
   boolean isEmpty();
   int errorMessage(int errorCode);

@@ -24,9 +24,8 @@ import java.util.List;
 import java.util.TimeZone;
 
 import android.util.Log;
-import org.pvoid.apteryxaustralis.accounts.Account;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.types.Group;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -281,7 +280,7 @@ class Storage
   public void getAccounts(final List<Account> adapter)
   {
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(true, Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
+    Cursor cursor = db.query(Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
                                                                       Accounts.COLUMN_TITLE,
                                                                       Accounts.COLUMN_LOGIN,
                                                                       Accounts.COLUMN_PASSWORD,

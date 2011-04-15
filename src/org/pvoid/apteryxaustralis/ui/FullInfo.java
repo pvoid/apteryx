@@ -17,13 +17,8 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.text.Html;
-import android.widget.TextView;
 
 public class FullInfo extends Activity
 {

@@ -26,7 +26,7 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.widget.Button;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Account;
+import org.pvoid.apteryxaustralis.types.Account;
 
 import android.app.Activity;
 import android.app.Dialog;

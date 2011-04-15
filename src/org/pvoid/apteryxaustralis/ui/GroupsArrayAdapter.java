@@ -23,7 +23,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Group;
+import org.pvoid.apteryxaustralis.types.Group;
 
 public class GroupsArrayAdapter extends ArrayAdapter<Group>
 {
@@ -41,7 +41,7 @@ public class GroupsArrayAdapter extends ArrayAdapter<Group>
       TextView text = (TextView) result.findViewById(R.id.agent_balance);
       Group group = getItem(position);
       if(text!=null && group!=null)
-        text.setText(getContext().getString(R.string.balance)+Double.toString(group.balance));
+        text.setText(getContext().getString(R.string.balance)+": "+Double.toString(group.balance));
 
       text = (TextView) result.findViewById(R.id.agent_overdraft);
       if(text!=null)

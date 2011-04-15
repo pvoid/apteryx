@@ -18,19 +18,17 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import org.pvoid.apteryxaustralis.DateFormat;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.accounts.Group;
-import org.pvoid.apteryxaustralis.accounts.Terminal;
+import org.pvoid.apteryxaustralis.types.Group;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
-public class GroupArrayAdapter extends ArrayAdapter<Terminal>
+public class GroupArrayAdapter extends ArrayAdapter<ITerminal>
 {
   Group _mGroup;
 
@@ -91,42 +89,29 @@ public class GroupArrayAdapter extends ArrayAdapter<Terminal>
       view = inflater.inflate(R.layout.terminal, null);
     }
 
-    Terminal terminal = getItem(position);
+    ITerminal terminal = getItem(position);
     if(terminal!=null)
     {
       TextView name = (TextView)view.findViewById(R.id.list_title);
-      name.setText(terminal.toString());
+      name.setText(terminal.getTitle());
       TextView status = (TextView) view.findViewById(R.id.status);
+      status.setText(terminal.getStatus(getContext()));
       ImageView icon = (ImageView)view.findViewById(R.id.icon);
-      int image = R.drawable.ic_terminal_active;
-      String stateText = null;
-
-      switch(terminal.State())
+      switch(terminal.getState())
       {
-        case Terminal.STATE_OK:
-          stateText = Integer.toString(terminal.cash);
+        case ITerminal.STATE_OK:
+          icon.setImageResource(R.drawable.ic_terminal_active);
           break;
-        case Terminal.STATE_WARRNING:
-          image = R.drawable.ic_terminal_pending;
-          stateText = getContext().getString(R.string.last_payment) + ' ' + DateFormat.formatDateSmart(getContext(),terminal.lastPayment);
+        case ITerminal.STATE_WARRNING:
+          icon.setImageResource(R.drawable.ic_terminal_pending);
           break;
-        case Terminal.STATE_ERROR:
-          image = R.drawable.ic_terminal_inactive;
-          stateText = getContext().getString(R.string.last_activity)+ ' ' + DateFormat.formatDateSmart(getContext(),terminal.lastActivity);
+        case ITerminal.STATE_ERROR:
+          icon.setImageResource(R.drawable.ic_terminal_printer_error);
+          break;
+        case ITerminal.STATE_ERROR_CRITICAL:
+          icon.setImageResource(R.drawable.ic_terminal_inactive);
           break;
       }
-
-      if(!"OK".equals(terminal.cashbin_state))
-        stateText = terminal.cashbin_state;
-
-      if(!"OK".equals(terminal.printer_state))
-      {
-        image = R.drawable.ic_terminal_printer_error;
-        stateText = terminal.printer_state;
-      }
-
-      status.setText(stateText);
-      icon.setImageResource(image);
     }
     return view;
   }
