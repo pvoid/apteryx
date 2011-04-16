@@ -17,21 +17,17 @@
 
 package org.pvoid.apteryxaustralis.types;
 
-import android.content.Context;
-
-import java.util.List;
-
-public interface ITerminal
+public class StatusLine
 {
-  static final int STATE_OK = 0;
-  static final int STATE_WARRNING = 1;
-  static final int STATE_ERROR = 2;
-  static final int STATE_ERROR_CRITICAL = 3;
+  public static final int STATE_OK = 0;
+  public static final int STATE_ERROR = 0;
 
-  long getId();
-  int getState();
-  String getTitle();
-  String getStatus(Context context);
-  void getStatuses(Context context, List<StatusLine> statuses);
-  void getInfo(Context context, List<InfoLine> info);
+  public final String text;
+  public final int state;
+
+  public StatusLine(String text, int state)
+  {
+    this.text = text;
+    this.state = state;
+  }
 }

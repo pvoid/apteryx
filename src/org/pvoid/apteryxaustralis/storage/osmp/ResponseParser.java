@@ -18,6 +18,7 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.text.TextUtils;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.xml.sax.Attributes;
@@ -143,6 +144,7 @@ public class ResponseParser extends DefaultHandler
 //////// статус
       terminal.State(getInt(attributes, "rs", Terminal.STATE_ERROR));
       terminal.ms = getInt(attributes,"ms",0);
+      Log.v(ResponseParser.class.getSimpleName(),"ms value: " + attributes.getValue("ms") + " parsed "+terminal.ms);
 //////// состояние принтера
       terminal.printer_state = getString(attributes, "rp", "none");
 //////// состояние купироприемника

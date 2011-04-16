@@ -28,11 +28,11 @@ import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 
-public class GroupArrayAdapter extends ArrayAdapter<ITerminal>
+public class TerminalsArrayAdapter extends ArrayAdapter<ITerminal>
 {
   Group _mGroup;
 
-  public GroupArrayAdapter(Context context, Group group)
+  public TerminalsArrayAdapter(Context context, Group group)
   {
     super(context, R.layout.terminal,R.id.list_title);
     _mGroup = group;

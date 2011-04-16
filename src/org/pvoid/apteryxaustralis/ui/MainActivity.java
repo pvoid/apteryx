@@ -24,6 +24,7 @@ import android.os.AsyncTask;
 import android.text.format.DateUtils;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.widget.AdapterView;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.*;
 import org.pvoid.apteryxaustralis.types.Account;
@@ -51,7 +52,7 @@ import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements OnClickListener
+public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -60,7 +61,7 @@ public class MainActivity extends Activity implements OnClickListener
 
   private int _mSpinnerCount = 0;
   private Animation _mSpinnerAnimation;
-  private ArrayList<GroupArrayAdapter> _mGroups;
+  private ArrayList<TerminalsArrayAdapter> _mGroups;
   private SlideBand _mSlider;
   private AlertDialog _mAgentsDialog;
   
@@ -90,7 +91,7 @@ public class MainActivity extends Activity implements OnClickListener
     _mSlider = (SlideBand) findViewById(R.id.groups);
     _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
 /////////
-    _mGroups = new ArrayList<GroupArrayAdapter>();
+    _mGroups = new ArrayList<TerminalsArrayAdapter>();
     _mStorage = new OsmpStorage(this);
 /////////
     if(Preferences.getAutoUpdate(this))
@@ -122,7 +123,6 @@ public class MainActivity extends Activity implements OnClickListener
   public void onStart()
   {
     super.onStart();
-    //RestoreStates();
     Notifyer.HideNotification(this);
   }
   
@@ -182,7 +182,7 @@ public class MainActivity extends Activity implements OnClickListener
       _mStorage.getGroups(account.id, groups);
       for(Group group : groups)
       {
-        GroupArrayAdapter adapter = null;
+        TerminalsArrayAdapter adapter = null;
 /////////////////
         for(int i=0,len=_mGroups.size();i<len;++i)
         {
@@ -195,7 +195,7 @@ public class MainActivity extends Activity implements OnClickListener
 ////////////////
         if(adapter==null)
         {
-          adapter = new GroupArrayAdapter(this, group);
+          adapter = new TerminalsArrayAdapter(this, group);
           _mGroups.add(adapter);
         }
         else
@@ -211,7 +211,7 @@ public class MainActivity extends Activity implements OnClickListener
   private void fillAgents()
   {
     int index = 0;
-    for(GroupArrayAdapter adapter : _mGroups)
+    for(TerminalsArrayAdapter adapter : _mGroups)
     {
       adapter.sort(_mTerminalComparator);
 
@@ -219,6 +219,7 @@ public class MainActivity extends Activity implements OnClickListener
       {
         ListView list = new ListView(this);
         list.setAdapter(adapter);
+        list.setOnItemClickListener(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT));
         _mSlider.addView(list);
       }
@@ -230,7 +231,7 @@ public class MainActivity extends Activity implements OnClickListener
     ListView list = (ListView)_mSlider.getCurrentView();
     if(list==null)
       return;
-    GroupArrayAdapter group = (GroupArrayAdapter)list.getAdapter();
+    TerminalsArrayAdapter group = (TerminalsArrayAdapter)list.getAdapter();
     if(group==null)
       return;
 //////////
@@ -312,6 +313,16 @@ public class MainActivity extends Activity implements OnClickListener
   {
     _mSlider.setCurrentView(index);
   }
+
+  @Override
+  public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
+  {
+    ITerminal terminal = ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    Intent intent = new Intent(this,FullInfo.class);
+    intent.putExtra(FullInfo.TERMINAL_EXTRA,terminal.getId());
+    startActivity(intent);
+  }
+
   /**
    * Фоновое обновление данных из БД
    */

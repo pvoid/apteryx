@@ -59,7 +59,8 @@
                 android:fillViewport="true">
       <LinearLayout android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:id="@+id/info">
         <LinearLayout android:layout_width="fill_parent"
                       android:layout_height="wrap_content"
                       android:id="@+id/states"
@@ -73,42 +74,12 @@
                    android:id="@+id/sep_line"
                    android:src="@drawable/list_line"/>
     <!-- Сумма наличности в терминале -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
+        <!--org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
                   android:layout_width="fill_parent"
                   android:layout_height="wrap_content"
                   android:text="@string/fullinfo_cash"
-                  android:id="@+id/cash"/>
+                  android:id="@+id/cash"/-->
     <!-- Последний платеж -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_last_payment"
-                  android:id="@+id/last_payment"/>
-    <!-- Последний ответ -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_last_activity"
-                  android:id="@+id/last_activity"/>
-    <!-- Уровень сигнала -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_signal_level"
-                  android:id="@+id/signal_level"/>
-    <!-- Баланс -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_balance"
-                  android:id="@+id/balance"/>
-
-     <!-- Баланс -->
-        <org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_address"
-                  android:id="@+id/address"/>
       </LinearLayout>
   </ScrollView>
 </LinearLayout>

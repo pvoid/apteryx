@@ -64,12 +64,15 @@ public class FullInfoItem extends RelativeLayout
     params.addRule(RelativeLayout.ALIGN_PARENT_LEFT,TRUE);
     int margin = (int)(5*scale+0.5f);
     params.setMargins(margin,margin,margin,0);
-    int nameId =  attrs.getAttributeResourceValue("http://schemas.android.com/apk/res/android","text",-1);
-    if(nameId>-1)
+    if(attrs!=null)
     {
-      String name = context.getResources().getString(nameId);
-      if(!TextUtils.isEmpty(name))
-        label.setText(name);
+      int nameId =  attrs.getAttributeResourceValue("http://schemas.android.com/apk/res/android","text",-1);
+      if(nameId>-1)
+      {
+        String name = context.getResources().getString(nameId);
+        if(!TextUtils.isEmpty(name))
+          label.setText(name);
+      }
     }
     label.setId(LABEL_ID);
 
@@ -116,6 +119,13 @@ public class FullInfoItem extends RelativeLayout
   public void setText(CharSequence text)
   {
     TextView view = (TextView)findViewById(VALUE_ID);
+    if(view!=null)
+      view.setText(text);
+  }
+
+  public void setLabel(String text)
+  {
+    TextView view = (TextView)findViewById(LABEL_ID);
     if(view!=null)
       view.setText(text);
   }

@@ -164,6 +164,12 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
+  public ITerminal getTerminal(long id)
+  {
+    return _mStorage.getTerminal(id);
+  }
+
+  @Override
   public int refresh(Account account)
   {
     ArrayList<Group> groups = new ArrayList<Group>();

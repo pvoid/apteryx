@@ -146,6 +146,7 @@ class Storage
                                      COLUMN_AGENTID + " text not null," +
                                      COLUMN_AGENTNAME + " text not null);";
     static final String AGENT_ID_CLAUSE = COLUMN_AGENTID+"=?";
+    static final String TERMINAL_ID_CLAUSE = COLUMN_ID+"=?";
   }
 
   private DatabaseHelper _database;
@@ -318,7 +319,7 @@ class Storage
       values.put(Terminals.COLUMN_STATE, terminal.State());
       values.put(Terminals.COLUMN_PRINTERSTATE,terminal.printer_state);
       values.put(Terminals.COLUMN_CASHBINSTATE,terminal.cashbin_state);
-      values.put(Terminals.COLUMN_LPD,terminal.lpd);
+      values.put(Terminals.COLUMN_LPD,0);
       values.put(Terminals.COLUMN_CASH,terminal.cash);
       values.put(Terminals.COLUMN_LASTACTIVITY,terminal.lastActivity);
       values.put(Terminals.COLUMN_LASTPAYMENT,terminal.lastPayment);
@@ -382,7 +383,6 @@ class Storage
                                                                  Terminals.COLUMN_STATE,
                                                                  Terminals.COLUMN_PRINTERSTATE,
                                                                  Terminals.COLUMN_CASHBINSTATE,
-                                                                 Terminals.COLUMN_LPD,
                                                                  Terminals.COLUMN_CASH,
                                                                  Terminals.COLUMN_LASTACTIVITY,
                                                                  Terminals.COLUMN_LASTPAYMENT,
@@ -401,7 +401,8 @@ class Storage
                                                                  Terminals.COLUMN_BONDS10000,
                                                                  Terminals.COLUMN_PAYSPERHOUR,
                                                                  Terminals.COLUMN_AGENTID,
-                                                                 Terminals.COLUMN_AGENTNAME},
+                                                                 Terminals.COLUMN_AGENTNAME,
+                                                                 Terminals.COLUMN_MS},
                              clause,clauseArgs,null,null,null,null);
     if(cursor!=null)
     {
@@ -413,26 +414,26 @@ class Storage
           terminal.State(cursor.getInt(2));
           terminal.printer_state = cursor.getString(3);
           terminal.cashbin_state = cursor.getString(4);
-          terminal.lpd = cursor.getString(5);
-          terminal.cash = cursor.getInt(6);
-          terminal.lastActivity = cursor.getLong(7);
-          terminal.lastPayment = cursor.getLong(8);
-          terminal.bondsCount = cursor.getInt(9);
-          terminal.balance = cursor.getString(10);
-          terminal.signalLevel = cursor.getInt(11);
-          terminal.softVersion = cursor.getString(12);
-          terminal.printerModel = cursor.getString(13);
-          terminal.cashbinModel = cursor.getString(14);
-          terminal.bonds10count = cursor.getInt(15);
-          terminal.bonds50count = cursor.getInt(16);
-          terminal.bonds100count = cursor.getInt(17);
-          terminal.bonds500count = cursor.getInt(18);
-          terminal.bonds1000count = cursor.getInt(19);
-          terminal.bonds5000count = cursor.getInt(20);
-          terminal.bonds10000count = cursor.getInt(21);
-          terminal.paysPerHour = cursor.getString(22);
-          terminal.agentId = Long.parseLong(cursor.getString(23));
-          terminal.agentName = cursor.getString(24);
+          terminal.cash = cursor.getInt(5);
+          terminal.lastActivity = cursor.getLong(6);
+          terminal.lastPayment = cursor.getLong(7);
+          terminal.bondsCount = cursor.getInt(8);
+          terminal.balance = cursor.getString(9);
+          terminal.signalLevel = cursor.getInt(10);
+          terminal.softVersion = cursor.getString(11);
+          terminal.printerModel = cursor.getString(12);
+          terminal.cashbinModel = cursor.getString(13);
+          terminal.bonds10count = cursor.getInt(14);
+          terminal.bonds50count = cursor.getInt(15);
+          terminal.bonds100count = cursor.getInt(16);
+          terminal.bonds500count = cursor.getInt(17);
+          terminal.bonds1000count = cursor.getInt(18);
+          terminal.bonds5000count = cursor.getInt(19);
+          terminal.bonds10000count = cursor.getInt(20);
+          terminal.paysPerHour = cursor.getString(21);
+          terminal.agentId = Long.parseLong(cursor.getString(22));
+          terminal.agentName = cursor.getString(23);
+          terminal.ms = cursor.getInt(24);
           terminals.add(terminal);
         }
         while(cursor.moveToNext());
@@ -537,5 +538,70 @@ class Storage
       cursor.close();
     }
     _database.close();
+  }
+
+  public Terminal getTerminal(long id)
+  {
+    Terminal terminal = null;
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
+                                                                 Terminals.COLUMN_ADDRESS,
+                                                                 Terminals.COLUMN_STATE,
+                                                                 Terminals.COLUMN_PRINTERSTATE,
+                                                                 Terminals.COLUMN_CASHBINSTATE,
+                                                                 Terminals.COLUMN_CASH,
+                                                                 Terminals.COLUMN_LASTACTIVITY,
+                                                                 Terminals.COLUMN_LASTPAYMENT,
+                                                                 Terminals.COLUMN_BONDS,
+                                                                 Terminals.COLUMN_BALANCE,
+                                                                 Terminals.COLUMN_SIGNALLEVEL,
+                                                                 Terminals.COLUMN_SOFTVERSION,
+                                                                 Terminals.COLUMN_PRINTERMODEL,
+                                                                 Terminals.COLUMN_CASHBINMODEL,
+                                                                 Terminals.COLUMN_BONDS10,
+                                                                 Terminals.COLUMN_BONDS50,
+                                                                 Terminals.COLUMN_BONDS100,
+                                                                 Terminals.COLUMN_BONDS500,
+                                                                 Terminals.COLUMN_BONDS1000,
+                                                                 Terminals.COLUMN_BONDS5000,
+                                                                 Terminals.COLUMN_BONDS10000,
+                                                                 Terminals.COLUMN_PAYSPERHOUR,
+                                                                 Terminals.COLUMN_AGENTID,
+                                                                 Terminals.COLUMN_AGENTNAME,
+                                                                 Terminals.COLUMN_MS},
+                             Terminals.TERMINAL_ID_CLAUSE,new String[] {Long.toString(id)},null,null,null,null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+        terminal.State(cursor.getInt(2));
+        terminal.printer_state = cursor.getString(3);
+        terminal.cashbin_state = cursor.getString(4);
+        terminal.cash = cursor.getInt(5);
+        terminal.lastActivity = cursor.getLong(6);
+        terminal.lastPayment = cursor.getLong(7);
+        terminal.bondsCount = cursor.getInt(8);
+        terminal.balance = cursor.getString(9);
+        terminal.signalLevel = cursor.getInt(10);
+        terminal.softVersion = cursor.getString(11);
+        terminal.printerModel = cursor.getString(12);
+        terminal.cashbinModel = cursor.getString(13);
+        terminal.bonds10count = cursor.getInt(14);
+        terminal.bonds50count = cursor.getInt(15);
+        terminal.bonds100count = cursor.getInt(16);
+        terminal.bonds500count = cursor.getInt(17);
+        terminal.bonds1000count = cursor.getInt(18);
+        terminal.bonds5000count = cursor.getInt(19);
+        terminal.bonds10000count = cursor.getInt(20);
+        terminal.paysPerHour = cursor.getString(21);
+        terminal.agentId = Long.parseLong(cursor.getString(22));
+        terminal.agentName = cursor.getString(23);
+        terminal.ms = cursor.getInt(24);
+      }
+      cursor.close();
+    }
+    _database.close();
+    return terminal;
   }
 }

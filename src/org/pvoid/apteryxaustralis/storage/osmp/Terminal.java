@@ -21,6 +21,10 @@ import android.content.Context;
 import org.pvoid.apteryxaustralis.DateFormat;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.types.ITerminal;
+import org.pvoid.apteryxaustralis.types.InfoLine;
+import org.pvoid.apteryxaustralis.types.StatusLine;
+
+import java.util.List;
 
 public class Terminal implements ITerminal
 {
@@ -61,7 +65,6 @@ public class Terminal implements ITerminal
   private int _mState;
   public String printer_state;
   public String cashbin_state;
-  public String lpd;
   public int cash;
   public long lastActivity;
   public long lastPayment;
@@ -90,7 +93,6 @@ public class Terminal implements ITerminal
   {
     this.tid = id;
     this.address = address;
-    this.lpd = "";
   }
   
   public String Address() 
@@ -118,7 +120,6 @@ public class Terminal implements ITerminal
     _mState = terminal.State();
     printer_state = terminal.printer_state;
     cashbin_state = terminal.cashbin_state;
-    lpd = terminal.lpd;
     cash = terminal.cash;
     lastActivity = terminal.lastActivity;
     lastPayment = terminal.lastPayment;
@@ -146,6 +147,12 @@ public class Terminal implements ITerminal
   public String toString()
   {
     return address;
+  }
+
+  @Override
+  public long getId()
+  {
+    return tid;
   }
 
   @Override
@@ -231,5 +238,111 @@ public class Terminal implements ITerminal
         break;
     }
     return status.toString();
+  }
+
+  @Override
+  public void getStatuses(Context context, List<StatusLine> statuses)
+  {
+    if(!"OK".equals(printer_state))
+      statuses.add(new StatusLine(printer_state,StatusLine.STATE_ERROR));
+
+    if(!"OK".equals(cashbin_state))
+      statuses.add(new StatusLine(cashbin_state,StatusLine.STATE_ERROR));
+
+    /*if(ms & STATE_PRINTER_STACKER_ERROR != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_PRINTER_STACKER_ERROR)));*/
+
+    if((ms & STATE_INTERFACE_ERROR) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_INTERFACE_ERROR),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_UPLOADING_UPDATES) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPLOADING_UPDATES),StatusLine.STATE_OK));
+
+    if((ms & STATE_DEVICES_ABSENT) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_DEVICES_ABSENT),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_WATCHDOG_TIMER) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_WATCHDOG_TIMER),StatusLine.STATE_OK));
+
+    if((ms & STATE_PAPER_COMING_TO_END) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_PAPER_COMING_TO_END),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_STACKER_REMOVED) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_STACKER_REMOVED),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_ESSENTIAL_ELEMENTS_ERROR) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_HARDDRIVE_PROBLEMS) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_HARDDRIVE_PROBLEMS),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_STOPPED_DUE_BALANCE) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_STOPPED_DUE_BALANCE),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_HARDWARE_OR_SOFTWARE_PROBLEM) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_HAS_SECOND_MONITOR) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_HAS_SECOND_MONITOR),StatusLine.STATE_OK));
+
+    if((ms & STATE_ALTERNATE_NETWORK_USED) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_ALTERNATE_NETWORK_USED),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_UNAUTHORIZED_SOFTWARE) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_PROXY_SERVER) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_PROXY_SERVER),StatusLine.STATE_OK));
+
+    if((ms & STATE_UPDATING_CONFIGURATION) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_CONFIGURATION),StatusLine.STATE_OK));
+
+    if((ms & STATE_UPDATING_NUMBERS) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_NUMBERS),StatusLine.STATE_OK));
+
+    if((ms & STATE_UPDATING_PROVIDERS) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_PROVIDERS),StatusLine.STATE_OK));
+
+    if((ms & STATE_UPDATING_ADVERT) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_ADVERT),StatusLine.STATE_OK));
+
+    if((ms & STATE_UPDATING_FILES) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_FILES),StatusLine.STATE_OK));
+
+    if((ms & STATE_FAIR_FTP_IP) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_FAIR_FTP_IP),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_ASO_MODIFIED) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_ASO_MODIFIED),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_INTERFACE_MODIFIED) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_INTERFACE_MODIFIED),StatusLine.STATE_ERROR));
+
+    if((ms & STATE_ASO_ENABLED) != 0)
+      statuses.add(new StatusLine(context.getString(R.string.STATE_ASO_ENABLED),StatusLine.STATE_ERROR));
+  }
+
+  @Override
+  public void getInfo(Context context, List<InfoLine> statuses)
+  {
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_cash),Integer.toString(cash)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_payment),DateFormat.formatDateSmart(context, lastPayment)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_activity),DateFormat.formatDateSmart(context, lastActivity)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_pays_per_hour),paysPerHour));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_balance),balance));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_signal_level),Integer.toString(signalLevel)));
+
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_soft_version),softVersion));
+
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds),Integer.toString(bondsCount)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds10),Integer.toString(bonds10count)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds50),Integer.toString(bonds50count)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds100),Integer.toString(bonds100count)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds500),Integer.toString(bonds500count)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds1000),Integer.toString(bonds1000count)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds5000),Integer.toString(bonds5000count)));
+
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_printer),printerModel));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_cashbin),cashbinModel));
   }
 }
