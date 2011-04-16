@@ -121,12 +121,26 @@ public class OsmpStorage implements IStorage
   public void getGroups(long accountId, List<Group> groups)
   {
     _mStorage.getAgents(accountId, groups);
+    Group group = new Group();
+    group.accountId = -1;
+    group.balance = -1;
+    group.id = -1;
+    group.name = "This is test";
+    group.lastUpdate = System.currentTimeMillis();
+    groups.add(group);
   }
 
   @Override
   public void getGroups(List<Group> groups)
   {
     _mStorage.getAgents(0,groups);
+    Group group = new Group();
+    group.accountId = -1;
+    group.balance = -1;
+    group.id = -1;
+    group.name = "This is test";
+    group.lastUpdate = System.currentTimeMillis();
+    groups.add(group);
   }
 
   @Override

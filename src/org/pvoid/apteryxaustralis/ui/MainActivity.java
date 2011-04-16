@@ -52,7 +52,7 @@ import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener
+public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -89,6 +89,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
     _mSlider = (SlideBand) findViewById(R.id.groups);
+    _mSlider.setOnCurrentViewChangeListener(this);
     _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
 /////////
     _mGroups = new ArrayList<TerminalsArrayAdapter>();
@@ -220,17 +221,20 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         ListView list = new ListView(this);
         list.setAdapter(adapter);
         list.setOnItemClickListener(this);
-        list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT));
+        list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
         _mSlider.addView(list);
       }
+      else
+        ((ListView)_mSlider.getChildAt(index)).setAdapter(adapter);
+      ++index;
     }
   }
 
-  private void setCurrentAgentInfo()
+  private void setCurrentAgentInfo(View view)
   {
-    ListView list = (ListView)_mSlider.getCurrentView();
+    ListView list = (ListView)view;
     if(list==null)
-      return;
+      list = (ListView)_mSlider.getCurrentView();
     TerminalsArrayAdapter group = (TerminalsArrayAdapter)list.getAdapter();
     if(group==null)
       return;
@@ -257,6 +261,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
    */
+  @SuppressWarnings("unused")
   public void agentsListClick(View view)
   {
     if(_mAgentsDialog==null)
@@ -323,6 +328,12 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     startActivity(intent);
   }
 
+  @Override
+  public void CurrentViewChanged(View v)
+  {
+    setCurrentAgentInfo(v);
+  }
+
   /**
    * Фоновое обновление данных из БД
    */
@@ -347,7 +358,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       if(aBoolean)
       {
         fillAgents();
-        setCurrentAgentInfo();
+        setCurrentAgentInfo(_mSlider.getCurrentView());
       }
       setSpinnerVisibility(false);
     }
@@ -381,7 +392,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       if(aBoolean)
       {
         fillAgents();
-        setCurrentAgentInfo();
+        setCurrentAgentInfo(_mSlider.getCurrentView());
       }
       setSpinnerVisibility(false);
     }
