@@ -210,8 +210,6 @@ public class Terminal implements ITerminal
 ////////// Ошибки настройки
     if((ms & STATE_INTERFACE_ERROR) !=0)
       return context.getString(R.string.STATE_INTERFACE_ERROR);
-    if((ms & STATE_ESSENTIAL_ELEMENTS_ERROR) !=0)
-      return context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR);
     if((ms & STATE_STOPPED_DUE_BALANCE) !=0)
       return context.getString(R.string.STATE_STOPPED_DUE_BALANCE);
 ///////// Ну и прочее
