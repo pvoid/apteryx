@@ -124,7 +124,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   public void onStart()
   {
     super.onStart();
-    Notifyer.HideNotification(this);
+    Notifier.hideNotification(this);
   }
   
   @Override
@@ -214,6 +214,9 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     int index = 0;
     for(TerminalsArrayAdapter adapter : _mGroups)
     {
+      if(adapter.isEmpty())
+        continue;
+
       adapter.sort(_mTerminalComparator);
 
       if(_mSlider.getChildCount()<=index)
@@ -333,7 +336,6 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   {
     setCurrentAgentInfo(v);
   }
-
   /**
    * Фоновое обновление данных из БД
    */

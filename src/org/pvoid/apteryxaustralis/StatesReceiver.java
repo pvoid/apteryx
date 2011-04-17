@@ -61,7 +61,7 @@ public class StatesReceiver extends BroadcastReceiver
     context.sendBroadcast(broadcastIntent);
 
     if(warn)
-      Notifyer.ShowNotification(context);
+      Notifier.showNotification(context);
 
     long interval = Preferences.getUpdateInterval(context);
     if(interval==0)

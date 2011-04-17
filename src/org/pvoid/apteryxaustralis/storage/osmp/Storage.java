@@ -80,6 +80,15 @@ class Storage
                                      COLUMN_LAST_UPDATE+" integer not null,"+
                                      COLUMN_AGENT+" text not null primary key)";
 
+    static final String ACTIVE_AGENTS_QUERY = "select a."+COLUMN_AGENT+","+
+                                                     "a."+COLUMN_AGENT_NAME+","+
+                                                     "a."+COLUMN_LAST_UPDATE+","+
+                                                     "a."+COLUMN_BALANCE+","+
+                                                     "a."+COLUMN_OVERDRAFT+
+                                              " from "+TABLE_NAME+" a inner join "+Terminals.TABLE_NAME+" t"+
+                                              " on a."+COLUMN_AGENT+"=t."+Terminals.COLUMN_AGENTID+
+                                              "  group by a."+COLUMN_AGENT;
+
     static final String ACCOUNT_CLAUSE = COLUMN_ACCOUNT + "=?";
   }
   /**
@@ -531,6 +540,31 @@ class Storage
           group.balance = cursor.getDouble(2);
           group.overdraft = cursor.getDouble(3);
           group.lastUpdate = cursor.getLong(4);
+          groups.add(group);
+        }
+        while(cursor.moveToNext());
+      }
+      cursor.close();
+    }
+    _database.close();
+  }
+
+  public void getAgentsActive(List<Group> groups)
+  {
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.rawQuery(Agents.ACTIVE_AGENTS_QUERY,null);
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        do
+        {
+          Group group = new Group();
+          group.id = cursor.getLong(0);
+          group.name = cursor.getString(1);
+          group.lastUpdate = cursor.getLong(2);
+          group.balance = cursor.getDouble(3);
+          group.overdraft = cursor.getDouble(4);
           groups.add(group);
         }
         while(cursor.moveToNext());

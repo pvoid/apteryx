@@ -87,7 +87,7 @@ public class Preferences
 
   static public boolean getUseVibration(Context context)
   {
-    if(_mAutoUpdate==VALUE_UNKNOWN)
+    if(_mUseVibration==VALUE_UNKNOWN)
     {
       SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
       if(preferences.getBoolean(PREF_USEVIBRO,false))

@@ -165,6 +165,7 @@ public class CommonSettings extends PreferenceActivity
   private void InitializeSound(String sound_uri)
   {
     setSoundSummary(sound_uri);
+    Log.d(CommonSettings.class.getSimpleName(),"InitializeSound");
     _mRingtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override

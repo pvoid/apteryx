@@ -18,6 +18,7 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
@@ -31,7 +32,6 @@ import java.util.List;
 
 public class OsmpStorage implements IStorage
 {
-  private Context _mContext;
   private Storage _mStorage;
 
   private final Comparator<Terminal> _mComparatorById = new Comparator<Terminal>()
@@ -45,8 +45,7 @@ public class OsmpStorage implements IStorage
 
   public OsmpStorage(Context context)
   {
-    _mContext = context.getApplicationContext();
-    _mStorage = new Storage(_mContext);
+    _mStorage = new Storage(context.getApplicationContext());
   }
 
   @Override
@@ -97,17 +96,21 @@ public class OsmpStorage implements IStorage
     ArrayList<Terminal> terminals = new ArrayList<Terminal>();
     _mStorage.getTerminals(0,terminals);
     int result = refresh(account);
+    Log.d(OsmpStorage.class.getSimpleName(),"Result code: " + result);
     if(result==IStorage.RES_OK)
     {
+      Log.d(OsmpStorage.class.getSimpleName(),"Sorting...");
       Collections.sort(terminals,_mComparatorById);
       ArrayList<Terminal> updatedTerminals = new ArrayList<Terminal>();
       _mStorage.getTerminals(0,updatedTerminals);
-      for(Terminal terminal : updatedTerminals)
+      for(Terminal updatedTerminal : updatedTerminals)
       {
-        int index = Collections.binarySearch(terminals,terminal,_mComparatorById);
+        Log.d(OsmpStorage.class.getSimpleName(),"Looking for " + updatedTerminal.id());
+        int index = Collections.binarySearch(terminals,updatedTerminal,_mComparatorById);
         if(index>-1)
         {
-          Terminal updatedTerminal = updatedTerminals.get(index);
+          Terminal terminal = terminals.get(index);
+          Log.d(OsmpStorage.class.getSimpleName(),"Old state: " + terminal.State() + " new state: "+updatedTerminal.State());
           if(updatedTerminal.State()!=Terminal.STATE_OK && terminal.State()==Terminal.STATE_OK)
             return RES_OK_TERMINAL_ALARM;
         }
@@ -126,7 +129,7 @@ public class OsmpStorage implements IStorage
   @Override
   public void getGroups(List<Group> groups)
   {
-    _mStorage.getAgents(0,groups);
+    _mStorage.getAgentsActive(groups);
   }
 
   @Override
@@ -182,7 +185,13 @@ public class OsmpStorage implements IStorage
 /////// Вытащим сразу терминалы
       ArrayList<Terminal> terminals = new ArrayList<Terminal>();
       if(OsmpRequest.getTerminals(account,terminals)==0)
+      {
+        /*for(Terminal terminal : terminals)
+        {
+          terminal.State(Terminal.STATE_OK);
+        }*/
         _mStorage.saveTerminals(account.id,terminals);
+      }
       return RES_OK;
     }
 ///////

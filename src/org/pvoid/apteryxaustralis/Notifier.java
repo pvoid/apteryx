@@ -17,8 +17,6 @@
 
 package org.pvoid.apteryxaustralis;
 
-import java.util.List;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -32,14 +30,14 @@ import android.widget.RemoteViews;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
-public class Notifyer
+public class Notifier
 {
   public static final int NOTIFICATION_ICON = 1;
 
   private static final Object _mLocker = new Object();
   private static Notification _mNotification;
-  
-  public static Notification GetIcon(Context context)
+
+  public static Notification getIcon(Context context)
   {
     synchronized (_mLocker)
     {
@@ -50,16 +48,16 @@ public class Notifyer
                                          context.getText(R.string.app_name),
                                          context.getText(R.string.update_service),
                                          PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
-        _mNotification.flags|=Notification.FLAG_NO_CLEAR | Notification.FLAG_FOREGROUND_SERVICE;
+        _mNotification.flags|=Notification.FLAG_NO_CLEAR/* | Notification.FLAG_FOREGROUND_SERVICE*/;
       }
 
       return(_mNotification);
     }
   }
   
-  public static void ShowNotification(Context context)
+  public static void showNotification(Context context)
   {
-    Notification notification = GetIcon(context);
+    Notification notification = getIcon(context);
     notification.icon = R.drawable.ic_terminal_inactive;
     notification.tickerText = context.getText(R.string.terminals_errors);
 
@@ -73,20 +71,30 @@ public class Notifyer
     }
 
     notification.when = System.currentTimeMillis();
+    _mNotification.setLatestEventInfo(context,
+                                      context.getText(R.string.app_name),
+                                      context.getText(R.string.terminals_errors),
+                                      PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
     nm.notify(NOTIFICATION_ICON, notification);
   }
   
-  public static void HideNotification(Context context)
+  public static void hideNotification(Context context)
   {
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
     if(UpdateStatusService.Executed())
     {
-      Notification notification = GetIcon(context);
+      Notification notification = getIcon(context);
       notification.icon = R.drawable.ic_terminal_active;
       RemoteViews view = notification.contentView;
       view.setTextViewText(R.id.notify_text, context.getText(R.string.update_service));
       view.setImageViewResource(R.id.notify_icon, R.drawable.ic_terminal_active);
+
+      _mNotification.setLatestEventInfo(context,
+                                      context.getText(R.string.app_name),
+                                      context.getText(R.string.update_service),
+                                      PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class) , 0));
+
       nm.notify(NOTIFICATION_ICON, notification);
     }
     else
