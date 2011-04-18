@@ -186,10 +186,6 @@ public class OsmpStorage implements IStorage
       ArrayList<Terminal> terminals = new ArrayList<Terminal>();
       if(OsmpRequest.getTerminals(account,terminals)==0)
       {
-        /*for(Terminal terminal : terminals)
-        {
-          terminal.State(Terminal.STATE_OK);
-        }*/
         _mStorage.saveTerminals(account.id,terminals);
       }
       return RES_OK;
@@ -211,5 +207,17 @@ public class OsmpStorage implements IStorage
   public int errorMessage(int errorCode)
   {
     return ErrorCodes.Message(errorCode);
+  }
+
+  public int rebootTerminal(long terminalId, long agentId)
+  {
+    Account account = _mStorage.getAccount(agentId);
+    return OsmpRequest.rebootTerminal(account,terminalId);
+  }
+
+  public int switchOffTerminal(long terminalId, long agentId)
+  {
+    Account account = _mStorage.getAccount(agentId);
+    return OsmpRequest.switchOffTerminal(account,terminalId);
   }
 }

@@ -20,9 +20,11 @@ package org.pvoid.apteryxaustralis.storage.osmp;
 import android.content.Context;
 import org.pvoid.apteryxaustralis.DateFormat;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.types.InfoLine;
 import org.pvoid.apteryxaustralis.types.StatusLine;
+import org.pvoid.apteryxaustralis.types.TerminalAction;
 
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class Terminal implements ITerminal
   private final static int OSMP_STATE_OK = 0;
   private final static int OSMP_STATE_WARRNING = 2;
   private final static int OSMP_STATE_ERROR = 1;
+
+  private final static int ACTION_REBOOT = 0;
+  private final static int ACTION_POWER_OFF = 1;
 
   private final static int STATE_PRINTER_STACKER_ERROR = 1;// Автомат остановлен из-за ошибок купюроприемника или принтера
   private final static int STATE_INTERFACE_ERROR = 2; //Автомат остановлен из-за ошибки в конфигурации интерфейса.
@@ -163,7 +168,7 @@ public class Terminal implements ITerminal
       case OSMP_STATE_OK:
         return ITerminal.STATE_OK;
       case OSMP_STATE_WARRNING:
-        return ITerminal.STATE_WARRNING;
+        return ITerminal.STATE_WARNING;
       default:
         if("OK".equals(printer_state))
           return ITerminal.STATE_ERROR_CRITICAL;
@@ -215,8 +220,6 @@ public class Terminal implements ITerminal
 ///////// Ну и прочее
     if((ms & STATE_PAPER_COMING_TO_END) !=0)
       return context.getString(R.string.STATE_PAPER_COMING_TO_END);
-    if((ms & STATE_ASO_ENABLED) !=0)
-      return context.getString(R.string.STATE_ASO_ENABLED);
 
     StringBuilder status = new StringBuilder();
     switch(_mState)
@@ -342,5 +345,44 @@ public class Terminal implements ITerminal
 
     statuses.add(new InfoLine(context.getString(R.string.fullinfo_printer),printerModel));
     statuses.add(new InfoLine(context.getString(R.string.fullinfo_cashbin),cashbinModel));
+  }
+
+  @Override
+  public void getActions(Context context, List<TerminalAction> actions)
+  {
+    actions.add(new TerminalAction(ACTION_REBOOT,context.getString(R.string.reboot)));
+    actions.add(new TerminalAction(ACTION_POWER_OFF,context.getString(R.string.switchoff)));
+  }
+
+  @Override
+  public void runAction(IStorage storage, int action)
+  {
+    OsmpStorage strg;
+//////////
+    try
+    {
+      strg = (OsmpStorage) storage;
+    }
+    catch(ClassCastException e)
+    {
+      e.printStackTrace();
+      return;
+    }
+//////////
+    int result = IStorage.RES_OK;
+    switch(action)
+    {
+      case ACTION_REBOOT:
+        result = strg.rebootTerminal(tid,agentId);
+        break;
+      case ACTION_POWER_OFF:
+        result = strg.switchOffTerminal(tid,agentId);
+        break;
+    }
+//////////
+    if(result!=IStorage.RES_OK)
+    {
+
+    }
   }
 }

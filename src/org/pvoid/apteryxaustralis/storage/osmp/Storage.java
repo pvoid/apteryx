@@ -158,6 +158,15 @@ class Storage
     static final String TERMINAL_ID_CLAUSE = COLUMN_ID+"=?";
   }
 
+  private static String ACCOUNT_FROM_AGENT_QUERY = "select c."+Accounts.COLUMN_ID + ",c." +
+                                                               Accounts.COLUMN_TITLE + ",c." +
+                                                               Accounts.COLUMN_LOGIN + ",c." +
+                                                               Accounts.COLUMN_PASSWORD + ",c." +
+                                                               Accounts.COLUMN_TERMINAL +
+                                                   " from " + Accounts.TABLE_NAME + " c inner join " + Agents.TABLE_NAME+
+                                                   " a on c." + Accounts.COLUMN_ID + "=a." + Agents.COLUMN_ACCOUNT +
+                                                   " where a."+Agents.COLUMN_AGENT+"=?";
+
   private DatabaseHelper _database;
   private Context _context;
   
@@ -314,7 +323,24 @@ class Storage
     }
     _database.close();
   }
-  
+
+  public Account getAccount(long agentId)
+  {
+    Account result = null;
+    SQLiteDatabase db = OpenRead();
+    Cursor cursor = db.rawQuery(ACCOUNT_FROM_AGENT_QUERY,new String[] {Long.toString(agentId)});
+    if(cursor!=null)
+    {
+      if(cursor.moveToFirst())
+      {
+        result = new Account(cursor.getLong(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
+      }
+      cursor.close();
+    }
+    _database.close();
+    return result;
+  }
+
   public void saveTerminals(long accountId, final List<Terminal> terminals)
   {
     ContentValues values = new ContentValues();
@@ -451,39 +477,7 @@ class Storage
     }
     _database.close();
   }
-  
-  /*public boolean CheckStates(final TerminalsProcessData terminals,List<Terminal> states)
-  {
-    Boolean result = false;
-    SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID, Terminals.COLUMN_STATE},
-                             null,null,null,null,null,null);
-    if(cursor!=null)
-    {
-      if(cursor.moveToFirst())
-      {
-        do
-        {
-          long terminal_id = cursor.getLong(0);
-          int terminal_state = cursor.getInt(1);
-          Terminal terminal = terminals.at(terminal_id);
-          if(terminal!=null)
-          {
-            if(terminal.State() != Terminal.STATE_OK && terminal_state==Terminal.STATE_OK)
-            {
-              result = true;
-              states.add(terminal);
-            }
-          }
-        }
-        while(cursor.moveToNext());
-      }
-      cursor.close();
-    }
-    _database.close();
-    return(result);
-  }*/
-  
+
   public boolean saveAgents(long account, List<Group> groups)
   {
     SQLiteDatabase db = OpenWrite();

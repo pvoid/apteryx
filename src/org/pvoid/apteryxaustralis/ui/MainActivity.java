@@ -20,12 +20,12 @@ package org.pvoid.apteryxaustralis.ui;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import android.content.*;
 import android.os.AsyncTask;
 import android.text.format.DateUtils;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.widget.AdapterView;
-import android.widget.TextView;
+import android.widget.*;
 import org.pvoid.apteryxaustralis.*;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
@@ -36,23 +36,18 @@ import org.pvoid.apteryxaustralis.types.ITerminal;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.ListView;
 import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
+import org.pvoid.apteryxaustralis.types.TerminalAction;
 import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener
+public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener, AdapterView.OnItemLongClickListener
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -79,7 +74,10 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     @Override
     public int compare(ITerminal left, ITerminal right)
     {
-      return(right.getState() - left.getState());
+      int res = right.getState() - left.getState();
+      if(res!=0)
+        return(res);
+      return left.getTitle().compareTo(right.getTitle());
     }
   };
   
@@ -224,6 +222,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         ListView list = new ListView(this);
         list.setAdapter(adapter);
         list.setOnItemClickListener(this);
+        list.setOnItemLongClickListener(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
         _mSlider.addView(list);
       }
@@ -231,6 +230,9 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         ((ListView)_mSlider.getChildAt(index)).setAdapter(adapter);
       ++index;
     }
+/////////
+    while(index<_mSlider.getChildCount())
+      _mSlider.removeViewAt(_mSlider.getChildCount()-1);
   }
 
   private void setCurrentAgentInfo(View view)
@@ -336,6 +338,35 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   {
     setCurrentAgentInfo(v);
   }
+
+  @Override
+  public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long l)
+  {
+    final ITerminal terminal = ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    ArrayList<TerminalAction> actions = new ArrayList<TerminalAction>();
+////////
+    terminal.getActions(this, actions);
+    if(actions.size()==0)
+      return false;
+////////
+    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+    final ArrayAdapter<TerminalAction> actionsList = new ArrayAdapter<TerminalAction>(this, android.R.layout.select_dialog_item);
+    for(TerminalAction action : actions)
+      actionsList.add(action);
+    dialog.setAdapter(actionsList, new OnClickListener()
+      {
+        @Override
+        public void onClick(DialogInterface dialog, int which)
+        {
+          TerminalAction action = actionsList.getItem(which);
+          terminal.runAction(_mStorage,action.id);
+        }
+      });
+      dialog.setCancelable(true);
+      dialog.show();
+      return(true);
+  }
+
   /**
    * Фоновое обновление данных из БД
    */

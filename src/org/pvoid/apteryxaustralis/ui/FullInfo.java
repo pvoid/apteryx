@@ -61,7 +61,7 @@ public class FullInfo extends Activity
       case ITerminal.STATE_OK:
         icon.setImageResource(R.drawable.ic_terminal_active);
         break;
-      case ITerminal.STATE_WARRNING:
+      case ITerminal.STATE_WARNING:
         icon.setImageResource(R.drawable.ic_terminal_pending);
         break;
       case ITerminal.STATE_ERROR:

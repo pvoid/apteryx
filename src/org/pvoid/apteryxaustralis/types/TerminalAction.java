@@ -17,25 +17,19 @@
 
 package org.pvoid.apteryxaustralis.types;
 
-import android.content.ContentValues;
-import android.content.Context;
-import org.pvoid.apteryxaustralis.storage.IStorage;
-
-import java.util.List;
-
-public interface ITerminal
+public class TerminalAction
 {
-  static final int STATE_OK = 0;
-  static final int STATE_WARNING = 1;
-  static final int STATE_ERROR = 2;
-  static final int STATE_ERROR_CRITICAL = 3;
+  public final int id;
+  public final String title;
 
-  long getId();
-  int getState();
-  String getTitle();
-  String getStatus(Context context);
-  void getStatuses(Context context, List<StatusLine> statuses);
-  void getInfo(Context context, List<InfoLine> info);
-  void getActions(Context context, List<TerminalAction> actions);
-  void runAction(IStorage storage, int action);
+  public TerminalAction(int id, String title)
+  {
+    this.id = id;
+    this.title = title;
+  }
+
+  public String toString()
+  {
+    return title;
+  }
 }
