@@ -188,10 +188,10 @@ public class Terminal implements ITerminal
   {
 ////////// Ошибки принтера или купюроприемника вперед
     if(!"OK".equals(cashbin_state))
-      return cashbin_state;
+      return context.getString(R.string.cachebin) + ": " + cashbin_state;
 
     if(!"OK".equals(printer_state))
-      return printer_state;
+      return context.getString(R.string.printer) + ": " + printer_state;
 ////////// Потом проверим флаги. Сначала ошибки железа
     if((ms & STATE_PRINTER_STACKER_ERROR) !=0)
       return context.getString(R.string.STATE_PRINTER_STACKER_ERROR);
