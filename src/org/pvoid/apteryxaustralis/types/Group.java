@@ -25,6 +25,7 @@ public class Group// implements Parcelable
   public double balance;
   public double overdraft;
   public long   lastUpdate;
+  public int state;
 
 /*  @Override
   public int describeContents()
@@ -59,5 +60,16 @@ public class Group// implements Parcelable
   public String toString()
   {
     return(name);
+  }
+
+  public void copy(Group group)
+  {
+    id = group.id;
+    name = group.name;
+    accountId = group.accountId;
+    balance = group.balance;
+    overdraft = group.overdraft;
+    lastUpdate = group.lastUpdate;
+    state =group.state;
   }
 }

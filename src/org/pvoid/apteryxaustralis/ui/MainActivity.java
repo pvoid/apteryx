@@ -19,6 +19,7 @@ package org.pvoid.apteryxaustralis.ui;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Hashtable;
 
 import android.content.*;
 import android.os.AsyncTask;
@@ -27,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.*;
 import org.pvoid.apteryxaustralis.*;
+import org.pvoid.apteryxaustralis.storage.States;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.preference.Preferences;
@@ -53,13 +55,17 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
   
   private IStorage _mStorage;
+  private States _mStates;
 
   private int _mSpinnerCount = 0;
   private Animation _mSpinnerAnimation;
   private ArrayList<TerminalsArrayAdapter> _mGroups;
   private SlideBand _mSlider;
   private AlertDialog _mAgentsDialog;
-  
+  private GroupsArrayAdapter _mDialogAdapter;
+  /**
+   * Получатель события изменения данных о статусах терминалов
+   */
   public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
   {
     @Override
@@ -68,7 +74,12 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       (new LoadFromStorageTask()).execute();
     }
   };
-  
+  /**
+   * Компаратор для сортировки терминалов
+   *
+   *   1) по статусу
+   *   2) по заголовку
+   */
   private static final Comparator<ITerminal> _mTerminalComparator = new Comparator<ITerminal>()
   {
     @Override
@@ -80,7 +91,10 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       return left.getTitle().compareTo(right.getTitle());
     }
   };
-  
+  /**
+   *
+   * @param savedInstanceState
+   */
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
@@ -92,12 +106,15 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
 /////////
     _mGroups = new ArrayList<TerminalsArrayAdapter>();
     _mStorage = new OsmpStorage(this);
+    _mStates = new States(this);
 /////////
     if(Preferences.getAutoUpdate(this))
     {
       Intent serviceIntent = new Intent(this,UpdateStatusService.class);
       startService(serviceIntent);
     }
+/////////
+    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
   }
   
   @Override
@@ -203,8 +220,24 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         }
 //////////////// Вытащим терминалы
         _mStorage.getTerminals(account.id, group, adapter);
+/////////////// Сортируем
+        /*if(!adapter.isEmpty())
+          adapter.sort(_mTerminalComparator);*/
       }
     }
+/////////////// Вытащим статусы групп
+    Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
+    if(_mStates.getGroupsStates(states))
+    {
+      for(TerminalsArrayAdapter adapter : _mGroups)
+      {
+        if(states.containsKey(adapter.getGroupId()))
+          adapter.setState(states.get(adapter.getGroupId()));
+        else
+          adapter.setState(ITerminal.STATE_OK);
+      }
+    }
+
   }
 
   private void fillAgents()
@@ -260,27 +293,45 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
                                                             System.currentTimeMillis(),
                                                             DateUtils.SECOND_IN_MILLIS,
                                                             DateUtils.FORMAT_ABBREV_ALL));
+////////// пометим что мы уже видели статусы этого агента
+    _mStates.updateGroupState(group.getGroupId(),ITerminal.STATE_OK);
+    group.setState(ITerminal.STATE_OK);
   }
-
-   /**
+  /**
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
    */
   @SuppressWarnings("unused")
   public void agentsListClick(View view)
   {
+    GroupsArrayAdapter adapter;
     if(_mAgentsDialog==null)
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
       ArrayList<Group> agents = new ArrayList<Group>();
       _mStorage.getGroups(agents);
-      GroupsArrayAdapter adapter = new GroupsArrayAdapter(this,R.layout.agent_dialog_item,R.id.agent_name);
+
+      _mDialogAdapter = new GroupsArrayAdapter(this);
       for(Group agent : agents)
-        adapter.add(agent);
-      dialog.setAdapter(adapter,this);
+      {
+
+        _mDialogAdapter.add(agent);
+      }
+      dialog.setAdapter(_mDialogAdapter,this);
       dialog.setTitle(R.string.agents_list);
       _mAgentsDialog =  dialog.create();
     }
+///////////// проставим состояния
+    Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
+    if(_mStates.getGroupsStates(states))
+      for(int index=0,length=_mDialogAdapter.getCount();index<length;++index)
+      {
+        Group agent = _mDialogAdapter.getItem(index);
+        if(states.containsKey(agent.id))
+          agent.state = states.get(agent.id);
+        else
+          agent.state = ITerminal.STATE_OK;
+      }
 /////////////
     _mAgentsDialog.show();
     _mAgentsDialog.getListView().setSelection(_mSlider.getCurrentViewIndex());
@@ -353,6 +404,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     final ArrayAdapter<TerminalAction> actionsList = new ArrayAdapter<TerminalAction>(this, android.R.layout.select_dialog_item);
     for(TerminalAction action : actions)
       actionsList.add(action);
+    dialog.setTitle(terminal.getTitle());
     dialog.setAdapter(actionsList, new OnClickListener()
       {
         @Override

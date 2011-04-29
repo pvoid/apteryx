@@ -105,16 +105,15 @@ public class CommonSettings extends PreferenceActivity
     _mIntervals = (ListPreference)findPreference("interval");
     _mUseVibro = (CheckBoxPreference) findPreference("usevibro");
     _mRingtone = (RingtonePreference) findPreference("usesound");
-    _mRingtone.setRingtoneType(RingtoneManager.TYPE_NOTIFICATION);
 
-    InitializeAutoupdate(Preferences.getAutoUpdate(this));
-    InitializeInterval(Preferences.getUpdateInterval(this));
-    InitializeVibration(Preferences.getUseVibration(this));
-    InitializeSound(Preferences.getSound(this));
-    InitializeAccounts();
+    initializeAutoUpdate(Preferences.getAutoUpdate(this));
+    initializeInterval(Preferences.getUpdateInterval(this));
+    initializeVibration(Preferences.getUseVibration(this));
+    initializeSound(Preferences.getSound(this));
+    initializeAccounts();
   }
 
-  private void InitializeAccounts()
+  private void initializeAccounts()
   {
     _mAccountsCategory = (PreferenceCategory)findPreference("accounts");
     AddAccount add_account = new AddAccount(this);
@@ -162,10 +161,10 @@ public class CommonSettings extends PreferenceActivity
     }
   }
 
-  private void InitializeSound(String sound_uri)
+  private void initializeSound(String sound_uri)
   {
     setSoundSummary(sound_uri);
-    Log.d(CommonSettings.class.getSimpleName(),"InitializeSound");
+    Log.d(CommonSettings.class.getSimpleName(),"initializeSound");
     _mRingtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
     {
       @Override
@@ -178,7 +177,7 @@ public class CommonSettings extends PreferenceActivity
     });
   }
 
-  private void InitializeVibration(boolean useVibration)
+  private void initializeVibration(boolean useVibration)
   {
     _mUseVibro.setChecked(useVibration);
     _mUseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
@@ -195,7 +194,7 @@ public class CommonSettings extends PreferenceActivity
  * 
  * @param interval начальный интервал
  */
-  private void InitializeInterval(int interval)
+  private void initializeInterval(int interval)
   {
     String intervalText = Integer.toString(interval);
     int index = _mIntervals.findIndexOfValue(intervalText);
@@ -235,7 +234,7 @@ public class CommonSettings extends PreferenceActivity
    * Настраивает галочку переключающую автоматическое обновление
    * @param state  Текущее состояние автоматического обновления
    */
-  private void InitializeAutoupdate(boolean state)
+  private void initializeAutoUpdate(boolean state)
   {
     if(state)
     {
@@ -245,7 +244,7 @@ public class CommonSettings extends PreferenceActivity
     {
       _mIntervals.setEnabled(false);
       _mUseVibro.setEnabled(false);
-      _mRingtone.setEnabled(false);
+      //_mRingtone.setEnabled(false);
     }
 ////////
     _mAutocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
@@ -268,7 +267,7 @@ public class CommonSettings extends PreferenceActivity
         _mAutocheck.setChecked(checked);
         _mIntervals.setEnabled(checked);
         _mUseVibro.setEnabled(checked);
-        _mRingtone.setEnabled(checked);
+        //_mRingtone.setEnabled(checked);
         return true;
       }
     });

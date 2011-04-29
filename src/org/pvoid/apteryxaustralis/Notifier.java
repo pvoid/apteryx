@@ -28,6 +28,7 @@ import android.text.TextUtils;
 import android.widget.RemoteViews;
 
 import org.pvoid.apteryxaustralis.preference.Preferences;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifier
@@ -55,10 +56,21 @@ public class Notifier
     }
   }
   
-  public static void showNotification(Context context)
+  public static void showNotification(Context context, int level)
   {
     Notification notification = getIcon(context);
-    notification.icon = R.drawable.ic_terminal_inactive;
+    switch(level)
+    {
+      case ITerminal.STATE_WARNING:
+        notification.icon = R.drawable.ic_terminal_pending;
+        break;
+      case ITerminal.STATE_ERROR:
+        notification.icon = R.drawable.ic_terminal_printer_error;
+        break;
+      case ITerminal.STATE_ERROR_CRITICAL:
+        notification.icon = R.drawable.ic_terminal_inactive;
+        break;
+    }
     notification.tickerText = context.getText(R.string.terminals_errors);
 
     if(Preferences.getUseVibration(context))

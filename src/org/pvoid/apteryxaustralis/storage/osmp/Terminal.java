@@ -351,7 +351,7 @@ public class Terminal implements ITerminal
   public void getActions(Context context, List<TerminalAction> actions)
   {
     actions.add(new TerminalAction(ACTION_REBOOT,context.getString(R.string.reboot)));
-    actions.add(new TerminalAction(ACTION_POWER_OFF,context.getString(R.string.switchoff)));
+    //actions.add(new TerminalAction(ACTION_POWER_OFF,context.getString(R.string.switchoff)));
   }
 
   @Override

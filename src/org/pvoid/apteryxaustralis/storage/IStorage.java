@@ -23,12 +23,15 @@ import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 
+import java.util.Hashtable;
 import java.util.List;
 
 public interface IStorage
 {
   static final int RES_OK = 0;
-  static final int RES_OK_TERMINAL_ALARM = 1;
+  static final int RES_OK_TERMINAL_WARNING = 1;
+  static final int RES_OK_TERMINAL_ALARM = 2;
+  static final int RES_OK_TERMINAL_ALARM_ALARM = 3;
 
   static final int RES_ERR_INVALID_ACCOUNT = -1;
   static final int RES_ERR_NETWORK_ERROR = -2;
@@ -36,12 +39,11 @@ public interface IStorage
 
   static final int RES_ERR_CUSTOM_FIRST = -20;
 
-
   void      getAccounts(final List<Account> adapter);
   void      deleteAccount(long id);
   int       addAccount(Account account);
   Account   getAccount(long id);
-  int       updateAccount(Account account);
+  int       updateAccount(Account account, Hashtable<Long,Integer> states);
   void      getGroups(long accountId, List<Group> groups);
   void      getGroups(List<Group> groups);
   void      getTerminals(long accountId, Group group, ArrayAdapter<ITerminal> terminals);

@@ -35,6 +35,7 @@
                         android:summary=""/>
     <RingtonePreference android:key="usesound"
                         android:title="@string/settings_melody"
+                        android:ringtoneType="notification"
                         android:summary=""/>
   </PreferenceCategory>
 </PreferenceScreen>

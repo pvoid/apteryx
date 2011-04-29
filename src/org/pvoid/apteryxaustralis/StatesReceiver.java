@@ -18,8 +18,10 @@
 package org.pvoid.apteryxaustralis;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import android.os.PowerManager;
+import org.pvoid.apteryxaustralis.storage.States;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.IStorage;
@@ -56,28 +58,29 @@ public class StatesReceiver extends BroadcastReceiver
       {
         OsmpStorage storage = new OsmpStorage(_mContext);
         ArrayList<Account> accounts = new ArrayList<Account>();
-        boolean warn = false;
+        int warn = 0;
         storage.getAccounts(accounts);
         if(accounts.size()>0)
         {
+          Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
           for(Account account : accounts)
           {
-            switch(storage.updateAccount(account))
-            {
-              case IStorage.RES_OK:
-                break;
-              case IStorage.RES_OK_TERMINAL_ALARM:
-                warn = true;
-                break;
-            }
+            int result = storage.updateAccount(account,states);
+            if(result>warn)
+              warn = result;
+          }
+
+          Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
+          _mContext.sendBroadcast(broadcastIntent);
+
+          States statesStorage = new States(_mContext);
+          statesStorage.updateGroupsStates(states);
+
+          if(warn>0)
+          {
+            Notifier.showNotification(_mContext,warn);
           }
         }
-
-        Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
-        _mContext.sendBroadcast(broadcastIntent);
-
-        if(warn)
-          Notifier.showNotification(_mContext);
 
         long interval = Preferences.getUpdateInterval(_mContext);
         if(interval==0)

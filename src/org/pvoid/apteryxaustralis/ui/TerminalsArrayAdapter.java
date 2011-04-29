@@ -78,6 +78,11 @@ public class TerminalsArrayAdapter extends ArrayAdapter<ITerminal>
     return _mGroup.lastUpdate;
   }
 
+  public Group getGroup()
+  {
+    return _mGroup;
+  }
+
   @Override
   public View getView(int position, View convertView, ViewGroup parent)
   {
@@ -119,5 +124,15 @@ public class TerminalsArrayAdapter extends ArrayAdapter<ITerminal>
   public void setGroup(Group group)
   {
     _mGroup = group;
+  }
+
+  public void setState(Integer state)
+  {
+    _mGroup.state = state;
+  }
+
+  public int getState()
+  {
+    return _mGroup.state;
   }
 }

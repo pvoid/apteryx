@@ -18,18 +18,20 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.types.Group;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
 public class GroupsArrayAdapter extends ArrayAdapter<Group>
 {
-  public GroupsArrayAdapter(Context context, int resource, int textViewResourceId)
+  public GroupsArrayAdapter(Context context)
   {
-    super(context, resource, textViewResourceId);
+    super(context,R.layout.agent_dialog_item,R.id.agent_name);
   }
 
   @Override
@@ -38,21 +40,43 @@ public class GroupsArrayAdapter extends ArrayAdapter<Group>
     View result = super.getView(position, convertView, parent);
     if(result!=null)
     {
-      TextView text = (TextView) result.findViewById(R.id.agent_balance);
       Group group = getItem(position);
-      if(text!=null && group!=null)
-        text.setText(getContext().getString(R.string.balance)+": "+Double.toString(group.balance));
-
-      text = (TextView) result.findViewById(R.id.agent_overdraft);
-      if(text!=null)
+      if(group!=null)
       {
-        if(group!=null && group.overdraft!=0)
+        TextView text = (TextView) result.findViewById(R.id.agent_balance);
+
+        if(text!=null)
+          text.setText(getContext().getString(R.string.balance)+": "+Double.toString(group.balance));
+
+        text = (TextView) result.findViewById(R.id.agent_overdraft);
+        if(text!=null)
         {
-          text.setText(getContext().getString(R.string.overdraft)+Double.toString(group.overdraft));
-          text.setVisibility(View.VISIBLE);
+          if(group.overdraft!=0)
+          {
+            text.setText(getContext().getString(R.string.overdraft)+Double.toString(group.overdraft));
+            text.setVisibility(View.VISIBLE);
+          }
+          else
+            text.setVisibility(View.GONE);
         }
-        else
-          text.setVisibility(View.GONE);
+
+        View view = result.findViewById(R.id.state);
+        Resources res = getContext().getResources();
+        switch(group.state)
+        {
+          case ITerminal.STATE_OK:
+            view.setBackgroundColor(res.getColor(R.color.status_ok));
+            break;
+          case ITerminal.STATE_WARNING:
+            view.setBackgroundColor(res.getColor(R.color.status_warning));
+            break;
+          case ITerminal.STATE_ERROR:
+            view.setBackgroundColor(res.getColor(R.color.status_error));
+            break;
+          case ITerminal.STATE_ERROR_CRITICAL:
+            view.setBackgroundColor(res.getColor(R.color.status_fatal_error));
+            break;
+        }
       }
     }
     return result;
