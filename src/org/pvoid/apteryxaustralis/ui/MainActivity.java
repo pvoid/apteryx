@@ -17,6 +17,9 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -92,8 +95,8 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     }
   };
   /**
-   *
-   * @param savedInstanceState
+   * Activity создается. Настроим внешний вид.
+   * @param savedInstanceState предыдущее состаяние
    */
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -114,7 +117,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       startService(serviceIntent);
     }
 /////////
-    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
+    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
   }
   
   @Override
@@ -480,6 +483,72 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         setCurrentAgentInfo(_mSlider.getCurrentView());
       }
       setSpinnerVisibility(false);
+    }
+  }
+
+  public class ExceptionHandler implements Thread.UncaughtExceptionHandler
+  {
+    public String joinStackTrace(Throwable e)
+    {
+      StringWriter writer = null;
+      try
+      {
+        writer = new StringWriter();
+        joinStackTrace(e, writer);
+        return writer.toString();
+      }
+      finally
+      {
+        if(writer != null)
+          try
+          {
+            writer.close();
+          }
+          catch(IOException e1)
+          {
+            // ignore
+          }
+      }
+    }
+
+    public void joinStackTrace(Throwable e, StringWriter writer)
+    {
+      PrintWriter printer = null;
+      try
+      {
+        printer = new PrintWriter(writer);
+
+        while (e != null)
+        {
+          printer.println(e);
+          StackTraceElement[] trace = e.getStackTrace();
+          for(StackTraceElement aTrace : trace)
+            printer.println("\tat " + aTrace);
+
+          e = e.getCause();
+          if (e != null)
+              printer.println("Caused by:\r\n");
+        }
+      }
+      finally
+      {
+        if(printer != null)
+            printer.close();
+      }
+    }
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e)
+    {
+      Intent sendIntent;
+      sendIntent = new Intent(Intent.ACTION_SEND);
+      sendIntent.putExtra(Intent.EXTRA_SUBJECT,"Apteryx промахнулся");
+      sendIntent.putExtra(Intent.EXTRA_TEXT,joinStackTrace(e));
+      sendIntent.putExtra(Intent.EXTRA_EMAIL,new String[] {"apteryx.project@gmail.com"});
+      sendIntent.setType("text/plain");
+      MainActivity.this.startActivity(sendIntent);
+      e.printStackTrace();
+      android.os.Process.killProcess(android.os.Process.myPid());
     }
   }
 }
