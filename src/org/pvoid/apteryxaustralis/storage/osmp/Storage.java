@@ -37,6 +37,7 @@ class Storage
 {
   public static final String DB_NAME = "apteryx";
   public static final int DB_VERSION = 6;
+
   /**
    * Описание таблицы аккаунтов
    */
@@ -272,7 +273,44 @@ class Storage
     _database.close();
     return(result);
   }
-  
+
+  public Account getAccount(long id)
+  {
+    try
+    {
+      SQLiteDatabase db = OpenRead();
+      Cursor cursor = db.query(Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
+                                                                        Accounts.COLUMN_TITLE,
+                                                                        Accounts.COLUMN_LOGIN,
+                                                                        Accounts.COLUMN_PASSWORD,
+                                                                        Accounts.COLUMN_TERMINAL},
+                               Accounts.COLUMN_ID+"=?", new String[] {Long.toString(id)}, null, null, null, null);
+      if(cursor!=null)
+      {
+        try
+        {
+          if(cursor.moveToFirst())
+          {
+            return new Account(Long.parseLong(cursor.getString(0)),
+                               cursor.getString(1),
+                               cursor.getString(2),
+                               cursor.getString(3),
+                               cursor.getString(4));
+          }
+        }
+        finally
+        {
+          cursor.close();
+        }
+      }
+    }
+    finally
+    {
+      _database.close();
+    }
+    return null;
+  }
+
   public void EditAccount(long id,String title, String login, String password, String terminal)
   {
     ContentValues values = new ContentValues();
@@ -324,7 +362,7 @@ class Storage
     _database.close();
   }
 
-  public Account getAccount(long agentId)
+  public Account getAccountFromAgent(long agentId)
   {
     Account result = null;
     SQLiteDatabase db = OpenRead();

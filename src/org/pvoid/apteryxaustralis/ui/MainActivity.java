@@ -540,6 +540,8 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     @Override
     public void uncaughtException(Thread t, Throwable e)
     {
+      e.printStackTrace();
+/////////
       Intent sendIntent;
       sendIntent = new Intent(Intent.ACTION_SEND);
       sendIntent.putExtra(Intent.EXTRA_SUBJECT,"Apteryx промахнулся");

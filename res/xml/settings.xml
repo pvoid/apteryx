@@ -30,12 +30,11 @@
 	                  android:entryValues="@array/intervalsValues" />
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/settings_notify">
-    <CheckBoxPreference android:key="usevibro"
+    <CheckBoxPreference android:key="vibro"
                         android:title="@string/settings_usevibro"
                         android:summary=""/>
-    <RingtonePreference android:key="usesound"
+    <RingtonePreference android:key="sound"
                         android:title="@string/settings_melody"
-                        android:ringtoneType="notification"
-                        android:summary=""/>
+                        android:ringtoneType="notification"/>
   </PreferenceCategory>
 </PreferenceScreen>

@@ -18,7 +18,6 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
@@ -84,7 +83,7 @@ public class OsmpStorage implements IStorage
   @Override
   public Account getAccount(long id)
   {
-    throw new RuntimeException("Not implemented!");
+    return _mStorage.getAccount(id);
   }
 
   @Override
@@ -185,12 +184,7 @@ public class OsmpStorage implements IStorage
 /////// Вытащим сразу терминалы
       ArrayList<Terminal> terminals = new ArrayList<Terminal>();
       if(OsmpRequest.getTerminals(account,terminals)==0)
-      {
-        for(Terminal terminal : terminals)
-          terminal.State(Terminal.STATE_OK);
-
         _mStorage.saveTerminals(account.id,terminals);
-      }
       return RES_OK;
     }
 ///////
@@ -214,13 +208,13 @@ public class OsmpStorage implements IStorage
 
   public int rebootTerminal(long terminalId, long agentId)
   {
-    Account account = _mStorage.getAccount(agentId);
+    Account account = _mStorage.getAccountFromAgent(agentId);
     return OsmpRequest.rebootTerminal(account,terminalId);
   }
 
   public int switchOffTerminal(long terminalId, long agentId)
   {
-    Account account = _mStorage.getAccount(agentId);
+    Account account = _mStorage.getAccountFromAgent(agentId);
     return OsmpRequest.switchOffTerminal(account,terminalId);
   }
 }

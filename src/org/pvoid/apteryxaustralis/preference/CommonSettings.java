@@ -17,36 +17,27 @@
 
 package org.pvoid.apteryxaustralis.preference;
 
-import android.text.TextUtils;
-import android.util.Log;
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.UpdateStatusService;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceCategory;
-import android.preference.RingtonePreference;
+import android.preference.*;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.widget.ArrayAdapter;
-import org.pvoid.apteryxaustralis.types.Account;
+import android.widget.Toast;
+import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
+import org.pvoid.apteryxaustralis.types.Account;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommonSettings extends PreferenceActivity
+public class CommonSettings extends PreferenceActivity implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener
 {
   private final static int REQUEST_NEW_ACCOUNT = 1;
   private final static int REQUEST_EDIT_ACCOUNT = 2;
@@ -54,24 +45,23 @@ public class CommonSettings extends PreferenceActivity
   public final static int RESULT_REFRESH = RESULT_FIRST_USER+1;
   public final static int RESULT_RELOAD = RESULT_FIRST_USER+2;
 
+  private OsmpStorage _mStorage;
+
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
   private CheckBoxPreference _mUseVibro;
-  private RingtonePreference _mRingtone;
   private ArrayAdapter<String> _mCommands;
   private PreferenceCategory _mAccountsCategory;
-
-  private OsmpStorage _mStorage;
-
+  private RingtonePreference _mRingtone;
   private boolean _mResultIsReload = false;
-  
-  private OnPreferenceClickListener accountClickListener = new OnPreferenceClickListener()
+
+  private Preference.OnPreferenceClickListener accountClickListener = new Preference.OnPreferenceClickListener()
   {
     @Override
     public boolean onPreferenceClick(final Preference preference)
     {
       AlertDialog.Builder dialog = new AlertDialog.Builder(CommonSettings.this);
-      dialog.setAdapter(_mCommands, new OnClickListener()
+      dialog.setAdapter(_mCommands, new DialogInterface.OnClickListener()
       {
         @Override
         public void onClick(DialogInterface dialog, int which)
@@ -92,41 +82,176 @@ public class CommonSettings extends PreferenceActivity
       return(true);
     }
   };
-  
+
+  /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
     addPreferencesFromResource(R.xml.settings);
-
     _mStorage = new OsmpStorage(this);
-
+/////////
+    _mRingtone = (RingtonePreference) findPreference("sound");
+    initializeSound();
+/////////
     _mAutocheck = (CheckBoxPreference)findPreference("autocheck");
+    initializeAutoUpdate();
+/////////
     _mIntervals = (ListPreference)findPreference("interval");
-    _mUseVibro = (CheckBoxPreference) findPreference("usevibro");
-    _mRingtone = (RingtonePreference) findPreference("usesound");
-
-    initializeAutoUpdate(Preferences.getAutoUpdate(this));
-    initializeInterval(Preferences.getUpdateInterval(this));
-    initializeVibration(Preferences.getUseVibration(this));
-    initializeSound(Preferences.getSound(this));
+    initializeIntervals();
+/////////
+    _mUseVibro = (CheckBoxPreference) findPreference("vibro");
+    initializeVibration();
+/////////
     initializeAccounts();
+  }
+
+  private void initializeSound()
+  {
+    _mRingtone.setOnPreferenceChangeListener(this);
+    setSoundSummary(Preferences.getSound(this));
+  }
+
+  @Override
+  public boolean onPreferenceClick(Preference preference)
+  {
+    Intent intent = new Intent(CommonSettings.this, AddAccountActivity.class);
+    startActivityForResult(intent,REQUEST_NEW_ACCOUNT);
+    return false;
+  }
+
+  public boolean onPreferenceChange(Preference preference, Object value)
+  {
+    if(preference == _mRingtone)
+    {
+      Toast.makeText(this,"New sound " + value,Toast.LENGTH_LONG).show();
+      Preferences.setSound(CommonSettings.this,(String)value);
+      return(setSoundSummary((String)value));
+    }
+///////
+if(_mUseVibro == preference)
+    {
+      Preferences.setUseVibration(CommonSettings.this,(Boolean)value);
+      return true;
+    }
+/////////
+    if(_mIntervals == preference)
+    {
+      int interval = Integer.parseInt((String)value);
+      if(interval!=0)
+      {
+        Preferences.setUpdateInterval(CommonSettings.this,interval);
+        //////
+        Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
+        stopService(serviceIntent);
+        startService(serviceIntent);
+        //////
+        int index = _mIntervals.findIndexOfValue((String)value);
+        if(index>-1)
+        {
+          _mIntervals.setSummary(_mIntervals.getEntries()[index]);
+        }
+        //////
+        return(true);
+      }
+      return(false);
+    }
+/////////
+    if(_mAutocheck == preference)
+    {
+      boolean checked = false;
+      Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
+      if(value == Boolean.TRUE)
+      {
+        checked = true;
+        startService(serviceIntent);
+      }
+      else
+        stopService(serviceIntent);
+//////////
+      Preferences.setAutoUpdate(CommonSettings.this, checked);
+//////////
+      _mAutocheck.setChecked(checked);
+      _mIntervals.setEnabled(checked);
+      _mUseVibro.setEnabled(checked);
+      _mRingtone.setEnabled(checked);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean setSoundSummary(String uriString)
+   {
+     String summary = null;
+     if(TextUtils.isEmpty(uriString))
+     {
+       summary = getString(R.string.no_sound);
+     }
+     else
+     {
+       Uri uri = Uri.parse(uriString);
+       if(uri.equals(Settings.System.DEFAULT_NOTIFICATION_URI))
+       {
+         summary = getString(R.string.default_sound);
+       }
+       else
+       {
+         Ringtone ringtone = RingtoneManager.getRingtone(CommonSettings.this, uri);
+         if(ringtone!=null)
+           summary = ringtone.getTitle(CommonSettings.this);
+       }
+     }
+
+     if(summary!=null)
+     {
+       _mRingtone.setSummary(summary);
+       return(true);
+     }
+     return(false);
+   }
+  /**
+   * Настраивает галочку переключающую автоматическое обновление
+   */
+  private void initializeAutoUpdate()
+  {
+    if(Preferences.getAutoUpdate(this))
+    {
+      _mAutocheck.setChecked(true);
+    }
+    else
+    {
+      _mIntervals.setEnabled(false);
+      _mUseVibro.setEnabled(false);
+      _mRingtone.setEnabled(false);
+    }
+////////
+    _mAutocheck.setOnPreferenceChangeListener(this);
+  }
+
+  private void initializeIntervals()
+  {
+    String intervalText = Integer.toString(Preferences.getUpdateInterval(this));
+    int index = _mIntervals.findIndexOfValue(intervalText);
+    if(index>-1)
+    {
+      _mIntervals.setSummary(_mIntervals.getEntries()[index]);
+      _mIntervals.setValue(intervalText);
+    }
+    //////
+    _mIntervals.setOnPreferenceChangeListener(this);
+  }
+
+  private void initializeVibration()
+  {
+    _mUseVibro.setChecked(Preferences.getUseVibration(this));
+    _mUseVibro.setOnPreferenceChangeListener(this);
   }
 
   private void initializeAccounts()
   {
     _mAccountsCategory = (PreferenceCategory)findPreference("accounts");
     AddAccount add_account = new AddAccount(this);
-    add_account.setOnPreferenceClickListener(new OnPreferenceClickListener()
-    {
-      @Override
-      public boolean onPreferenceClick(Preference preference)
-      {
-        Intent intent = new Intent(CommonSettings.this, AddAccountActivity.class);
-        startActivityForResult(intent,REQUEST_NEW_ACCOUNT);
-        return false;
-      }
-    });
+    add_account.setOnPreferenceClickListener(this);
     _mAccountsCategory.addPreference(add_account);
 ////////
     List<Account> accounts = new ArrayList<Account>();
@@ -142,13 +267,13 @@ public class CommonSettings extends PreferenceActivity
     _mCommands.add(getString(R.string.edit));
     _mCommands.add(getString(R.string.delete));
   }
-  
+
   protected void onActivityResult (int requestCode, int resultCode, Intent data)
   {
     if(requestCode==REQUEST_NEW_ACCOUNT && resultCode==RESULT_OK)
     {
       Account account = data.getParcelableExtra(AddAccountActivity.EXTRA_ACCOUNT);
-      
+
       AccountPreference accountPreference = new AccountPreference(this, account.id, account.title);
       accountPreference.setOnPreferenceClickListener(accountClickListener);
       _mAccountsCategory.addPreference(accountPreference);
@@ -159,152 +284,8 @@ public class CommonSettings extends PreferenceActivity
     {
       setResult(RESULT_REFRESH);
     }
-  }
-
-  private void initializeSound(String sound_uri)
-  {
-    setSoundSummary(sound_uri);
-    Log.d(CommonSettings.class.getSimpleName(),"initializeSound");
-    _mRingtone.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-    {
-      @Override
-      public boolean onPreferenceChange(Preference preference, Object value)
-      {
-        Log.d(CommonSettings.class.getSimpleName(),(String)value);
-        Preferences.setSound(CommonSettings.this,(String)value);
-        return(CommonSettings.this.setSoundSummary((String)value));
-      }
-    });
-  }
-
-  private void initializeVibration(boolean useVibration)
-  {
-    _mUseVibro.setChecked(useVibration);
-    _mUseVibro.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-    {
-      @Override
-      public boolean onPreferenceChange(Preference preference, Object newValue)
-      {
-        Preferences.setUseVibration(CommonSettings.this,(Boolean)newValue);
-        return true;
-      }
-    });
-  }
-/**
- * 
- * @param interval начальный интервал
- */
-  private void initializeInterval(int interval)
-  {
-    String intervalText = Integer.toString(interval);
-    int index = _mIntervals.findIndexOfValue(intervalText);
-    if(index>-1)
-    {
-      _mIntervals.setSummary(_mIntervals.getEntries()[index]);
-      _mIntervals.setValue(intervalText);
-    }
-    //////
-    _mIntervals.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-    {
-      @Override
-      public boolean onPreferenceChange(Preference preference, Object newValue)
-      {
-        int interval = Integer.parseInt((String)newValue);
-        if(interval!=0)
-        {
-          Preferences.setUpdateInterval(CommonSettings.this,interval);
-          //////
-          Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
-          stopService(serviceIntent);
-          startService(serviceIntent);
-          //////
-          int index = _mIntervals.findIndexOfValue((String)newValue);
-          if(index>-1)
-          {
-            _mIntervals.setSummary(_mIntervals.getEntries()[index]);
-          }
-          //////
-          return(true);
-        }
-        return(false);
-      }
-    });
-  }
-  /**
-   * Настраивает галочку переключающую автоматическое обновление
-   * @param state  Текущее состояние автоматического обновления
-   */
-  private void initializeAutoUpdate(boolean state)
-  {
-    if(state)
-    {
-      _mAutocheck.setChecked(true);
-    }
     else
-    {
-      _mIntervals.setEnabled(false);
-      _mUseVibro.setEnabled(false);
-      //_mRingtone.setEnabled(false);
-    }
-////////
-    _mAutocheck.setOnPreferenceChangeListener(new OnPreferenceChangeListener()
-    {
-      @Override
-      public boolean onPreferenceChange(Preference preference, Object newValue)
-      {
-        boolean checked = false; 
-        Intent serviceIntent = new Intent(CommonSettings.this,UpdateStatusService.class);
-        if(newValue == Boolean.TRUE)
-        {
-          checked = true;
-          startService(serviceIntent);
-        }
-        else
-          stopService(serviceIntent);
-      ///////
-        Preferences.setAutoUpdate(CommonSettings.this, checked);
-      ///////
-        _mAutocheck.setChecked(checked);
-        _mIntervals.setEnabled(checked);
-        _mUseVibro.setEnabled(checked);
-        //_mRingtone.setEnabled(checked);
-        return true;
-      }
-    });
-  }
-  /**
-   * Устанавливает текстовое имя звука в описание опции  
-   * @param uriString  uri выбранного звука
-   * @return признак того что изменение принято
-   */
-  private boolean setSoundSummary(String uriString)
-  {
-    String summary = null;
-    if(TextUtils.isEmpty(uriString))
-    {
-      summary = getString(R.string.no_sound);
-    }
-    else
-    {
-      Uri uri = Uri.parse(uriString);
-      if(uri.equals(Settings.System.DEFAULT_NOTIFICATION_URI))
-      {
-        summary = getString(R.string.default_sound);
-      }
-      else
-      {
-        Ringtone ringtone = RingtoneManager.getRingtone(CommonSettings.this, uri);
-        if(ringtone!=null)
-          summary = ringtone.getTitle(CommonSettings.this);
-      }
-    }
-    
-    if(summary!=null)
-    {
-      _mRingtone.setSummary(summary);
-      return(true);
-    }
-    return(false);
+      super.onActivityResult(requestCode,resultCode,data);
   }
 
   private void EditPreference(Preference preference)
@@ -314,7 +295,7 @@ public class CommonSettings extends PreferenceActivity
     intent.putExtra(AddAccountActivity.EXTRA_ACCOUNT_ID,accountPreference.getId());
     startActivityForResult(intent,REQUEST_EDIT_ACCOUNT);
   }
-  
+
   private void DeletePreference(Preference preference)
   {
     _mStorage.deleteAccount(((AccountPreference)preference).getId());
