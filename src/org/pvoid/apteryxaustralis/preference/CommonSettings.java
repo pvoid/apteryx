@@ -92,17 +92,15 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
     _mStorage = new OsmpStorage(this);
 /////////
     _mRingtone = (RingtonePreference) findPreference("sound");
-    initializeSound();
-/////////
     _mAutocheck = (CheckBoxPreference)findPreference("autocheck");
-    initializeAutoUpdate();
-/////////
     _mIntervals = (ListPreference)findPreference("interval");
-    initializeIntervals();
-/////////
     _mUseVibro = (CheckBoxPreference) findPreference("vibro");
-    initializeVibration();
+
 /////////
+    initializeSound();
+    initializeAutoUpdate();
+    initializeIntervals();
+    initializeVibration();
     initializeAccounts();
   }
 

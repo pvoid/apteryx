@@ -276,6 +276,9 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     ListView list = (ListView)view;
     if(list==null)
       list = (ListView)_mSlider.getCurrentView();
+    if(list==null)
+      return;
+
     TerminalsArrayAdapter group = (TerminalsArrayAdapter)list.getAdapter();
     if(group==null)
       return;
