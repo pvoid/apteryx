@@ -120,32 +120,45 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
 /////////
     Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
   }
-  
+  /**
+   * Activity снова видима. Обновим данные
+   */
   @Override
   public void onResume()
   {
     super.onResume();
 /////////
-    (new LoadFromStorageTask()).execute();
+    if(_mStorage.isEmpty())
+      ShowSettingsAlarm();
+    else
+      (new LoadFromStorageTask()).execute();
 /////////
     IntentFilter filter = new IntentFilter(StatesReceiver.REFRESH_BROADCAST_MESSAGE);
     registerReceiver(UpdateMessageReceiver, filter);
   }
-  
+  /**
+   * Activity более не видна, приостановим breadcast-receiver
+   */
   @Override
   public void onPause()
   {
     super.onPause();
     unregisterReceiver(UpdateMessageReceiver);
   }
-  
+  /**
+   * Восстановление Activity, чистмм уведомления
+   */
   @Override
   public void onStart()
   {
     super.onStart();
     Notifier.hideNotification(this);
   }
-  
+  /**
+   * Создаем меню
+   * @param menu собственно само меню
+   * @return true если его можно показывать
+   */
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
@@ -160,7 +173,11 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     }
     return(result);
   }
-
+  /**
+   * Отображение или крытие круглого бесконечного пргресса. Можно взывать рекурсивно, скроется только когда
+   * число устновок будет равно числу скрытий
+   * @param visible показать или спрятать вертушку
+   */
   private void setSpinnerVisibility(boolean visible)
   {
     View spinner = findViewById(R.id.refresh_spinner);
@@ -183,13 +200,17 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       spinner.startAnimation(_mSpinnerAnimation);
     }
   }
-
+  /**
+   * Открывает Activity с настройками
+   */
   private void ShowPreferencesActivity()
   {
     Intent intent = new Intent(this,CommonSettings.class);
     startActivityForResult(intent, 0); 
   }
-
+  /**
+   * Обновление данных из БД. Операция долгая, запускать строго в фоне
+   */
   protected void refreshData()
   {
     ArrayList<Account> accounts = new ArrayList<Account>();
@@ -243,7 +264,9 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     }
 
   }
-
+  /**
+   * Заполнение адаптеров данными. Запускать строго в UI потоке, иначе упадет
+   */
   private void fillAgents()
   {
     int index = 0;
@@ -271,7 +294,10 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     while(index<_mSlider.getChildCount())
       _mSlider.removeViewAt(_mSlider.getChildCount()-1);
   }
-
+  /**
+   * Отоюражение данных по агунту в списке
+   * @param view текущая активная вьюшка
+   */
   private void setCurrentAgentInfo(View view)
   {
     ListView list = (ListView)view;
@@ -343,14 +369,15 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     _mAgentsDialog.show();
     _mAgentsDialog.getListView().setSelection(_mSlider.getCurrentViewIndex());
   }
-
-  @SuppressWarnings("unused")
+  /**
+   * Отображение диалога с необходимостью настроек
+   */
   private void ShowSettingsAlarm()
   {
-    setTitle(R.string.app_name);
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.error);
     builder.setMessage(getString(R.string.add_account_message))
-           .setPositiveButton(R.string.settings,new OnClickListener()
+           .setPositiveButton(R.string.add_account,new OnClickListener()
             {
               @Override
               public void onClick(DialogInterface dialog, int which)
@@ -361,7 +388,11 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
             })
            .show();
   }
-
+  /**
+   * Выбран пункт меню
+   * @param item выбранный пункт
+   * @return true если мы отработали выбор
+   */
   public boolean onOptionsItemSelected(MenuItem item)
   {
     switch(item.getItemId())
@@ -375,13 +406,23 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     }
     return(super.onOptionsItemSelected(item));
   }
-
+  /**
+   * Выбор агента в выпадающем списке агентов
+   * @param dialogInterface диалог
+   * @param index           порядковый номер выбранного агента
+   */
   @Override
   public void onClick(DialogInterface dialogInterface, int index)
   {
     _mSlider.setCurrentView(index);
   }
-
+  /**
+   * Выбор терминала из спика
+   * @param adapterView список терминала
+   * @param view        вьюшка с терминалом
+   * @param index       порядковый индекс терминала
+   * @param id          идентификатор терминала
+   */
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
   {
@@ -390,7 +431,10 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     intent.putExtra(FullInfo.TERMINAL_EXTRA,terminal.getId());
     startActivity(intent);
   }
-
+  /**
+   * Изменена текущая отображаемая вьюшка в листалке
+   * @param v вьюшка с терминалами
+   */
   @Override
   public void CurrentViewChanged(View v)
   {
@@ -467,21 +511,18 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     @Override
     protected Boolean doInBackground(Void... voids)
     {
-      ArrayList<Account> accounts = new ArrayList<Account>();
-      _mStorage.getAccounts(accounts);
-      for(Account account : accounts)
+      if(StatesReceiver.refreshData(MainActivity.this)>-1)
       {
-        if(_mStorage.refresh(account)!=IStorage.RES_OK)
-          return false;
+        refreshData();
+        return Boolean.TRUE;
       }
-      refreshData();
-      return true;
+      return Boolean.FALSE;
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean)
+    protected void onPostExecute(Boolean result)
     {
-      if(aBoolean)
+      if(result == Boolean.TRUE)
       {
         fillAgents();
         setCurrentAgentInfo(_mSlider.getCurrentView());

@@ -28,7 +28,6 @@ import android.preference.*;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
@@ -174,6 +173,7 @@ if(_mUseVibro == preference)
       _mIntervals.setEnabled(checked);
       _mUseVibro.setEnabled(checked);
       _mRingtone.setEnabled(checked);
+      _mWarnLevels.setEnabled(checked);
       return true;
     }
 //////////
@@ -238,6 +238,7 @@ if(_mUseVibro == preference)
       _mIntervals.setEnabled(false);
       _mUseVibro.setEnabled(false);
       _mRingtone.setEnabled(false);
+      _mWarnLevels.setEnabled(false);
     }
 ////////
     _mAutocheck.setOnPreferenceChangeListener(this);

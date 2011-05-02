@@ -37,6 +37,30 @@ public class StatesReceiver extends BroadcastReceiver
 {
   public static final String REFRESH_BROADCAST_MESSAGE = "org.pvoid.apteryx.StatusUpdatedMessage";
 
+  public static int refreshData(Context context)
+  {
+    int result = -1;
+    OsmpStorage storage = new OsmpStorage(context);
+    ArrayList<Account> accounts = new ArrayList<Account>();
+    //---
+    storage.getAccounts(accounts);
+    if(accounts.size()>0)
+    {
+      Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
+      for(Account account : accounts)
+      {
+        int state = storage.updateAccount(account,states);
+        if(state>result)
+          result = state;
+      }
+
+      States statesStorage = new States(context);
+      statesStorage.updateGroupsStates(states);
+    }
+
+    return result;
+  }
+
   private static class ReceiveThread extends Thread
   {
     private Context _mContext;
@@ -55,30 +79,13 @@ public class StatesReceiver extends BroadcastReceiver
     {
       try
       {
-        OsmpStorage storage = new OsmpStorage(_mContext);
-        ArrayList<Account> accounts = new ArrayList<Account>();
-        int warn = 0;
-        storage.getAccounts(accounts);
-        if(accounts.size()>0)
+        int warn = refreshData(_mContext);
+        Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
+        _mContext.sendBroadcast(broadcastIntent);
+
+        if(warn>0 && warn>=Preferences.getWarnLevel(_mContext))
         {
-          Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
-          for(Account account : accounts)
-          {
-            int result = storage.updateAccount(account,states);
-            if(result>warn)
-              warn = result;
-          }
-
-          Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
-          _mContext.sendBroadcast(broadcastIntent);
-
-          States statesStorage = new States(_mContext);
-          statesStorage.updateGroupsStates(states);
-
-          if(warn>0 && warn>=Preferences.getWarnLevel(_mContext))
-          {
-            Notifier.showNotification(_mContext,warn);
-          }
+          Notifier.showNotification(_mContext,warn);
         }
 
         long interval = Preferences.getUpdateInterval(_mContext);

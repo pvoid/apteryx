@@ -22,6 +22,7 @@
   <string name="last_update">Последнее обновление</string>
   <string name="balance">Баланс</string>
   <string name="overdraft">Овердрафт</string>
+  <string name="error">Ошибка</string>
   <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
   <string name="agents_list">Список агентов</string>
   <string name="last_activity">п. активность: </string>
