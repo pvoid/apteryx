@@ -27,8 +27,9 @@ public class Preferences
   private static final String PREF_AUTOCHECK = "apteryx.autoupdate";
   private static final String PREF_USEVIBRO = "apteryx.usevibro";
   private static final String PREF_SOUND = "apteryx.sound";
+  private static final String PREF_WARN_LEVEL = "apteryx.warnlevel";
 
-  private static final int DEFAULT_INTERVAL = 3600000;
+  private static final int DEFAULT_INTERVAL = 900000;
 
   private static final int VALUE_UNKNOWN = -1;
   private static final int VALUE_TRUE = 1;
@@ -38,7 +39,7 @@ public class Preferences
   private static int _mUpdateInterval = VALUE_UNKNOWN;
   private static int _mUseVibration = VALUE_UNKNOWN;
   private static String _mSound = null;
-  private static boolean _mShowBalance = true;
+  private static int _mWarnLevel = -1;
 
   static public boolean getAutoUpdate(Context context)
   {
@@ -131,13 +132,23 @@ public class Preferences
     editor.commit();
   }
 
-  static public boolean getShowBalance(Context context)
+  static public void setWarnLevel(Context context, int level)
   {
-    return _mShowBalance;
+    _mWarnLevel = level;
+//////
+    SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(PREF_WARN_LEVEL,level);
+    editor.commit();
   }
 
-  public static void set_mShowBalance(Context context, boolean showBalance)
+  static public int getWarnLevel(Context context)
   {
-    _mShowBalance = showBalance;
+    if(_mWarnLevel == -1)
+    {
+      SharedPreferences preferences = context.getSharedPreferences(APTERYX_PREFS,Context.MODE_PRIVATE);
+      _mWarnLevel = preferences.getInt(PREF_WARN_LEVEL,2);
+    }
+    return _mWarnLevel;
   }
 }

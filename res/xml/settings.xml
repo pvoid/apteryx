@@ -30,6 +30,10 @@
 	                  android:entryValues="@array/intervalsValues" />
   </PreferenceCategory>
   <PreferenceCategory android:title="@string/settings_notify">
+    <ListPreference android:title="@string/warn_level"
+                    android:key="notify_level"
+                    android:entries="@array/levels"
+                    android:entryValues="@array/levelsValues" />
     <CheckBoxPreference android:key="vibro"
                         android:title="@string/settings_usevibro"
                         android:summary=""/>

@@ -109,6 +109,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
 /////////
     _mGroups = new ArrayList<TerminalsArrayAdapter>();
     _mStorage = new OsmpStorage(this);
+    // TODO: Если база была обновлена, запустить обновление данных
     _mStates = new States(this);
 /////////
     if(Preferences.getAutoUpdate(this))

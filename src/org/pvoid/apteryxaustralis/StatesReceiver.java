@@ -24,7 +24,6 @@ import android.os.PowerManager;
 import org.pvoid.apteryxaustralis.storage.States;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 
 import android.app.AlarmManager;
@@ -76,7 +75,7 @@ public class StatesReceiver extends BroadcastReceiver
           States statesStorage = new States(_mContext);
           statesStorage.updateGroupsStates(states);
 
-          if(warn>0)
+          if(warn>0 && warn>=Preferences.getWarnLevel(_mContext))
           {
             Notifier.showNotification(_mContext,warn);
           }

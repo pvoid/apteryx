@@ -49,6 +49,7 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
 
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
+  private ListPreference _mWarnLevels;
   private CheckBoxPreference _mUseVibro;
   private ArrayAdapter<String> _mCommands;
   private PreferenceCategory _mAccountsCategory;
@@ -95,12 +96,13 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
     _mAutocheck = (CheckBoxPreference)findPreference("autocheck");
     _mIntervals = (ListPreference)findPreference("interval");
     _mUseVibro = (CheckBoxPreference) findPreference("vibro");
-
+    _mWarnLevels = (ListPreference) findPreference("notify_level");
 /////////
     initializeSound();
     initializeAutoUpdate();
     initializeIntervals();
     initializeVibration();
+    initializeWarnLevel();
     initializeAccounts();
   }
 
@@ -122,7 +124,6 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
   {
     if(preference == _mRingtone)
     {
-      Toast.makeText(this,"New sound " + value,Toast.LENGTH_LONG).show();
       Preferences.setSound(CommonSettings.this,(String)value);
       return(setSoundSummary((String)value));
     }
@@ -175,6 +176,22 @@ if(_mUseVibro == preference)
       _mRingtone.setEnabled(checked);
       return true;
     }
+//////////
+    if(_mWarnLevels==preference)
+    {
+      int level = Integer.parseInt((String)value);
+      //////
+      Preferences.setWarnLevel(this,level);
+      //////
+      int index = _mWarnLevels.findIndexOfValue((String)value);
+      if(index>-1)
+      {
+        _mWarnLevels.setSummary(_mWarnLevels.getEntries()[index]);
+      }
+      //////
+      return(true);
+    }
+//////////
     return false;
   }
 
@@ -224,6 +241,19 @@ if(_mUseVibro == preference)
     }
 ////////
     _mAutocheck.setOnPreferenceChangeListener(this);
+  }
+
+  private void initializeWarnLevel()
+  {
+    String levelText = Integer.toString(Preferences.getWarnLevel(this));
+    int index = _mWarnLevels.findIndexOfValue(levelText);
+    if(index>-1)
+    {
+      _mWarnLevels.setSummary(_mWarnLevels.getEntries()[index]);
+      _mWarnLevels.setValue(levelText);
+    }
+    //////
+    _mWarnLevels.setOnPreferenceChangeListener(this);
   }
 
   private void initializeIntervals()

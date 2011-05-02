@@ -122,4 +122,5 @@
 
   <string name="reboot">Перезагрузить</string>
   <string name="switchoff">Выключить</string>
+  <string name="warn_level">Уровень предупреждения</string>
 </resources>

@@ -30,9 +30,9 @@ import java.util.List;
 
 public class Terminal implements ITerminal
 {
-  private final static int OSMP_STATE_OK = 0;
-  private final static int OSMP_STATE_WARRNING = 2;
-  private final static int OSMP_STATE_ERROR = 1;
+  protected final static int OSMP_STATE_OK = 0;
+  protected final static int OSMP_STATE_WARRNING = 2;
+  protected final static int OSMP_STATE_ERROR = 1;
 
   private final static int ACTION_REBOOT = 0;
   private final static int ACTION_POWER_OFF = 1;

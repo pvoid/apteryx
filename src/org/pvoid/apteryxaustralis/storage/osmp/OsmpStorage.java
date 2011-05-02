@@ -103,7 +103,7 @@ public class OsmpStorage implements IStorage
         if(index>-1)
         {
           Terminal terminal = terminals.get(index);
-          if(updatedTerminal.State()!=Terminal.STATE_OK && terminal.State()==Terminal.STATE_OK)
+          if(updatedTerminal.State()!=Terminal.OSMP_STATE_OK && terminal.State()==Terminal.OSMP_STATE_OK)
           {
             int state = updatedTerminal.getState();
             Integer groupState = states.get(terminal.agentId);
@@ -184,7 +184,9 @@ public class OsmpStorage implements IStorage
 /////// Вытащим сразу терминалы
       ArrayList<Terminal> terminals = new ArrayList<Terminal>();
       if(OsmpRequest.getTerminals(account,terminals)==0)
+      {
         _mStorage.saveTerminals(account.id,terminals);
+      }
       return RES_OK;
     }
 ///////

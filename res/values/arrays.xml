@@ -41,21 +41,13 @@
     <item>86400000</item>
   </string-array>
 
-  <string-array name="timeoutTitle">
-    <item>больше 10 минут</item>
-    <item>больше 15 минут</item>
-    <item>больше 20 минут</item>
-    <item>больше 30 минут</item>
-    <item>больше 40 минут</item>
-    <item>больше часа</item>
+  <string-array name="levelsValues">
+    <item>1</item>
+    <item>2</item>
   </string-array>
 
-  <string-array name="timeoutValues">
-    <item>600000</item>
-    <item>900000</item>
-    <item>1200000</item>
-    <item>1800000</item>
-    <item>2400000</item>
-    <item>3600000</item>
+  <string-array name="levels">
+    <item>Оповещать о предупреждениях</item>
+    <item>Оповещать только об ошибках</item>
   </string-array>
 </resources>
