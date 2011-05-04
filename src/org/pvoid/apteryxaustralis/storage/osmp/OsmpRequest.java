@@ -197,6 +197,9 @@ public class OsmpRequest
     startRequestOld(data, account, 16, true);
 //////////
     Request.Response response = Request.Send(_sOldApiURL,data.toString(),"windows-1251");
+    if(response==null)
+      return IStorage.RES_ERR_NETWORK_ERROR;
+/////////
     if(response.code!=200)
       return -response.code;
 ///////
