@@ -29,7 +29,7 @@
           <action android:name="org.pvoid.apteryx.StatusUpdatedMessage" />
         </intent-filter>
       </activity>
-      <activity android:name=".preference.AddAccountActivity" />
+      <activity android:name=".preference.AddAccountActivity" android:label="@string/add_account" />
       <activity android:name=".preference.CommonSettings" />
       <activity android:name=".ui.FullInfo" />
       <service android:name=".UpdateStatusService" android:label="@string/update_service" />

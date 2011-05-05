@@ -227,7 +227,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
 /////////////////
         for(int i=0,len=_mGroups.size();i<len;++i)
         {
-          if(_mGroups.get(i).getGroupId()== group.id)
+          if(_mGroups.get(i).getGroup().id== group.id)
           {
             adapter = _mGroups.get(i);
             break;
@@ -246,8 +246,8 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
 //////////////// Вытащим терминалы
         _mStorage.getTerminals(account.id, group, adapter);
 /////////////// Сортируем
-        /*if(!adapter.isEmpty())
-          adapter.sort(_mTerminalComparator);*/
+        if(!adapter.isEmpty())
+          adapter.sort(_mTerminalComparator);
       }
     }
 /////////////// Вытащим статусы групп
@@ -256,8 +256,8 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     {
       for(TerminalsArrayAdapter adapter : _mGroups)
       {
-        if(states.containsKey(adapter.getGroupId()))
-          adapter.setState(states.get(adapter.getGroupId()));
+        if(states.containsKey(adapter.getGroup().id))
+          adapter.setState(states.get(adapter.getGroup().id));
         else
           adapter.setState(ITerminal.STATE_OK);
       }
@@ -275,7 +275,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
       if(adapter.isEmpty())
         continue;
 
-      adapter.sort(_mTerminalComparator);
+      //adapter.sort(_mTerminalComparator);
 
       if(_mSlider.getChildCount()<=index)
       {
@@ -287,7 +287,13 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         _mSlider.addView(list);
       }
       else
-        ((ListView)_mSlider.getChildAt(index)).setAdapter(adapter);
+      {
+        ListView list = ((ListView)_mSlider.getChildAt(index));
+        if(list.getAdapter()!=adapter)
+          list.setAdapter(adapter);
+        else
+          adapter.notifyList();
+      }
       ++index;
     }
 /////////
@@ -306,29 +312,30 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
     if(list==null)
       return;
 
-    TerminalsArrayAdapter group = (TerminalsArrayAdapter)list.getAdapter();
-    if(group==null)
+    TerminalsArrayAdapter adapter = (TerminalsArrayAdapter)list.getAdapter();
+    if(adapter==null)
       return;
+    Group group = adapter.getGroup();
 //////////
     TextView text = (TextView) findViewById(R.id.agent_name);
-    text.setText(group.getGroupName());
+    text.setText(group.name);
 //////////
     text = (TextView) findViewById(R.id.agent_balance);
     StringBuilder balance = new StringBuilder(getText(R.string.balance));
-    balance.append(": ").append(group.getGroupBalance());
-    if(group.getGroupOverdraft()!=0)
-      balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.getGroupOverdraft());
+    balance.append(": ").append(group.balance);
+    if(group.overdraft!=0)
+      balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.overdraft);
     text.setText(balance.toString());
 //////////
     text = (TextView) findViewById(R.id.agent_update_time);
     text.setText(getString(R.string.refreshed) + " " +
-                        DateUtils.getRelativeTimeSpanString(group.getLastUpdateTime(),
+                        DateUtils.getRelativeTimeSpanString(group.lastUpdate,
                                                             System.currentTimeMillis(),
                                                             DateUtils.SECOND_IN_MILLIS,
                                                             DateUtils.FORMAT_ABBREV_ALL));
 ////////// пометим что мы уже видели статусы этого агента
-    _mStates.updateGroupState(group.getGroupId(),ITerminal.STATE_OK);
-    group.setState(ITerminal.STATE_OK);
+    _mStates.updateGroupState(group.id,ITerminal.STATE_OK);
+    adapter.setState(ITerminal.STATE_OK);
   }
   /**
    * Щелчок по кнопке со списком агентов
@@ -426,7 +433,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
   {
-    ITerminal terminal = ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    ITerminal terminal = (ITerminal) ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
     Intent intent = new Intent(this,FullInfo.class);
     intent.putExtra(FullInfo.TERMINAL_EXTRA,terminal.getId());
     startActivity(intent);
@@ -444,7 +451,7 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
   @Override
   public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long l)
   {
-    final ITerminal terminal = ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    final ITerminal terminal = (ITerminal) ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
     ArrayList<TerminalAction> actions = new ArrayList<TerminalAction>();
 ////////
     terminal.getActions(this, actions);

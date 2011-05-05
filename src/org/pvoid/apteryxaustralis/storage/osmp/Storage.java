@@ -168,7 +168,7 @@ class Storage
                                                    " a on c." + Accounts.COLUMN_ID + "=a." + Agents.COLUMN_ACCOUNT +
                                                    " where a."+Agents.COLUMN_AGENT+"=?";
 
-  private DatabaseHelper _database;
+  private DatabaseHelper _mDatabase;
   private Context _context;
   
   private static class DatabaseHelper extends SQLiteOpenHelper
@@ -245,14 +245,14 @@ class Storage
   
   private SQLiteDatabase OpenWrite()
   {
-    _database = new DatabaseHelper(_context);
-    return(_database.getWritableDatabase());
+    _mDatabase = new DatabaseHelper(_context);
+    return(_mDatabase.getWritableDatabase());
   }
   
   private SQLiteDatabase OpenRead()
   {
-    _database = new DatabaseHelper(_context);
-    return(_database.getReadableDatabase());
+    _mDatabase = new DatabaseHelper(_context);
+    return(_mDatabase.getReadableDatabase());
   }
   
   public Storage(Context context)
@@ -269,9 +269,15 @@ class Storage
     values.put(Accounts.COLUMN_PASSWORD, password);
     values.put(Accounts.COLUMN_TERMINAL, terminal);
     SQLiteDatabase db = OpenWrite();
-    boolean result = db.insert(Accounts.TABLE_NAME, null, values)!=-1;
-    _database.close();
-    return(result);
+    try
+    {
+      boolean result = db.insert(Accounts.TABLE_NAME, null, values)!=-1;
+      return(result);
+    }
+    finally
+    {
+      _mDatabase.close();
+    }
   }
 
   public Account getAccount(long id)
@@ -306,7 +312,7 @@ class Storage
     }
     finally
     {
-      _database.close();
+      _mDatabase.close();
     }
     return null;
   }
@@ -319,8 +325,14 @@ class Storage
     values.put(Accounts.COLUMN_PASSWORD, password);
     values.put(Accounts.COLUMN_TERMINAL, terminal);
     SQLiteDatabase db = OpenWrite();
-    db.update(Accounts.TABLE_NAME, values, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
-    _database.close();
+    try
+    {
+      db.update(Accounts.TABLE_NAME, values, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
+    }
+    finally
+    {
+      _mDatabase.close();
+    }
   }
   
   public void DeleteAccount(long id)
@@ -328,7 +340,7 @@ class Storage
     SQLiteDatabase db = OpenWrite();
     db.delete(Accounts.TABLE_NAME, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
     // TODO: Удалить агентов и терминалы
-    _database.close();
+    _mDatabase.close();
   }
 /**
  * Возвращает все имеющиеся учетные записи
@@ -337,46 +349,58 @@ class Storage
   public void getAccounts(final List<Account> adapter)
   {
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
-                                                                      Accounts.COLUMN_TITLE,
-                                                                      Accounts.COLUMN_LOGIN,
-                                                                      Accounts.COLUMN_PASSWORD,
-                                                                      Accounts.COLUMN_TERMINAL},
-                             null, null, null, null, null, null);
-    if(cursor!=null)
+    try
     {
-      if(cursor.moveToFirst())
+      Cursor cursor = db.query(Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
+                                                                        Accounts.COLUMN_TITLE,
+                                                                        Accounts.COLUMN_LOGIN,
+                                                                        Accounts.COLUMN_PASSWORD,
+                                                                        Accounts.COLUMN_TERMINAL},
+                               null, null, null, null, null, null);
+      if(cursor!=null)
       {
-        do
+        if(cursor.moveToFirst())
         {
-          adapter.add(new Account(Long.parseLong(cursor.getString(0)),
-                                  cursor.getString(1),
-                                  cursor.getString(2), 
-                                  cursor.getString(3), 
-                                  cursor.getString(4)));
+          do
+          {
+            adapter.add(new Account(Long.parseLong(cursor.getString(0)),
+                                    cursor.getString(1),
+                                    cursor.getString(2),
+                                    cursor.getString(3),
+                                    cursor.getString(4)));
+          }
+          while(cursor.moveToNext());
         }
-        while(cursor.moveToNext());
+        cursor.close();
       }
-      cursor.close();
     }
-    _database.close();
+    finally
+    {
+      _mDatabase.close();
+    }
   }
 
   public Account getAccountFromAgent(long agentId)
   {
     Account result = null;
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.rawQuery(ACCOUNT_FROM_AGENT_QUERY,new String[] {Long.toString(agentId)});
-    if(cursor!=null)
+    try
     {
-      if(cursor.moveToFirst())
+      Cursor cursor = db.rawQuery(ACCOUNT_FROM_AGENT_QUERY,new String[] {Long.toString(agentId)});
+      if(cursor!=null)
       {
-        result = new Account(cursor.getLong(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
+        if(cursor.moveToFirst())
+        {
+          result = new Account(cursor.getLong(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
+        }
+        cursor.close();
       }
-      cursor.close();
+      return result;
     }
-    _database.close();
-    return result;
+    finally
+    {
+      _mDatabase.close();
+    }
   }
 
   public void saveTerminals(long accountId, final List<Terminal> terminals)
@@ -418,7 +442,7 @@ class Storage
       db.replace(Terminals.TABLE_NAME, null, values);
     }
 ///////
-    _database.close();
+    _mDatabase.close();
   }
   
   public boolean hasAccounts()
@@ -435,7 +459,7 @@ class Storage
       }
       cursor.close();
     }
-    _database.close();
+    _mDatabase.close();
     return(result);
   }
   
@@ -513,7 +537,7 @@ class Storage
       }
       cursor.close();      
     }
-    _database.close();
+    _mDatabase.close();
   }
 
   public boolean saveAgents(long account, List<Group> groups)
@@ -532,7 +556,7 @@ class Storage
       if(db.update(Agents.TABLE_NAME, values, Agents.COLUMN_AGENT+"=?",new String[] {Long.toString(group.id)})<1)
         db.insert(Agents.TABLE_NAME, null, values);
     }
-    _database.close();
+    _mDatabase.close();
     return(true);
   }
   
@@ -540,7 +564,7 @@ class Storage
   {
     SQLiteDatabase db = OpenWrite();
     db.delete(Agents.TABLE_NAME, Agents.ACCOUNT_CLAUSE,new String[] {Long.toString(account)});
-    _database.close();
+    _mDatabase.close();
   }
   
   public void getAgents(long account, List<Group> groups)
@@ -578,7 +602,7 @@ class Storage
       }
       cursor.close();
     }
-    _database.close();
+    _mDatabase.close();
   }
 
   public void getAgentsActive(List<Group> groups)
@@ -603,7 +627,7 @@ class Storage
       }
       cursor.close();
     }
-    _database.close();
+    _mDatabase.close();
   }
 
   public Terminal getTerminal(long id)
@@ -667,7 +691,7 @@ class Storage
       }
       cursor.close();
     }
-    _database.close();
+    _mDatabase.close();
     return terminal;
   }
 }

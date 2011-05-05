@@ -19,10 +19,12 @@ package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.types.ITerminal;
+import org.pvoid.apteryxaustralis.ui.TerminalsArrayAdapter;
 
 import java.util.*;
 
@@ -132,7 +134,7 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
-  public void getTerminals(long accountId, Group group, ArrayAdapter<ITerminal> terminals)
+  public void getTerminals(long accountId, Group group, TerminalsArrayAdapter terminals)
   {
     ArrayList<Terminal> terminalsList = new ArrayList<Terminal>();
     _mStorage.getTerminals(group.id,terminalsList);
