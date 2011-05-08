@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.*;
 import org.pvoid.apteryxaustralis.*;
+import org.pvoid.apteryxaustralis.storage.ICommandResult;
 import org.pvoid.apteryxaustralis.storage.States;
 import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
@@ -52,7 +53,11 @@ import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.types.TerminalAction;
 import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements OnClickListener, AdapterView.OnItemClickListener, SlideBand.OnCurrentViewChangeListener, AdapterView.OnItemLongClickListener
+public class MainActivity extends Activity implements OnClickListener,
+                                                      AdapterView.OnItemClickListener,
+                                                      SlideBand.OnCurrentViewChangeListener,
+                                                      AdapterView.OnItemLongClickListener,
+                                                      ICommandResult
 {
   private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
   private static final int REFRESH_MENU_ID = Menu.FIRST+2;
@@ -469,12 +474,20 @@ public class MainActivity extends Activity implements OnClickListener, AdapterVi
         public void onClick(DialogInterface dialog, int which)
         {
           TerminalAction action = actionsList.getItem(which);
-          terminal.runAction(_mStorage,action.id);
+          setSpinnerVisibility(true);
+          terminal.runAction(_mStorage,action.id,MainActivity.this);
         }
       });
       dialog.setCancelable(true);
       dialog.show();
       return(true);
+  }
+
+  @Override
+  public void onCommandResult(boolean success, int message)
+  {
+    setSpinnerVisibility(false);
+    Toast.makeText(this,getString(message),Toast.LENGTH_LONG).show();
   }
 
   /**

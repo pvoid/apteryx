@@ -19,6 +19,7 @@ package org.pvoid.apteryxaustralis.types;
 
 import android.content.ContentValues;
 import android.content.Context;
+import org.pvoid.apteryxaustralis.storage.ICommandResult;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 
 import java.util.List;
@@ -37,5 +38,5 @@ public interface ITerminal
   void getStatuses(Context context, List<StatusLine> statuses);
   void getInfo(Context context, List<InfoLine> info);
   void getActions(Context context, List<TerminalAction> actions);
-  void runAction(IStorage storage, int action);
+  void runAction(IStorage storage, int action, ICommandResult resultHandler);
 }

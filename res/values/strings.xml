@@ -124,4 +124,7 @@
   <string name="reboot">Перезагрузить</string>
   <string name="switchoff">Выключить</string>
   <string name="warn_level">Уровень предупреждения</string>
+
+  <string name="cant_obtain_storage">Не могу получить экземпляр хранилища</string>
+  <string name="reboot_command_sended">Команда перезагрузки отправлена</string>
 </resources>

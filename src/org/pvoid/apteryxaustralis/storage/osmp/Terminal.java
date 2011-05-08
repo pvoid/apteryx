@@ -18,8 +18,10 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import org.pvoid.apteryxaustralis.DateFormat;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.storage.ICommandResult;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.types.InfoLine;
@@ -355,7 +357,7 @@ public class Terminal implements ITerminal
   }
 
   @Override
-  public void runAction(IStorage storage, int action)
+  public void runAction(IStorage storage, int action, ICommandResult resultHandler)
   {
     OsmpStorage strg;
 //////////
@@ -366,23 +368,45 @@ public class Terminal implements ITerminal
     catch(ClassCastException e)
     {
       e.printStackTrace();
+      resultHandler.onCommandResult(false,R.string.cant_obtain_storage);
       return;
     }
 //////////
-    int result = IStorage.RES_OK;
     switch(action)
     {
       case ACTION_REBOOT:
-        result = strg.rebootTerminal(tid,agentId);
+        (new RebootTerminalTask(strg,resultHandler)).execute(tid, agentId);
         break;
       case ACTION_POWER_OFF:
-        result = strg.switchOffTerminal(tid,agentId);
+        //result = strg.switchOffTerminal(tid,agentId);
         break;
     }
-//////////
-    if(result!=IStorage.RES_OK)
-    {
+  }
 
+  private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
+  {
+    private final ICommandResult _mHandler;
+    private final OsmpStorage _mStorage;
+
+    public RebootTerminalTask(OsmpStorage storage, ICommandResult handler)
+    {
+      _mHandler = handler;
+      _mStorage = storage;
+    }
+
+    @Override
+    protected Integer doInBackground(Long... longs)
+    {
+      return _mStorage.rebootTerminal(longs[0],longs[1]);
+    }
+
+    @Override
+    protected void onPostExecute(Integer result)
+    {
+      if(result == IStorage.RES_OK)
+        _mHandler.onCommandResult(true,R.string.reboot_command_sended);
+      else
+        _mHandler.onCommandResult(false,R.string.network_error);
     }
   }
 }
