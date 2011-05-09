@@ -190,7 +190,7 @@ public class AddAccountActivity extends Activity
   {
     Intent intent = new Intent();
     intent.setAction(Intent.ACTION_VIEW);
-    intent.setData(Uri.parse("https://github.com/pvoid/apteryx/wiki/Создание-учетной-записи-для-программы-Apteryx"));
+    intent.setData(Uri.parse("http://kiosks.ru/wiki/index.php?title=Apteryx_australis#.D0.A1.D0.BE.D0.B7.D0.B4.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D0.B5.D1.80.D0.BC.D0.B8.D0.BD.D0.B0.D0.BB.D0.B0"));
     startActivity(intent);
   }
 }
