@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -182,5 +183,14 @@ public class AddAccountActivity extends Activity
           Toast.makeText(AddAccountActivity.this,textId,Toast.LENGTH_SHORT).show();
       }
     }
+  }
+
+  @SuppressWarnings("unused")
+  public void howClicked(View view)
+  {
+    Intent intent = new Intent();
+    intent.setAction(Intent.ACTION_VIEW);
+    intent.setData(Uri.parse("https://github.com/pvoid/apteryx/wiki/Создание-учетной-записи-для-программы-Apteryx"));
+    startActivity(intent);
   }
 }

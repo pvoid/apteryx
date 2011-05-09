@@ -127,4 +127,5 @@
 
   <string name="cant_obtain_storage">Не могу получить экземпляр хранилища</string>
   <string name="reboot_command_sended">Команда перезагрузки отправлена</string>
+  <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string>
 </resources>

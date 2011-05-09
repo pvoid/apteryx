@@ -243,15 +243,17 @@ class Storage
     }
   }
   
-  private SQLiteDatabase OpenWrite()
+  private synchronized  SQLiteDatabase OpenWrite()
   {
-    _mDatabase = new DatabaseHelper(_context);
+    if(_mDatabase==null)
+      _mDatabase = new DatabaseHelper(_context);
     return(_mDatabase.getWritableDatabase());
   }
   
-  private SQLiteDatabase OpenRead()
+  private synchronized SQLiteDatabase OpenRead()
   {
-    _mDatabase = new DatabaseHelper(_context);
+    if(_mDatabase==null)
+      _mDatabase = new DatabaseHelper(_context);
     return(_mDatabase.getReadableDatabase());
   }
   
@@ -276,15 +278,15 @@ class Storage
     }
     finally
     {
-      _mDatabase.close();
+      db.close();
     }
   }
 
   public Account getAccount(long id)
   {
+    SQLiteDatabase db = OpenRead();
     try
     {
-      SQLiteDatabase db = OpenRead();
       Cursor cursor = db.query(Accounts.TABLE_NAME, new String[] {Accounts.COLUMN_ID,
                                                                         Accounts.COLUMN_TITLE,
                                                                         Accounts.COLUMN_LOGIN,
@@ -312,7 +314,7 @@ class Storage
     }
     finally
     {
-      _mDatabase.close();
+      db.close();
     }
     return null;
   }
@@ -331,16 +333,22 @@ class Storage
     }
     finally
     {
-      _mDatabase.close();
+      db.close();
     }
   }
   
   public void DeleteAccount(long id)
   {
     SQLiteDatabase db = OpenWrite();
-    db.delete(Accounts.TABLE_NAME, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
-    // TODO: Удалить агентов и терминалы
-    _mDatabase.close();
+    try
+    {
+      db.delete(Accounts.TABLE_NAME, Accounts.ID_CLAUSE, new String[] {Long.toString(id)});
+      // TODO: Удалить агентов и терминалы
+    }
+    finally
+    {
+      db.close();
+    }
   }
 /**
  * Возвращает все имеющиеся учетные записи
@@ -376,7 +384,7 @@ class Storage
     }
     finally
     {
-      _mDatabase.close();
+      db.close();
     }
   }
 
@@ -399,7 +407,7 @@ class Storage
     }
     finally
     {
-      _mDatabase.close();
+      db.close();
     }
   }
 
@@ -442,24 +450,30 @@ class Storage
       db.replace(Terminals.TABLE_NAME, null, values);
     }
 ///////
-    _mDatabase.close();
+    db.close();
   }
   
   public boolean hasAccounts()
   {
     boolean result = false;
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.rawQuery("select count(*) from "+Accounts.TABLE_NAME, null);
-    if(cursor!=null)
+    try
     {
-      if(cursor.moveToFirst())
+      Cursor cursor = db.rawQuery("select count(*) from "+Accounts.TABLE_NAME, null);
+      if(cursor!=null)
       {
-        if(cursor.getInt(0)>0)
-          result = true;
+        if(cursor.moveToFirst())
+        {
+          if(cursor.getInt(0)>0)
+            result = true;
+        }
+        cursor.close();
       }
-      cursor.close();
     }
-    _mDatabase.close();
+    finally
+    {
+      db.close();
+    }
     return(result);
   }
   
@@ -475,39 +489,228 @@ class Storage
     }
 
     SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
-                                                                 Terminals.COLUMN_ADDRESS,
-                                                                 Terminals.COLUMN_STATE,
-                                                                 Terminals.COLUMN_PRINTERSTATE,
-                                                                 Terminals.COLUMN_CASHBINSTATE,
-                                                                 Terminals.COLUMN_CASH,
-                                                                 Terminals.COLUMN_LASTACTIVITY,
-                                                                 Terminals.COLUMN_LASTPAYMENT,
-                                                                 Terminals.COLUMN_BONDS,
-                                                                 Terminals.COLUMN_BALANCE,
-                                                                 Terminals.COLUMN_SIGNALLEVEL,
-                                                                 Terminals.COLUMN_SOFTVERSION,
-                                                                 Terminals.COLUMN_PRINTERMODEL,
-                                                                 Terminals.COLUMN_CASHBINMODEL,
-                                                                 Terminals.COLUMN_BONDS10,
-                                                                 Terminals.COLUMN_BONDS50,
-                                                                 Terminals.COLUMN_BONDS100,
-                                                                 Terminals.COLUMN_BONDS500,
-                                                                 Terminals.COLUMN_BONDS1000,
-                                                                 Terminals.COLUMN_BONDS5000,
-                                                                 Terminals.COLUMN_BONDS10000,
-                                                                 Terminals.COLUMN_PAYSPERHOUR,
-                                                                 Terminals.COLUMN_AGENTID,
-                                                                 Terminals.COLUMN_AGENTNAME,
-                                                                 Terminals.COLUMN_MS},
-                             clause,clauseArgs,null,null,null,null);
-    if(cursor!=null)
+    try
     {
-      if(cursor.moveToFirst())
+      Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
+                                                                   Terminals.COLUMN_ADDRESS,
+                                                                   Terminals.COLUMN_STATE,
+                                                                   Terminals.COLUMN_PRINTERSTATE,
+                                                                   Terminals.COLUMN_CASHBINSTATE,
+                                                                   Terminals.COLUMN_CASH,
+                                                                   Terminals.COLUMN_LASTACTIVITY,
+                                                                   Terminals.COLUMN_LASTPAYMENT,
+                                                                   Terminals.COLUMN_BONDS,
+                                                                   Terminals.COLUMN_BALANCE,
+                                                                   Terminals.COLUMN_SIGNALLEVEL,
+                                                                   Terminals.COLUMN_SOFTVERSION,
+                                                                   Terminals.COLUMN_PRINTERMODEL,
+                                                                   Terminals.COLUMN_CASHBINMODEL,
+                                                                   Terminals.COLUMN_BONDS10,
+                                                                   Terminals.COLUMN_BONDS50,
+                                                                   Terminals.COLUMN_BONDS100,
+                                                                   Terminals.COLUMN_BONDS500,
+                                                                   Terminals.COLUMN_BONDS1000,
+                                                                   Terminals.COLUMN_BONDS5000,
+                                                                   Terminals.COLUMN_BONDS10000,
+                                                                   Terminals.COLUMN_PAYSPERHOUR,
+                                                                   Terminals.COLUMN_AGENTID,
+                                                                   Terminals.COLUMN_AGENTNAME,
+                                                                   Terminals.COLUMN_MS},
+                               clause,clauseArgs,null,null,null,null);
+      if(cursor!=null)
       {
-        do
+        if(cursor.moveToFirst())
         {
-          Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+          do
+          {
+            Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+            terminal.State(cursor.getInt(2));
+            terminal.printer_state = cursor.getString(3);
+            terminal.cashbin_state = cursor.getString(4);
+            terminal.cash = cursor.getInt(5);
+            terminal.lastActivity = cursor.getLong(6);
+            terminal.lastPayment = cursor.getLong(7);
+            terminal.bondsCount = cursor.getInt(8);
+            terminal.balance = cursor.getString(9);
+            terminal.signalLevel = cursor.getInt(10);
+            terminal.softVersion = cursor.getString(11);
+            terminal.printerModel = cursor.getString(12);
+            terminal.cashbinModel = cursor.getString(13);
+            terminal.bonds10count = cursor.getInt(14);
+            terminal.bonds50count = cursor.getInt(15);
+            terminal.bonds100count = cursor.getInt(16);
+            terminal.bonds500count = cursor.getInt(17);
+            terminal.bonds1000count = cursor.getInt(18);
+            terminal.bonds5000count = cursor.getInt(19);
+            terminal.bonds10000count = cursor.getInt(20);
+            terminal.paysPerHour = cursor.getString(21);
+            terminal.agentId = Long.parseLong(cursor.getString(22));
+            terminal.agentName = cursor.getString(23);
+            terminal.ms = cursor.getInt(24);
+            terminals.add(terminal);
+          }
+          while(cursor.moveToNext());
+        }
+        cursor.close();
+      }
+    }
+    finally
+    {
+      db.close();
+    }
+  }
+
+  public boolean saveAgents(long account, List<Group> groups)
+  {
+    SQLiteDatabase db = OpenWrite();
+    try
+    {
+      ContentValues values = new ContentValues();
+      values.put(Agents.COLUMN_ACCOUNT, Long.toString(account));
+
+      for(Group group : groups)
+      {
+        values.put(Agents.COLUMN_AGENT, group.id);
+        values.put(Agents.COLUMN_AGENT_NAME, group.name);
+        values.put(Agents.COLUMN_BALANCE, group.balance);
+        values.put(Agents.COLUMN_OVERDRAFT, group.overdraft);
+        values.put(Agents.COLUMN_LAST_UPDATE,System.currentTimeMillis());
+        if(db.update(Agents.TABLE_NAME, values, Agents.COLUMN_AGENT+"=?",new String[] {Long.toString(group.id)})<1)
+          db.insert(Agents.TABLE_NAME, null, values);
+      }
+    }
+    finally
+    {
+      db.close();
+    }
+    return(true);
+  }
+  
+  public void ClearAgents(long account)
+  {
+    SQLiteDatabase db = OpenWrite();
+    try
+    {
+      db.delete(Agents.TABLE_NAME, Agents.ACCOUNT_CLAUSE,new String[] {Long.toString(account)});
+    }
+    finally
+    {
+      db.close();
+    }
+  }
+  
+  public void getAgents(long account, List<Group> groups)
+  {
+    String clause = null;
+    String[] args = null;
+//////////
+    if(account!=0)
+    {
+      clause = Agents.ACCOUNT_CLAUSE;
+      args = new String[] {Long.toString(account)};
+    }
+
+    SQLiteDatabase db = OpenRead();
+    try
+    {
+      Cursor cursor = db.query(Agents.TABLE_NAME,
+                               new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT, Agents.COLUMN_LAST_UPDATE},
+                               clause,
+                               args,
+                               null, null, null);
+      if(cursor!=null)
+      {
+        if(cursor.moveToFirst())
+        {
+          do
+          {
+            Group group = new Group();
+            group.id = cursor.getLong(0);
+            group.name = cursor.getString(1);
+            group.balance = cursor.getDouble(2);
+            group.overdraft = cursor.getDouble(3);
+            group.lastUpdate = cursor.getLong(4);
+            groups.add(group);
+          }
+          while(cursor.moveToNext());
+        }
+        cursor.close();
+      }
+    }
+    finally
+    {
+      db.close();
+    }
+  }
+
+  public void getAgentsActive(List<Group> groups)
+  {
+    SQLiteDatabase db = OpenRead();
+    try
+    {
+      Cursor cursor = db.rawQuery(Agents.ACTIVE_AGENTS_QUERY,null);
+      if(cursor!=null)
+      {
+        if(cursor.moveToFirst())
+        {
+          do
+          {
+            Group group = new Group();
+            group.id = cursor.getLong(0);
+            group.name = cursor.getString(1);
+            group.lastUpdate = cursor.getLong(2);
+            group.balance = cursor.getDouble(3);
+            group.overdraft = cursor.getDouble(4);
+            groups.add(group);
+          }
+          while(cursor.moveToNext());
+        }
+        cursor.close();
+      }
+    }
+    finally
+    {
+      db.close();
+    }
+  }
+
+  public Terminal getTerminal(long id)
+  {
+    Terminal terminal = null;
+    SQLiteDatabase db = OpenRead();
+    try
+    {
+      Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
+                                                                   Terminals.COLUMN_ADDRESS,
+                                                                   Terminals.COLUMN_STATE,
+                                                                   Terminals.COLUMN_PRINTERSTATE,
+                                                                   Terminals.COLUMN_CASHBINSTATE,
+                                                                   Terminals.COLUMN_CASH,
+                                                                   Terminals.COLUMN_LASTACTIVITY,
+                                                                   Terminals.COLUMN_LASTPAYMENT,
+                                                                   Terminals.COLUMN_BONDS,
+                                                                   Terminals.COLUMN_BALANCE,
+                                                                   Terminals.COLUMN_SIGNALLEVEL,
+                                                                   Terminals.COLUMN_SOFTVERSION,
+                                                                   Terminals.COLUMN_PRINTERMODEL,
+                                                                   Terminals.COLUMN_CASHBINMODEL,
+                                                                   Terminals.COLUMN_BONDS10,
+                                                                   Terminals.COLUMN_BONDS50,
+                                                                   Terminals.COLUMN_BONDS100,
+                                                                   Terminals.COLUMN_BONDS500,
+                                                                   Terminals.COLUMN_BONDS1000,
+                                                                   Terminals.COLUMN_BONDS5000,
+                                                                   Terminals.COLUMN_BONDS10000,
+                                                                   Terminals.COLUMN_PAYSPERHOUR,
+                                                                   Terminals.COLUMN_AGENTID,
+                                                                   Terminals.COLUMN_AGENTNAME,
+                                                                   Terminals.COLUMN_MS},
+                               Terminals.TERMINAL_ID_CLAUSE,new String[] {Long.toString(id)},null,null,null,null);
+      if(cursor!=null)
+      {
+        if(cursor.moveToFirst())
+        {
+          terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
           terminal.State(cursor.getInt(2));
           terminal.printer_state = cursor.getString(3);
           terminal.cashbin_state = cursor.getString(4);
@@ -531,167 +734,14 @@ class Storage
           terminal.agentId = Long.parseLong(cursor.getString(22));
           terminal.agentName = cursor.getString(23);
           terminal.ms = cursor.getInt(24);
-          terminals.add(terminal);
         }
-        while(cursor.moveToNext());
+        cursor.close();
       }
-      cursor.close();      
     }
-    _mDatabase.close();
-  }
-
-  public boolean saveAgents(long account, List<Group> groups)
-  {
-    SQLiteDatabase db = OpenWrite();
-    ContentValues values = new ContentValues();
-    values.put(Agents.COLUMN_ACCOUNT, Long.toString(account));
-    
-    for(Group group : groups)
+    finally
     {
-      values.put(Agents.COLUMN_AGENT, group.id);
-      values.put(Agents.COLUMN_AGENT_NAME, group.name);
-      values.put(Agents.COLUMN_BALANCE, group.balance);
-      values.put(Agents.COLUMN_OVERDRAFT, group.overdraft);
-      values.put(Agents.COLUMN_LAST_UPDATE,System.currentTimeMillis());
-      if(db.update(Agents.TABLE_NAME, values, Agents.COLUMN_AGENT+"=?",new String[] {Long.toString(group.id)})<1)
-        db.insert(Agents.TABLE_NAME, null, values);
+      db.close();
     }
-    _mDatabase.close();
-    return(true);
-  }
-  
-  public void ClearAgents(long account)
-  {
-    SQLiteDatabase db = OpenWrite();
-    db.delete(Agents.TABLE_NAME, Agents.ACCOUNT_CLAUSE,new String[] {Long.toString(account)});
-    _mDatabase.close();
-  }
-  
-  public void getAgents(long account, List<Group> groups)
-  {
-    String clause = null;
-    String[] args = null;
-//////////
-    if(account!=0)
-    {
-      clause = Agents.ACCOUNT_CLAUSE;
-      args = new String[] {Long.toString(account)};
-    }
-
-    SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Agents.TABLE_NAME,
-                             new String[] {Agents.COLUMN_AGENT, Agents.COLUMN_AGENT_NAME, Agents.COLUMN_BALANCE, Agents.COLUMN_OVERDRAFT, Agents.COLUMN_LAST_UPDATE},
-                             clause,
-                             args,
-                             null, null, null);
-    if(cursor!=null)
-    {
-      if(cursor.moveToFirst())
-      {
-        do
-        {
-          Group group = new Group();
-          group.id = cursor.getLong(0);
-          group.name = cursor.getString(1);
-          group.balance = cursor.getDouble(2);
-          group.overdraft = cursor.getDouble(3);
-          group.lastUpdate = cursor.getLong(4);
-          groups.add(group);
-        }
-        while(cursor.moveToNext());
-      }
-      cursor.close();
-    }
-    _mDatabase.close();
-  }
-
-  public void getAgentsActive(List<Group> groups)
-  {
-    SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.rawQuery(Agents.ACTIVE_AGENTS_QUERY,null);
-    if(cursor!=null)
-    {
-      if(cursor.moveToFirst())
-      {
-        do
-        {
-          Group group = new Group();
-          group.id = cursor.getLong(0);
-          group.name = cursor.getString(1);
-          group.lastUpdate = cursor.getLong(2);
-          group.balance = cursor.getDouble(3);
-          group.overdraft = cursor.getDouble(4);
-          groups.add(group);
-        }
-        while(cursor.moveToNext());
-      }
-      cursor.close();
-    }
-    _mDatabase.close();
-  }
-
-  public Terminal getTerminal(long id)
-  {
-    Terminal terminal = null;
-    SQLiteDatabase db = OpenRead();
-    Cursor cursor = db.query(Terminals.TABLE_NAME, new String[] {Terminals.COLUMN_ID,
-                                                                 Terminals.COLUMN_ADDRESS,
-                                                                 Terminals.COLUMN_STATE,
-                                                                 Terminals.COLUMN_PRINTERSTATE,
-                                                                 Terminals.COLUMN_CASHBINSTATE,
-                                                                 Terminals.COLUMN_CASH,
-                                                                 Terminals.COLUMN_LASTACTIVITY,
-                                                                 Terminals.COLUMN_LASTPAYMENT,
-                                                                 Terminals.COLUMN_BONDS,
-                                                                 Terminals.COLUMN_BALANCE,
-                                                                 Terminals.COLUMN_SIGNALLEVEL,
-                                                                 Terminals.COLUMN_SOFTVERSION,
-                                                                 Terminals.COLUMN_PRINTERMODEL,
-                                                                 Terminals.COLUMN_CASHBINMODEL,
-                                                                 Terminals.COLUMN_BONDS10,
-                                                                 Terminals.COLUMN_BONDS50,
-                                                                 Terminals.COLUMN_BONDS100,
-                                                                 Terminals.COLUMN_BONDS500,
-                                                                 Terminals.COLUMN_BONDS1000,
-                                                                 Terminals.COLUMN_BONDS5000,
-                                                                 Terminals.COLUMN_BONDS10000,
-                                                                 Terminals.COLUMN_PAYSPERHOUR,
-                                                                 Terminals.COLUMN_AGENTID,
-                                                                 Terminals.COLUMN_AGENTNAME,
-                                                                 Terminals.COLUMN_MS},
-                             Terminals.TERMINAL_ID_CLAUSE,new String[] {Long.toString(id)},null,null,null,null);
-    if(cursor!=null)
-    {
-      if(cursor.moveToFirst())
-      {
-        terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
-        terminal.State(cursor.getInt(2));
-        terminal.printer_state = cursor.getString(3);
-        terminal.cashbin_state = cursor.getString(4);
-        terminal.cash = cursor.getInt(5);
-        terminal.lastActivity = cursor.getLong(6);
-        terminal.lastPayment = cursor.getLong(7);
-        terminal.bondsCount = cursor.getInt(8);
-        terminal.balance = cursor.getString(9);
-        terminal.signalLevel = cursor.getInt(10);
-        terminal.softVersion = cursor.getString(11);
-        terminal.printerModel = cursor.getString(12);
-        terminal.cashbinModel = cursor.getString(13);
-        terminal.bonds10count = cursor.getInt(14);
-        terminal.bonds50count = cursor.getInt(15);
-        terminal.bonds100count = cursor.getInt(16);
-        terminal.bonds500count = cursor.getInt(17);
-        terminal.bonds1000count = cursor.getInt(18);
-        terminal.bonds5000count = cursor.getInt(19);
-        terminal.bonds10000count = cursor.getInt(20);
-        terminal.paysPerHour = cursor.getString(21);
-        terminal.agentId = Long.parseLong(cursor.getString(22));
-        terminal.agentName = cursor.getString(23);
-        terminal.ms = cursor.getInt(24);
-      }
-      cursor.close();
-    }
-    _mDatabase.close();
     return terminal;
   }
 }
