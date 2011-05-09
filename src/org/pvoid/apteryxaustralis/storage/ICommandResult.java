@@ -19,5 +19,5 @@ package org.pvoid.apteryxaustralis.storage;
 
 public interface ICommandResult
 {
-  void onCommandResult(boolean success, int message);
+  void onCommandResult(boolean success, int message, String title);
 }

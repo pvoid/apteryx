@@ -484,10 +484,10 @@ public class MainActivity extends Activity implements OnClickListener,
   }
 
   @Override
-  public void onCommandResult(boolean success, int message)
+  public void onCommandResult(boolean success, int message, String title)
   {
     setSpinnerVisibility(false);
-    Toast.makeText(this,getString(message),Toast.LENGTH_LONG).show();
+    Toast.makeText(this,title + ": " + getString(message),Toast.LENGTH_LONG).show();
   }
 
   /**

@@ -368,14 +368,14 @@ public class Terminal implements ITerminal
     catch(ClassCastException e)
     {
       e.printStackTrace();
-      resultHandler.onCommandResult(false,R.string.cant_obtain_storage);
+      resultHandler.onCommandResult(false,R.string.cant_obtain_storage,address);
       return;
     }
 //////////
     switch(action)
     {
       case ACTION_REBOOT:
-        (new RebootTerminalTask(strg,resultHandler)).execute(tid, agentId);
+        (new RebootTerminalTask(address,strg,resultHandler)).execute(tid, agentId);
         break;
       case ACTION_POWER_OFF:
         //result = strg.switchOffTerminal(tid,agentId);
@@ -385,11 +385,13 @@ public class Terminal implements ITerminal
 
   private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
   {
+    private final String _mName;
     private final ICommandResult _mHandler;
     private final OsmpStorage _mStorage;
 
-    public RebootTerminalTask(OsmpStorage storage, ICommandResult handler)
+    public RebootTerminalTask(String name, OsmpStorage storage, ICommandResult handler)
     {
+      _mName = name;
       _mHandler = handler;
       _mStorage = storage;
     }
@@ -404,9 +406,9 @@ public class Terminal implements ITerminal
     protected void onPostExecute(Integer result)
     {
       if(result == IStorage.RES_OK)
-        _mHandler.onCommandResult(true,R.string.reboot_command_sended);
+        _mHandler.onCommandResult(true,R.string.reboot_command_sended,_mName);
       else
-        _mHandler.onCommandResult(false,R.string.network_error);
+        _mHandler.onCommandResult(false,R.string.network_error,_mName);
     }
   }
 }
