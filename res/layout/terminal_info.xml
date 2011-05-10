@@ -35,13 +35,14 @@
                 android:textColor="#ffffff"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:layout_toRightOf="@id/status_icon"
+                android:layout_centerVertical="true"
                 android:shadowColor="#000000"
                 android:shadowRadius="2"
                 android:shadowDx="0"
                 android:shadowDy="0"
                 android:textStyle="bold"
                 android:id="@+id/name" />
-      <TextView android:layout_width="fill_parent"
+      <!--TextView android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#d8d8d8"
@@ -52,7 +53,7 @@
                 android:shadowDx="0"
                 android:shadowDy="0"
                 android:textStyle="bold"
-                android:layout_below="@id/name"/>
+                android:layout_below="@id/name"/-->
     </RelativeLayout>
     <ScrollView android:layout_width="fill_parent"
                 android:layout_height="fill_parent"

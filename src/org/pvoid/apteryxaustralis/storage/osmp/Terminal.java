@@ -172,7 +172,7 @@ public class Terminal implements ITerminal
       case OSMP_STATE_WARRNING:
         return ITerminal.STATE_WARNING;
       default:
-        if("OK".equals(printer_state))
+        if("OK".equals(printer_state) || System.currentTimeMillis() - lastActivity>60*60*1000)
           return ITerminal.STATE_ERROR_CRITICAL;
         return ITerminal.STATE_ERROR;
     }
