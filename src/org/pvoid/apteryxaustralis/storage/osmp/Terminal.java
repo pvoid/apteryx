@@ -210,8 +210,8 @@ public class Terminal implements ITerminal
       return context.getString(R.string.STATE_ASO_MODIFIED);
     if((ms & STATE_INTERFACE_MODIFIED) !=0)
       return context.getString(R.string.STATE_INTERFACE_MODIFIED);
-    if((ms & STATE_FAIR_FTP_IP) !=0)
-      return context.getString(R.string.STATE_FAIR_FTP_IP);
+    /*if((ms & STATE_FAIR_FTP_IP) !=0)
+      return context.getString(R.string.STATE_FAIR_FTP_IP);*/
     if((ms & STATE_UNAUTHORIZED_SOFTWARE) !=0)
       return context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE);
 ////////// Ошибки настройки

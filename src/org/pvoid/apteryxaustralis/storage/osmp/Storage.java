@@ -366,21 +366,25 @@ class Storage
                                                                         Accounts.COLUMN_TERMINAL},
                                null, null, null, null, null, null);
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          do
+          if(cursor.moveToFirst())
           {
-            adapter.add(new Account(Long.parseLong(cursor.getString(0)),
-                                    cursor.getString(1),
-                                    cursor.getString(2),
-                                    cursor.getString(3),
-                                    cursor.getString(4)));
+            do
+            {
+              adapter.add(new Account(Long.parseLong(cursor.getString(0)),
+                                      cursor.getString(1),
+                                      cursor.getString(2),
+                                      cursor.getString(3),
+                                      cursor.getString(4)));
+            }
+            while(cursor.moveToNext());
           }
-          while(cursor.moveToNext());
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
     }
     finally
     {
@@ -396,13 +400,17 @@ class Storage
     {
       Cursor cursor = db.rawQuery(ACCOUNT_FROM_AGENT_QUERY,new String[] {Long.toString(agentId)});
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          result = new Account(cursor.getLong(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
+          if(cursor.moveToFirst())
+          {
+            result = new Account(cursor.getLong(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
+          }
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
       return result;
     }
     finally
@@ -461,14 +469,18 @@ class Storage
     {
       Cursor cursor = db.rawQuery("select count(*) from "+Accounts.TABLE_NAME, null);
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          if(cursor.getInt(0)>0)
-            result = true;
+          if(cursor.moveToFirst())
+          {
+            if(cursor.getInt(0)>0)
+              result = true;
+          }
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
     }
     finally
     {
@@ -519,39 +531,43 @@ class Storage
                                clause,clauseArgs,null,null,null,null);
       if(cursor!=null)
       {
-        if(cursor.moveToFirst())
+        try
         {
-          do
-          {
-            Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
-            terminal.State(cursor.getInt(2));
-            terminal.printer_state = cursor.getString(3);
-            terminal.cashbin_state = cursor.getString(4);
-            terminal.cash = cursor.getInt(5);
-            terminal.lastActivity = cursor.getLong(6);
-            terminal.lastPayment = cursor.getLong(7);
-            terminal.bondsCount = cursor.getInt(8);
-            terminal.balance = cursor.getString(9);
-            terminal.signalLevel = cursor.getInt(10);
-            terminal.softVersion = cursor.getString(11);
-            terminal.printerModel = cursor.getString(12);
-            terminal.cashbinModel = cursor.getString(13);
-            terminal.bonds10count = cursor.getInt(14);
-            terminal.bonds50count = cursor.getInt(15);
-            terminal.bonds100count = cursor.getInt(16);
-            terminal.bonds500count = cursor.getInt(17);
-            terminal.bonds1000count = cursor.getInt(18);
-            terminal.bonds5000count = cursor.getInt(19);
-            terminal.bonds10000count = cursor.getInt(20);
-            terminal.paysPerHour = cursor.getString(21);
-            terminal.agentId = Long.parseLong(cursor.getString(22));
-            terminal.agentName = cursor.getString(23);
-            terminal.ms = cursor.getInt(24);
-            terminals.add(terminal);
-          }
-          while(cursor.moveToNext());
+          if(cursor.moveToFirst())
+            do
+            {
+              Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+              terminal.State(cursor.getInt(2));
+              terminal.printer_state = cursor.getString(3);
+              terminal.cashbin_state = cursor.getString(4);
+              terminal.cash = cursor.getInt(5);
+              terminal.lastActivity = cursor.getLong(6);
+              terminal.lastPayment = cursor.getLong(7);
+              terminal.bondsCount = cursor.getInt(8);
+              terminal.balance = cursor.getString(9);
+              terminal.signalLevel = cursor.getInt(10);
+              terminal.softVersion = cursor.getString(11);
+              terminal.printerModel = cursor.getString(12);
+              terminal.cashbinModel = cursor.getString(13);
+              terminal.bonds10count = cursor.getInt(14);
+              terminal.bonds50count = cursor.getInt(15);
+              terminal.bonds100count = cursor.getInt(16);
+              terminal.bonds500count = cursor.getInt(17);
+              terminal.bonds1000count = cursor.getInt(18);
+              terminal.bonds5000count = cursor.getInt(19);
+              terminal.bonds10000count = cursor.getInt(20);
+              terminal.paysPerHour = cursor.getString(21);
+              terminal.agentId = Long.parseLong(cursor.getString(22));
+              terminal.agentName = cursor.getString(23);
+              terminal.ms = cursor.getInt(24);
+              terminals.add(terminal);
+            }
+            while(cursor.moveToNext());
         }
-        cursor.close();
+        finally
+        {
+          cursor.close();
+        }
       }
     }
     finally
@@ -619,23 +635,27 @@ class Storage
                                args,
                                null, null, null);
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          do
+          if(cursor.moveToFirst())
           {
-            Group group = new Group();
-            group.id = cursor.getLong(0);
-            group.name = cursor.getString(1);
-            group.balance = cursor.getDouble(2);
-            group.overdraft = cursor.getDouble(3);
-            group.lastUpdate = cursor.getLong(4);
-            groups.add(group);
+            do
+            {
+              Group group = new Group();
+              group.id = cursor.getLong(0);
+              group.name = cursor.getString(1);
+              group.balance = cursor.getDouble(2);
+              group.overdraft = cursor.getDouble(3);
+              group.lastUpdate = cursor.getLong(4);
+              groups.add(group);
+            }
+            while(cursor.moveToNext());
           }
-          while(cursor.moveToNext());
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
     }
     finally
     {
@@ -650,23 +670,27 @@ class Storage
     {
       Cursor cursor = db.rawQuery(Agents.ACTIVE_AGENTS_QUERY,null);
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          do
+          if(cursor.moveToFirst())
           {
-            Group group = new Group();
-            group.id = cursor.getLong(0);
-            group.name = cursor.getString(1);
-            group.lastUpdate = cursor.getLong(2);
-            group.balance = cursor.getDouble(3);
-            group.overdraft = cursor.getDouble(4);
-            groups.add(group);
+            do
+            {
+              Group group = new Group();
+              group.id = cursor.getLong(0);
+              group.name = cursor.getString(1);
+              group.lastUpdate = cursor.getLong(2);
+              group.balance = cursor.getDouble(3);
+              group.overdraft = cursor.getDouble(4);
+              groups.add(group);
+            }
+            while(cursor.moveToNext());
           }
-          while(cursor.moveToNext());
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
     }
     finally
     {
@@ -707,36 +731,40 @@ class Storage
                                                                    Terminals.COLUMN_MS},
                                Terminals.TERMINAL_ID_CLAUSE,new String[] {Long.toString(id)},null,null,null,null);
       if(cursor!=null)
-      {
-        if(cursor.moveToFirst())
+        try
         {
-          terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
-          terminal.State(cursor.getInt(2));
-          terminal.printer_state = cursor.getString(3);
-          terminal.cashbin_state = cursor.getString(4);
-          terminal.cash = cursor.getInt(5);
-          terminal.lastActivity = cursor.getLong(6);
-          terminal.lastPayment = cursor.getLong(7);
-          terminal.bondsCount = cursor.getInt(8);
-          terminal.balance = cursor.getString(9);
-          terminal.signalLevel = cursor.getInt(10);
-          terminal.softVersion = cursor.getString(11);
-          terminal.printerModel = cursor.getString(12);
-          terminal.cashbinModel = cursor.getString(13);
-          terminal.bonds10count = cursor.getInt(14);
-          terminal.bonds50count = cursor.getInt(15);
-          terminal.bonds100count = cursor.getInt(16);
-          terminal.bonds500count = cursor.getInt(17);
-          terminal.bonds1000count = cursor.getInt(18);
-          terminal.bonds5000count = cursor.getInt(19);
-          terminal.bonds10000count = cursor.getInt(20);
-          terminal.paysPerHour = cursor.getString(21);
-          terminal.agentId = Long.parseLong(cursor.getString(22));
-          terminal.agentName = cursor.getString(23);
-          terminal.ms = cursor.getInt(24);
+          if(cursor.moveToFirst())
+          {
+            terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+            terminal.State(cursor.getInt(2));
+            terminal.printer_state = cursor.getString(3);
+            terminal.cashbin_state = cursor.getString(4);
+            terminal.cash = cursor.getInt(5);
+            terminal.lastActivity = cursor.getLong(6);
+            terminal.lastPayment = cursor.getLong(7);
+            terminal.bondsCount = cursor.getInt(8);
+            terminal.balance = cursor.getString(9);
+            terminal.signalLevel = cursor.getInt(10);
+            terminal.softVersion = cursor.getString(11);
+            terminal.printerModel = cursor.getString(12);
+            terminal.cashbinModel = cursor.getString(13);
+            terminal.bonds10count = cursor.getInt(14);
+            terminal.bonds50count = cursor.getInt(15);
+            terminal.bonds100count = cursor.getInt(16);
+            terminal.bonds500count = cursor.getInt(17);
+            terminal.bonds1000count = cursor.getInt(18);
+            terminal.bonds5000count = cursor.getInt(19);
+            terminal.bonds10000count = cursor.getInt(20);
+            terminal.paysPerHour = cursor.getString(21);
+            terminal.agentId = Long.parseLong(cursor.getString(22));
+            terminal.agentName = cursor.getString(23);
+            terminal.ms = cursor.getInt(24);
+          }
         }
-        cursor.close();
-      }
+        finally
+        {
+          cursor.close();
+        }
     }
     finally
     {

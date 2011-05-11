@@ -22,7 +22,7 @@
   <string name="STATE_DEVICES_ABSENT">Автомат остановлен из-за того, что при старте не обнаружено оборудование (купюроприемник или принтер)</string>
   <string name="STATE_WATCHDOG_TIMER">Работает сторожевой таймер</string>
   <string name="STATE_PAPER_COMING_TO_END">В принтере скоро закончится бумага</string>
-  <string name="STATE_STACKER_REMOVED">C автомата был снят стеккер</string>
+  <string name="STATE_STACKER_REMOVED">C автомата был снят стекер</string>
   <string name="STATE_ESSENTIAL_ELEMENTS_ERROR">Отсутствуют или неверно заполнены один или несколько реквизитов для терминала</string>
   <string name="STATE_HARDDRIVE_PROBLEMS">Проблемы с жестким диском!!!</string>
   <string name="STATE_STOPPED_DUE_BALANCE">Остановлен по сигналу сервера или из-за отсутствия денег на счету агента!</string>
