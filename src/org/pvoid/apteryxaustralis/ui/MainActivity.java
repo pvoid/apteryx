@@ -17,9 +17,6 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -114,7 +111,6 @@ public class MainActivity extends Activity implements OnClickListener,
 /////////
     _mGroups = new ArrayList<TerminalsArrayAdapter>();
     _mStorage = new OsmpStorage(this);
-    // TODO: Если база была обновлена, запустить обновление данных
     _mStates = new States(this);
 /////////
     if(Preferences.getAutoUpdate(this))
@@ -330,6 +326,8 @@ public class MainActivity extends Activity implements OnClickListener,
     balance.append(": ").append(group.balance);
     if(group.overdraft!=0)
       balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.overdraft);
+    else
+      balance.append(" / ").append(adapter.getCash());
     text.setText(balance.toString());
 //////////
     text = (TextView) findViewById(R.id.agent_update_time);
@@ -452,7 +450,14 @@ public class MainActivity extends Activity implements OnClickListener,
   {
     setCurrentAgentInfo(v);
   }
-
+  /**
+   * Долгий щелчок по элементу в списке терминалов. Вываливает всплывающее меню с командами
+   * @param adapterView список
+   * @param view        вьюшка с терминалом
+   * @param index       индеск терминала
+   * @param l           идентификатор. не используется
+   * @return возвращает true если мы обработали щелчок
+   */
   @Override
   public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long l)
   {
@@ -482,14 +487,18 @@ public class MainActivity extends Activity implements OnClickListener,
       dialog.show();
       return(true);
   }
-
+  /**
+   * Результат запуска команды на терминале
+   * @param success признак усеха
+   * @param message сообщение
+   * @param title   человечье имя терминала
+   */
   @Override
   public void onCommandResult(boolean success, int message, String title)
   {
     setSpinnerVisibility(false);
     Toast.makeText(this,title + ": " + getString(message),Toast.LENGTH_LONG).show();
   }
-
   /**
    * Фоновое обновление данных из БД
    */
@@ -550,7 +559,7 @@ public class MainActivity extends Activity implements OnClickListener,
       setSpinnerVisibility(false);
     }
   }
-
+  /*
   public class ExceptionHandler implements Thread.UncaughtExceptionHandler
   {
     public String joinStackTrace(Throwable e)
@@ -617,5 +626,5 @@ public class MainActivity extends Activity implements OnClickListener,
       e.printStackTrace();
       android.os.Process.killProcess(android.os.Process.myPid());
     }
-  }
+  }*/
 }

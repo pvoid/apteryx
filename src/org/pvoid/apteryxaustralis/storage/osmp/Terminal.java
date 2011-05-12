@@ -383,6 +383,12 @@ public class Terminal implements ITerminal
     }
   }
 
+  @Override
+  public int getCash()
+  {
+    return cash;
+  }
+
   private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
   {
     private final String _mName;

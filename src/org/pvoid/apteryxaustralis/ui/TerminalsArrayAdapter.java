@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.locks.ReentrantLock;
 
-// TODO: Multithread
 public class TerminalsArrayAdapter implements ListAdapter
 {
   ReentrantLock _mLock;
@@ -45,6 +44,7 @@ public class TerminalsArrayAdapter implements ListAdapter
   private Group _mGroup;
   private DataSetObserver _mObserver;
   private final Context _mContext;
+  private long _mCash;
 
   public TerminalsArrayAdapter(Context context, Group group)
   {
@@ -212,6 +212,9 @@ public class TerminalsArrayAdapter implements ListAdapter
     try
     {
       Collections.sort(_mTerminals,comparator);
+      _mCash = 0;
+      for(ITerminal terminal : _mTerminals)
+        _mCash += terminal.getCash();
     }
     finally
     {
@@ -232,5 +235,10 @@ public class TerminalsArrayAdapter implements ListAdapter
   public void notifyList()
   {
     _mObserver.onChanged();
+  }
+
+  public long getCash()
+  {
+    return _mCash;
   }
 }

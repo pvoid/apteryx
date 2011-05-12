@@ -39,4 +39,5 @@ public interface ITerminal
   void getInfo(Context context, List<InfoLine> info);
   void getActions(Context context, List<TerminalAction> actions);
   void runAction(IStorage storage, int action, ICommandResult resultHandler);
+  int getCash();
 }
