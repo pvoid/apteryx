@@ -153,7 +153,7 @@ public class MainActivity extends Activity implements OnClickListener,
   public void onStart()
   {
     super.onStart();
-    Notifier.hideNotification(this);
+    Notifier.hideNotification(this,true);
   }
   /**
    * Создаем меню

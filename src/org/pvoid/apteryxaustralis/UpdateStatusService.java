@@ -39,7 +39,7 @@ public class UpdateStatusService extends Service
   private Method _StopForeground;
   private AlarmManager _AlarmManager;
   
-  private static boolean _ServiceRuning = false; 
+  private static boolean _mServiceRuning = false;
   
   NotificationManager _NotifyManager;
   
@@ -83,7 +83,7 @@ public class UpdateStatusService extends Service
   
   private void handleStart()
   {
-    _ServiceRuning = true;
+    _mServiceRuning = true;
 ////////
     long interval = Preferences.getUpdateInterval(this);
     if(interval==0)
@@ -125,7 +125,7 @@ public class UpdateStatusService extends Service
   
   private void handleStop()
   {
-    _ServiceRuning = false;
+    _mServiceRuning = false;
 ////////
     if(_AlarmManager!=null)
     {
@@ -169,6 +169,6 @@ public class UpdateStatusService extends Service
   
   public static boolean Executed()
   {
-    return(_ServiceRuning);
+    return(_mServiceRuning);
   }
 }

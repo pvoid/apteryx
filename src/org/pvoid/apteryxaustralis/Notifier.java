@@ -91,10 +91,10 @@ public class Notifier
     nm.notify(NOTIFICATION_ICON, notification);
   }
   
-  public static void hideNotification(Context context)
+  public static void hideNotification(Context context, boolean checkService)
   {
     NotificationManager nm = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
-    if(UpdateStatusService.Executed())
+    if(UpdateStatusService.Executed() || !checkService)
     {
       Notification notification = getIcon(context);
       notification.icon = R.drawable.ic_terminal_active;

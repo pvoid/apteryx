@@ -32,6 +32,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.types.ITerminal;
 
 public class StatesReceiver extends BroadcastReceiver
 {
@@ -87,6 +88,8 @@ public class StatesReceiver extends BroadcastReceiver
         {
           Notifier.showNotification(_mContext,warn);
         }
+        else if(warn== ITerminal.STATE_OK)
+          Notifier.hideNotification(_mContext,false);
 
         long interval = Preferences.getUpdateInterval(_mContext);
         if(interval==0)
