@@ -123,7 +123,7 @@ public class MainActivity extends Activity implements OnClickListener,
       startService(serviceIntent);
     }
 /////////
-    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+    //Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
   }
   /**
    * Activity снова видима. Обновим данные
