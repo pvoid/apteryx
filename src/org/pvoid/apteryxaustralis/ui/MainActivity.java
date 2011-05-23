@@ -323,11 +323,11 @@ public class MainActivity extends Activity implements OnClickListener,
 //////////
     text = (TextView) findViewById(R.id.agent_balance);
     StringBuilder balance = new StringBuilder(getText(R.string.balance));
-    balance.append(": ").append(group.balance);
+    balance.append(": ").append(TextFormat.formatMoney(group.balance,false));
     if(group.overdraft!=0)
       balance.append("  ").append(getString(R.string.overdraft)).append(": ").append(group.overdraft);
     else
-      balance.append(" / ").append(adapter.getCash());
+      balance.append(" / ").append(TextFormat.formatMoney(adapter.getCash(),true));
     text.setText(balance.toString());
 //////////
     text = (TextView) findViewById(R.id.agent_update_time);
@@ -436,7 +436,7 @@ public class MainActivity extends Activity implements OnClickListener,
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
   {
-    ITerminal terminal = (ITerminal) ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    ITerminal terminal = (ITerminal) adapterView.getAdapter().getItem(index);
     Intent intent = new Intent(this,FullInfo.class);
     intent.putExtra(FullInfo.TERMINAL_EXTRA,terminal.getId());
     startActivity(intent);
@@ -461,7 +461,7 @@ public class MainActivity extends Activity implements OnClickListener,
   @Override
   public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long l)
   {
-    final ITerminal terminal = (ITerminal) ((TerminalsArrayAdapter) adapterView.getAdapter()).getItem(index);
+    final ITerminal terminal = (ITerminal) adapterView.getAdapter().getItem(index);
     ArrayList<TerminalAction> actions = new ArrayList<TerminalAction>();
 ////////
     terminal.getActions(this, actions);

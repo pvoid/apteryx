@@ -19,7 +19,7 @@ package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import org.pvoid.apteryxaustralis.DateFormat;
+import org.pvoid.apteryxaustralis.TextFormat;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.storage.ICommandResult;
 import org.pvoid.apteryxaustralis.storage.IStorage;
@@ -232,12 +232,12 @@ public class Terminal implements ITerminal
       case OSMP_STATE_WARRNING:
         status.append(context.getString(R.string.last_payment))
               .append(' ')
-              .append(DateFormat.formatDateSmart(context, lastPayment));
+              .append(TextFormat.formatDateSmart(context, lastPayment));
         break;
       case OSMP_STATE_ERROR:
         status.append(context.getString(R.string.last_activity))
               .append(' ')
-              .append(DateFormat.formatDateSmart(context,lastActivity));
+              .append(TextFormat.formatDateSmart(context, lastActivity));
         break;
     }
     return status.toString();
@@ -328,9 +328,9 @@ public class Terminal implements ITerminal
   @Override
   public void getInfo(Context context, List<InfoLine> statuses)
   {
-    statuses.add(new InfoLine(context.getString(R.string.fullinfo_cash),Integer.toString(cash)));
-    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_payment),DateFormat.formatDateSmart(context, lastPayment)));
-    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_activity),DateFormat.formatDateSmart(context, lastActivity)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_cash),TextFormat.formatMoney(cash,true)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_payment), TextFormat.formatDateSmart(context, lastPayment)));
+    statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_activity), TextFormat.formatDateSmart(context, lastActivity)));
     statuses.add(new InfoLine(context.getString(R.string.fullinfo_pays_per_hour),paysPerHour));
     statuses.add(new InfoLine(context.getString(R.string.fullinfo_balance),balance));
     statuses.add(new InfoLine(context.getString(R.string.fullinfo_signal_level),Integer.toString(signalLevel)));

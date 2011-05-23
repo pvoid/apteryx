@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.TextFormat;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 
@@ -46,14 +47,14 @@ public class GroupsArrayAdapter extends ArrayAdapter<Group>
         TextView text = (TextView) result.findViewById(R.id.agent_balance);
 
         if(text!=null)
-          text.setText(getContext().getString(R.string.balance)+": "+Double.toString(group.balance));
+          text.setText(getContext().getString(R.string.balance)+": "+TextFormat.formatMoney(group.balance,false));
 
         text = (TextView) result.findViewById(R.id.agent_overdraft);
         if(text!=null)
         {
           if(group.overdraft!=0)
           {
-            text.setText(getContext().getString(R.string.overdraft)+Double.toString(group.overdraft));
+            text.setText(getContext().getString(R.string.overdraft)+TextFormat.formatMoney(group.overdraft,false));
             text.setVisibility(View.VISIBLE);
           }
           else
