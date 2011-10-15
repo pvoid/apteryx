@@ -20,10 +20,22 @@ package org.pvoid.apteryxaustralis;
 import android.content.Context;
 import android.text.format.DateFormat;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Calendar;
 
 public class TextFormat
 {
+  private static DecimalFormat _sNumberFormat = (DecimalFormat) NumberFormat.getNumberInstance();
+  static
+  {
+    DecimalFormatSymbols symbols = _sNumberFormat.getDecimalFormatSymbols();
+    symbols.setDecimalSeparator('.');
+    symbols.setGroupingSeparator(' ');
+    _sNumberFormat.setDecimalFormatSymbols(symbols);
+  }
+
   public static String formatDateSmart(Context context, long time)
   {
     Calendar current = Calendar.getInstance();
@@ -51,23 +63,16 @@ public class TextFormat
 
   public static String formatMoney(double money, boolean uint)
   {
-    StringBuilder result = new StringBuilder();
-    int index;
     if(!uint)
     {
-      result.append(String.format("%1$.2f",money));
-      index = result.length() - 6;
+      _sNumberFormat.setMaximumFractionDigits(2);
+      _sNumberFormat.setMinimumFractionDigits(2);
     }
     else
     {
-      result.append(String.format("%1$.0f",money));
-      index = result.length() - 3;
+      _sNumberFormat.setMaximumFractionDigits(0);
+      _sNumberFormat.setMinimumFractionDigits(0);
     }
-    while(index>0)
-    {
-      result.insert(index,' ');
-      index-=4;
-    }
-    return result.toString();
+    return _sNumberFormat.format(money);
   }
 }

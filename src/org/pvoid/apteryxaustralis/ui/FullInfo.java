@@ -54,6 +54,11 @@ public class FullInfo extends Activity
 ////////
     OsmpStorage storage = new OsmpStorage(this);
     ITerminal terminal = storage.getTerminal(id);
+    if(terminal==null)
+    {
+      finish();
+      return;
+    }
 ////////
     ImageView icon = (ImageView)findViewById(R.id.status_icon);
     switch(terminal.getState())
@@ -77,7 +82,7 @@ public class FullInfo extends Activity
 /////////
     final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
                                                                            ViewGroup.LayoutParams.WRAP_CONTENT);
-    LinearLayout layout = (LinearLayout) findViewById(R.id.states);;
+    LinearLayout layout = (LinearLayout) findViewById(R.id.states);
     ArrayList<StatusLine> states = new ArrayList<StatusLine>();
     terminal.getStatuses(this,states);
     if(!states.isEmpty())

@@ -35,8 +35,8 @@
                     android:entries="@array/levels"
                     android:entryValues="@array/levelsValues" />
     <CheckBoxPreference android:key="vibro"
-                        android:title="@string/settings_usevibro"
-                        android:summary=""/>
+                        android:title="@string/settings_vibro"
+                        android:summary="@string/settings_usevibro_descr"/>
     <RingtonePreference android:key="sound"
                         android:title="@string/settings_melody"
                         android:ringtoneType="notification"/>

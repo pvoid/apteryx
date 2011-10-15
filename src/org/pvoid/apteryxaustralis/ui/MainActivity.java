@@ -17,83 +17,38 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Hashtable;
-
-import android.content.*;
-import android.os.AsyncTask;
-import android.text.format.DateUtils;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.widget.*;
-import org.pvoid.apteryxaustralis.*;
-import org.pvoid.apteryxaustralis.storage.ICommandResult;
-import org.pvoid.apteryxaustralis.storage.States;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.types.Group;
-import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.storage.IStorage;
-import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.types.ITerminal;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.LevelListDrawable;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.animation.AnimationUtils;
-import org.pvoid.apteryxaustralis.preference.AddAccountActivity;
+import android.os.Handler;
+import android.support.v4.app.ActionBar;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.Menu;
+import android.support.v4.view.MenuItem;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
-import org.pvoid.apteryxaustralis.types.TerminalAction;
-import org.pvoid.common.views.SlideBand;
 
-public class MainActivity extends Activity implements OnClickListener,
-                                                      AdapterView.OnItemClickListener,
-                                                      SlideBand.OnCurrentViewChangeListener,
-                                                      AdapterView.OnItemLongClickListener,
-                                                      ICommandResult
+public class MainActivity extends FragmentActivity
 {
-  private static final int SETTINGS_MENU_ID = Menu.FIRST+1;
-  private static final int REFRESH_MENU_ID = Menu.FIRST+2;
-  
-  private IStorage _mStorage;
-  private States _mStates;
+  private final static int MENU_REFRESH  = 0;
+  private final static int MENU_SETTINGS = 1;
+  private final static int ANIMATION_INTERVAL = 100;
 
-  private int _mSpinnerCount = 0;
-  private Animation _mSpinnerAnimation;
-  private ArrayList<TerminalsArrayAdapter> _mGroups;
-  private SlideBand _mSlider;
-  private AlertDialog _mAgentsDialog;
-  private GroupsArrayAdapter _mDialogAdapter;
-  /**
-   * Получатель события изменения данных о статусах терминалов
-   */
-  public BroadcastReceiver UpdateMessageReceiver = new BroadcastReceiver()
+  private LevelListDrawable _mProgressDrawable = null;
+  private final Handler     _mHandler = new Handler();
+  private final Runnable    _mProgressRunnable = new Runnable()
   {
     @Override
-    public void onReceive(Context context, Intent intent)
+    public void run()
     {
-      (new LoadFromStorageTask()).execute();
-    }
-  };
-  /**
-   * Компаратор для сортировки терминалов
-   *
-   *   1) по статусу
-   *   2) по заголовку
-   */
-  private static final Comparator<ITerminal> _mTerminalComparator = new Comparator<ITerminal>()
-  {
-    @Override
-    public int compare(ITerminal left, ITerminal right)
-    {
-      int res = right.getState() - left.getState();
-      if(res!=0)
-        return(res);
-      return left.getTitle().compareTo(right.getTitle());
+      if(_mProgressDrawable==null)
+        return;
+      ///////
+      int level = (_mProgressDrawable.getLevel() + 1) % 6;
+      _mProgressDrawable.setLevel(level);
+      _mHandler.postDelayed(this,ANIMATION_INTERVAL);
     }
   };
   /**
@@ -101,29 +56,63 @@ public class MainActivity extends Activity implements OnClickListener,
    * @param savedInstanceState предыдущее состаяние
    */
   @Override
-  public void onCreate(Bundle savedInstanceState)
+  protected void onCreate(Bundle savedInstanceState)
   {
+    try
+    {
+      getWindow().setFormat(PixelFormat.RGBA_8888);
+    }
+    catch(Exception e)
+    {
+      // nope
+    }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    _mSlider = (SlideBand) findViewById(R.id.groups);
-    _mSlider.setOnCurrentViewChangeListener(this);
-    _mSpinnerAnimation = AnimationUtils.loadAnimation(this,R.anim.rotation);
-/////////
-    _mGroups = new ArrayList<TerminalsArrayAdapter>();
-    _mStorage = new OsmpStorage(this);
-    _mStates = new States(this);
-/////////
-    if(Preferences.getAutoUpdate(this))
-    {
-      Intent serviceIntent = new Intent(this,UpdateStatusService.class);
-      startService(serviceIntent);
-    }
-/////////
-    //Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+    final Resources resources = getResources();
+    final ActionBar bar = getSupportActionBar();
+    bar.setBackgroundDrawable(resources.getDrawable(R.drawable.top_bar));
   }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
+    MenuItem item = menu.add(Menu.NONE, MENU_REFRESH, Menu.FIRST, R.string.refresh);
+    _mProgressDrawable = (LevelListDrawable) getResources().getDrawable(R.drawable.ic_menu_refresh);
+    item.setIcon(_mProgressDrawable);
+    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+    item = menu.add(Menu.NONE, MENU_SETTINGS, Menu.FIRST, R.string.settings);
+    item.setIcon(android.R.drawable.ic_menu_preferences);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  private void showRefreshProgress(boolean inProgress)
+  {
+    if(inProgress)
+      _mHandler.postDelayed(_mProgressRunnable,ANIMATION_INTERVAL);
+    else
+    {
+      _mHandler.removeCallbacks(_mProgressRunnable);
+      _mProgressDrawable.setLevel(0);
+    }
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
+    switch(item.getItemId())
+    {
+      case MENU_REFRESH:
+        showRefreshProgress(_mProgressDrawable.getLevel()==0);
+        return true;
+      case MENU_SETTINGS:
+        startActivity(new Intent(this, CommonSettings.class));
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
   /**
    * Activity снова видима. Обновим данные
-   */
+   *
   @Override
   public void onResume()
   {
@@ -139,7 +128,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Activity более не видна, приостановим breadcast-receiver
-   */
+   *
   @Override
   public void onPause()
   {
@@ -148,7 +137,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Восстановление Activity, чистмм уведомления
-   */
+   *
   @Override
   public void onStart()
   {
@@ -159,7 +148,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * Создаем меню
    * @param menu собственно само меню
    * @return true если его можно показывать
-   */
+   *
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
@@ -178,7 +167,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * Отображение или крытие круглого бесконечного пргресса. Можно взывать рекурсивно, скроется только когда
    * число устновок будет равно числу скрытий
    * @param visible показать или спрятать вертушку
-   */
+   *
   private void setSpinnerVisibility(boolean visible)
   {
     View spinner = findViewById(R.id.refresh_spinner);
@@ -203,7 +192,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Открывает Activity с настройками
-   */
+   *
   private void ShowPreferencesActivity()
   {
     Intent intent = new Intent(this,CommonSettings.class);
@@ -211,7 +200,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Обновление данных из БД. Операция долгая, запускать строго в фоне
-   */
+   *
   protected void refreshData()
   {
     ArrayList<Account> accounts = new ArrayList<Account>();
@@ -267,7 +256,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Заполнение адаптеров данными. Запускать строго в UI потоке, иначе упадет
-   */
+   *
   private void fillAgents()
   {
     int index = 0;
@@ -304,7 +293,7 @@ public class MainActivity extends Activity implements OnClickListener,
   /**
    * Отоюражение данных по агунту в списке
    * @param view текущая активная вьюшка
-   */
+   *
   private void setCurrentAgentInfo(View view)
   {
     ListView list = (ListView)view;
@@ -343,7 +332,7 @@ public class MainActivity extends Activity implements OnClickListener,
   /**
    * Щелчок по кнопке со списком агентов
    * @param view сама кнопка вызывающая список агентов
-   */
+   *
   @SuppressWarnings("unused")
   public void agentsListClick(View view)
   {
@@ -381,7 +370,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Отображение диалога с необходимостью настроек
-   */
+   *
   private void ShowSettingsAlarm()
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -402,7 +391,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * Выбран пункт меню
    * @param item выбранный пункт
    * @return true если мы отработали выбор
-   */
+   *
   public boolean onOptionsItemSelected(MenuItem item)
   {
     switch(item.getItemId())
@@ -420,7 +409,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * Выбор агента в выпадающем списке агентов
    * @param dialogInterface диалог
    * @param index           порядковый номер выбранного агента
-   */
+   *
   @Override
   public void onClick(DialogInterface dialogInterface, int index)
   {
@@ -432,7 +421,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * @param view        вьюшка с терминалом
    * @param index       порядковый индекс терминала
    * @param id          идентификатор терминала
-   */
+   *
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int index, long id)
   {
@@ -444,7 +433,7 @@ public class MainActivity extends Activity implements OnClickListener,
   /**
    * Изменена текущая отображаемая вьюшка в листалке
    * @param v вьюшка с терминалами
-   */
+   *
   @Override
   public void CurrentViewChanged(View v)
   {
@@ -457,7 +446,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * @param index       индеск терминала
    * @param l           идентификатор. не используется
    * @return возвращает true если мы обработали щелчок
-   */
+   *
   @Override
   public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long l)
   {
@@ -492,7 +481,7 @@ public class MainActivity extends Activity implements OnClickListener,
    * @param success признак усеха
    * @param message сообщение
    * @param title   человечье имя терминала
-   */
+   *
   @Override
   public void onCommandResult(boolean success, int message, String title)
   {
@@ -501,7 +490,7 @@ public class MainActivity extends Activity implements OnClickListener,
   }
   /**
    * Фоновое обновление данных из БД
-   */
+   *
   private class LoadFromStorageTask extends AsyncTask<Void,Integer,Boolean>
   {
     @Override

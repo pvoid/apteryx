@@ -18,12 +18,12 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.pvoid.apteryxaustralis"
-      android:versionCode="7" android:versionName="1.0.1">
+      android:versionCode="8" android:versionName="1.0.2">
     <application android:icon="@drawable/icon"
+                 android:theme="@style/Theme.Sherlock.Light"
                  android:label="@string/app_name">
      <activity android:name=".ui.MainActivity"
-               android:configChanges="orientation|keyboardHidden"
-               android:theme="@android:style/Theme.Black.NoTitleBar">
+               android:configChanges="orientation|keyboardHidden">
         <intent-filter>
           <action android:name="android.intent.action.MAIN" />
           <category android:name="android.intent.category.LAUNCHER" />
@@ -47,6 +47,20 @@
           <action android:name="android.intent.action.BOOT_COMPLETED"/>
         </intent-filter>
       </receiver>
+
+      <provider android:name=".storage.osmp.OsmpContentProvider"
+                android:exported="false"
+                android:authorities="org.pvoid.apteryxaustralis.storage.osmp"/>
+      <provider android:name=".storage.AccountsProvider"
+                android:exported="false"
+                android:authorities="org.pvoid.apteryxaustralis.storage.accounts"/>
+      <!--receiver android:name=".widget.InfoWidgetProvider" android:label="Agents Info">
+        <intent-filter>
+          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+                   android:resource="@xml/info_widget_info" />
+      </receiver-->
     </application>
     
     <uses-permission android:name="android.permission.INTERNET" />
@@ -54,6 +68,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
-    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="4"/>
-    <supports-screens android:normalScreens="true" />
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="13"/>
+    <supports-screens android:normalScreens="true" android:anyDensity="true" android:resizeable="true" />
 </manifest> 

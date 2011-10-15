@@ -159,6 +159,9 @@ public class OsmpRequest
 
   static protected int rebootTerminal(Account account, long terminalId)
   {
+    if(account==null)
+      return IStorage.RES_ERR_INVALID_ACCOUNT;
+///////
     StringBuilder data = new StringBuilder();
     startRequestNew(data,account);
     data.append("<terminals><rebootTerminal><target-terminal>")

@@ -91,7 +91,8 @@
   <string name="settings_checksummary">Проверть состояние терминалов через заданный интервал</string>
   <string name="settings_interval">Интервал обновления</string>
   <string name="settings_notify">Уведомления</string>
-  <string name="settings_usevibro">Использовать вибрацию</string>
+  <string name="settings_vibro">Вибрация</string>
+  <string name="settings_usevibro_descr">Использовать вибрацию для уведомления</string>
   <string name="settings_melody">Сигнал уведомления</string>
   <string name="settings_receive_payments">Получать последние платежи</string>
   <string name="settings_payments_description">Данная опция требует большого потребления трафика</string>
@@ -128,4 +129,7 @@
   <string name="cant_obtain_storage">Не могу получить экземпляр хранилища</string>
   <string name="reboot_command_sended">Команда перезагрузки отправлена</string>
   <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string>
+  <string name="terminal_id_hint">Укажите идентификатор терминала</string>
+  <string name="login_hint">Укажите логин персоны</string>
+  <string name="password_hint">Укажите пароль персоны</string>
 </resources>

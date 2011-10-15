@@ -17,28 +17,25 @@
 
 package org.pvoid.apteryxaustralis.preference;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import android.content.Intent;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.text.TextUtils;
-import android.widget.Button;
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.types.Account;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
-import android.view.Window;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
+import org.pvoid.apteryxaustralis.types.Account;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class AddAccountActivity extends Activity
 {
@@ -183,14 +180,5 @@ public class AddAccountActivity extends Activity
           Toast.makeText(AddAccountActivity.this,textId,Toast.LENGTH_SHORT).show();
       }
     }
-  }
-
-  @SuppressWarnings("unused")
-  public void howClicked(View view)
-  {
-    Intent intent = new Intent();
-    intent.setAction(Intent.ACTION_VIEW);
-    intent.setData(Uri.parse("http://kiosks.ru/wiki/index.php?title=Apteryx_australis#.D0.A1.D0.BE.D0.B7.D0.B4.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D0.B5.D1.80.D0.BC.D0.B8.D0.BD.D0.B0.D0.BB.D0.B0"));
-    startActivity(intent);
   }
 }

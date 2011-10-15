@@ -227,7 +227,7 @@ public class Terminal implements ITerminal
     switch(_mState)
     {
       case OSMP_STATE_OK:
-        status.append(context.getString(R.string.fullinfo_cash)).append(' ').append(cash);
+        status.append(context.getString(R.string.fullinfo_cash)).append(' ').append(TextFormat.formatMoney(cash,true));
         break;
       case OSMP_STATE_WARRNING:
         status.append(context.getString(R.string.last_payment))

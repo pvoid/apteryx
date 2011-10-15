@@ -32,32 +32,58 @@ import org.pvoid.apteryxaustralis.preference.Preferences;
 
 public class UpdateStatusService extends Service
 {
-  private static final Class[] _StartForegroundSignature = new Class[] { int.class, Notification.class};
-  private static final Class[] _StopForegroundSignature = new Class[] { boolean.class};
+  private static final Class[] _sStartForegroundSignature = new Class[] { int.class, Notification.class};
+  private static final Class[] _sStopForegroundSignature = new Class[] { boolean.class};
+  private static final Class[] _sSetForegroundSignature = new Class[] {boolean.class};
 
-  private Method _StartForeground;
-  private Method _StopForeground;
-  private AlarmManager _AlarmManager;
-  
-  private static boolean _mServiceRuning = false;
-  
-  NotificationManager _NotifyManager;
-  
+  private static final Method _sStartForeground;
+  private static final Method _sStopForeground;
+  private static final Method _sSetForeground;
+  private static volatile boolean _sServiceRunning = false;
+
+  private AlarmManager _mAlarmManager;
+  private NotificationManager _mNotifyManager;
+
+  static
+  {
+    final Class cl = UpdateStatusService.class;
+    Method method;
+    try
+    {
+      method = cl.getMethod("startForeground", _sStartForegroundSignature);
+    }
+    catch(NoSuchMethodException e)
+    {
+      method = null;
+    }
+    _sStartForeground = method;
+////////////
+    try
+    {
+      method = cl.getMethod("stopForeground", _sStopForegroundSignature);
+    }
+    catch(NoSuchMethodException e)
+    {
+      method = null;
+    }
+    _sStopForeground = method;
+////////////
+    try
+    {
+      method = cl.getMethod("setForeground", _sSetForegroundSignature);
+    }
+    catch(NoSuchMethodException e)
+    {
+      method = null;
+    }
+    _sSetForeground = method;
+  }
+
   @Override
   public void onCreate()
   {
     super.onCreate();
-    try
-    {
-      _StartForeground = getClass().getMethod("startForeground",_StartForegroundSignature);
-      _StopForeground = getClass().getMethod("stopForeground",_StopForegroundSignature);
-    }
-    catch(NoSuchMethodException e)
-    {
-      _StartForeground = _StopForeground = null;
-    }
-    
-    _NotifyManager = (NotificationManager)getSystemService(Service.NOTIFICATION_SERVICE);
+    _mNotifyManager = (NotificationManager)getSystemService(Service.NOTIFICATION_SERVICE);
   }
   
   @Override
@@ -80,10 +106,87 @@ public class UpdateStatusService extends Service
     handleStart();
     return(START_STICKY);
   }
-  
+
+  private void makeForeground(boolean foreground)
+  {
+    if(_sStartForeground !=null && _sStopForeground !=null)
+    {
+      if(foreground)
+      {
+        final Object[] args = new Object[2];
+        args[0] = Notifier.NOTIFICATION_ICON;
+        args[1] = Notifier.getIcon(this);
+
+        try
+        {
+          _sStartForeground.invoke(this, args);
+        }
+        catch (IllegalArgumentException e)
+        {
+          e.printStackTrace();
+        }
+        catch (IllegalAccessException e)
+        {
+          e.printStackTrace();
+        }
+        catch (InvocationTargetException e)
+        {
+          e.printStackTrace();
+        }
+      }
+      else
+      {
+        final Object[] args = new Object[1];
+        args[0] = Boolean.TRUE;
+
+        try
+        {
+          _sStopForeground.invoke(this, args);
+        }
+        catch (IllegalArgumentException e)
+        {
+          e.printStackTrace();
+        }
+        catch (IllegalAccessException e)
+        {
+          e.printStackTrace();
+        }
+        catch (InvocationTargetException e)
+        {
+          e.printStackTrace();
+        }
+      }
+    }
+    else if(_sSetForeground !=null)
+    {
+      final Object[] args = new Object[1];
+      args[0] = foreground;
+      try
+      {
+        _sSetForeground.invoke(this, args);
+        if(foreground)
+          _mNotifyManager.notify(Notifier.NOTIFICATION_ICON, Notifier.getIcon(this));
+        else
+          _mNotifyManager.cancel(Notifier.NOTIFICATION_ICON);
+      }
+      catch (IllegalArgumentException e)
+      {
+        e.printStackTrace();
+      }
+      catch (IllegalAccessException e)
+      {
+        e.printStackTrace();
+      }
+      catch (InvocationTargetException e)
+      {
+        e.printStackTrace();
+      }
+    }
+  }
+
   private void handleStart()
   {
-    _mServiceRuning = true;
+    _sServiceRunning = true;
 ////////
     long interval = Preferences.getUpdateInterval(this);
     if(interval==0)
@@ -91,74 +194,23 @@ public class UpdateStatusService extends Service
 ///////
     Intent intent = new Intent(this,StatesReceiver.class);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-    _AlarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    _AlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,pendingIntent);
+    _mAlarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+    _mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+interval,pendingIntent);
 /////// Иконку поставим
-    if(_StartForeground!=null)
-    {
-      Object[] args = new Object[2];
-      args[0] = Notifier.NOTIFICATION_ICON;
-      args[1] = Notifier.getIcon(this);
-      
-      try
-      {
-        _StartForeground.invoke(this, args);
-      }
-      catch (IllegalArgumentException e)
-      {
-        e.printStackTrace();
-      }
-      catch (IllegalAccessException e)
-      {
-        e.printStackTrace();
-      }
-      catch (InvocationTargetException e)
-      {
-        e.printStackTrace();
-      }
-      return;
-    }
-////////
-    setForeground(true);
-    _NotifyManager.notify(Notifier.NOTIFICATION_ICON, Notifier.getIcon(this));
+    makeForeground(true);
   }
   
   private void handleStop()
   {
-    _mServiceRuning = false;
+    _sServiceRunning = false;
 ////////
-    if(_AlarmManager!=null)
+    if(_mAlarmManager !=null)
     {
       Intent intent = new Intent(this, StatesReceiver.class);
-      _AlarmManager.cancel(PendingIntent.getBroadcast(this, 0, intent, 0));
+      _mAlarmManager.cancel(PendingIntent.getBroadcast(this, 0, intent, 0));
     }
 ////////
-    if(_StopForeground!=null)
-    {
-      Object[] args = new Object[1];
-      args[0] = Boolean.TRUE;
-      
-      try
-      {
-        _StopForeground.invoke(this, args);
-      }
-      catch (IllegalArgumentException e)
-      {
-        e.printStackTrace();
-      }
-      catch (IllegalAccessException e)
-      {
-        e.printStackTrace();
-      }
-      catch (InvocationTargetException e)
-      {
-        e.printStackTrace();
-      }
-      return;
-    }
-//////
-    _NotifyManager.cancel(Notifier.NOTIFICATION_ICON);
-    setForeground(false);
+    makeForeground(false);
   }
   
   @Override
@@ -169,6 +221,6 @@ public class UpdateStatusService extends Service
   
   public static boolean Executed()
   {
-    return(_mServiceRuning);
+    return(_sServiceRunning);
   }
 }
