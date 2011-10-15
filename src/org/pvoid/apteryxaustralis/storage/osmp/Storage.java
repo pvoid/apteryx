@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 import android.util.Log;
-import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 
 import android.content.ContentValues;
@@ -286,7 +285,7 @@ class Storage
     }
   }
 
-  public Account getAccount(long id)
+  /*public Account getAccount(long id)
   {
     synchronized(_mLock)
     {
@@ -324,7 +323,7 @@ class Storage
       }
       return null;
     }
-  }
+  }*/
 
   public void EditAccount(long id,String title, String login, String password, String terminal)
   {
@@ -365,9 +364,8 @@ class Storage
   }
 /**
  * Возвращает все имеющиеся учетные записи
- * @param adapter Куда записать
  */
-  public void getAccounts(final List<Account> adapter)
+  /*public void getAccounts(final List<Account> adapter)
   {
     synchronized(_mLock)
     {
@@ -406,9 +404,9 @@ class Storage
         db.close();
       }
     }
-  }
+  }*/
 
-  public Account getAccountFromAgent(long agentId)
+  /*public Account getAccountFromAgent(long agentId)
   {
     Account result = null;
     SQLiteDatabase db = OpenRead();
@@ -433,7 +431,7 @@ class Storage
     {
       db.close();
     }
-  }
+  } */
 
   public void saveTerminals(long accountId, final List<Terminal> terminals)
   {

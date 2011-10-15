@@ -17,8 +17,11 @@
 
 package org.pvoid.apteryxaustralis.net;
 
+import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,25 +32,21 @@ import java.net.URL;
 
 public class Request
 {
-  public static class Response
-  {
-    public final String data;
-    public final int code;
-
-    public Response(int code, String data)
-    {
-      this.data = data;
-      this.code = code;
-    }
-  }
+  private static OsmpRequest _mOsmpRequest;
 
   static
   {
     SSLInitializer.Initialize();
-    //--- ОСМП не может использовать соединение повторно
+    //--- В Android 2.2- есть ошибка с кэшированными запросами
     System.setProperty("http.keepAlive","false");
   }
-
+  /**
+   * Отправляет указанные данные методом POST на сервер по указанному URL
+   * @param url             адрес куда отправляется запрос
+   * @param data            отправляемые данные
+   * @param defaultEncoding кодировка полученных данных
+   * @return возвращает ответ сервера
+   */
   public static Response Send(URL url, String data, String defaultEncoding)
   {
     try
@@ -70,7 +69,7 @@ public class Request
       Log.v(Request.class.getSimpleName(),"Encoding: " + encoding);
       BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),encoding));
       String line;
-      StringBuffer result = new StringBuffer();
+      StringBuilder result = new StringBuilder();
       while((line = reader.readLine())!=null)
       {
         result.append(line);
@@ -84,5 +83,37 @@ public class Request
       e.printStackTrace();
     }
     return null;
+  }
+  /**
+   * Добавляет новый аккаунт
+   * @param context     контекст исполнения
+   * @param accountData данные по аккаунту
+   * @return код результата
+   */
+  public static int addAccount(Context context, Bundle accountData)
+  {
+    synchronized(OsmpRequest.class)
+    {
+      if(_mOsmpRequest==null)
+        _mOsmpRequest = new OsmpRequest();
+    }
+    ////////
+    int result = _mOsmpRequest.checkAccount(context,accountData);
+    if(result==0)
+      result = _mOsmpRequest.getBalances(context,accountData);
+    ////////
+    return result;
+  }
+
+  public static class Response
+  {
+    public final String data;
+    public final int code;
+
+    public Response(int code, String data)
+    {
+      this.data = data;
+      this.code = code;
+    }
   }
 }

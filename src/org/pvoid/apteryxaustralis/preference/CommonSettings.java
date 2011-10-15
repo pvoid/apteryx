@@ -18,30 +18,32 @@
 package org.pvoid.apteryxaustralis.preference;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.*;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
+import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
-import org.pvoid.apteryxaustralis.types.Account;
+import org.pvoid.apteryxaustralis.storage.IStorage;
 
 public class CommonSettings extends PreferenceActivity implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener, DialogInterface.OnClickListener
 {
-  private final static int REQUEST_NEW_ACCOUNT = 1;
-  private final static int REQUEST_EDIT_ACCOUNT = 2;
-
-  public final static int RESULT_REFRESH = 1;
-  public final static int RESULT_RELOAD = 2;
-
   private CheckBoxPreference _mAutocheck;
   private ListPreference _mIntervals;
   private ListPreference _mWarnLevels;
@@ -49,7 +51,7 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
   private ArrayAdapter<String> _mCommands;
   private PreferenceCategory _mAccountsCategory;
   private RingtonePreference _mRingtone;
-  private boolean _mResultIsReload = false;
+  private AddAccountDialog _mAddAccountDialog = null;
   /**
    * Обработчик щелчков по пунктам контекстного меню аккаунта
    */
@@ -80,6 +82,10 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
       return(true);
     }
   };
+  /**
+   * ContentObserver для мониторинга списка аккаунтов
+   */
+  private final AccountsObserver _mAccountsObserver = new AccountsObserver(new Handler());
   /**
    * Активити создана
    * @param savedInstanceState преддущее состояние
@@ -120,35 +126,109 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
       _mIntervals.setValue(intervalText);
     }
     _mIntervals.setOnPreferenceChangeListener(this);
+//////// Инициализируем использование вибрации
+    _mUseVibro.setChecked(Preferences.getUseVibration(this));
+    _mUseVibro.setOnPreferenceChangeListener(this);
+//////// Инициализируем уровень оповещения
+    String levelText = Integer.toString(Preferences.getWarnLevel(this));
+    int index1 = _mWarnLevels.findIndexOfValue(levelText);
+    if(index1 >-1)
+    {
+      _mWarnLevels.setSummary(_mWarnLevels.getEntries()[index1]);
+      _mWarnLevels.setValue(levelText);
+    }
+    _mWarnLevels.setOnPreferenceChangeListener(this);
+//////// Инициализируем список аккаунтов
+    _mAccountsCategory = (PreferenceCategory)findPreference("accounts");
+    AddAccount add_account = new AddAccount(this);
+    add_account.setOnPreferenceClickListener(this);
+    _mAccountsCategory.addPreference(add_account);
 ////////
-    initializeVibration();
-    initializeWarnLevel();
-    initializeAccounts();
+    fillAccountsList();
+//////// Команды управления
+    _mCommands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
+    _mCommands.add(getString(R.string.edit));
+    _mCommands.add(getString(R.string.delete));
   }
-
+  /**
+   * Заполняет список аккаунтов
+   */
+  private void fillAccountsList()
+  {
+    Cursor accounts = managedQuery(AccountsProvider.Accounts.CONTENT_URI,
+                                   new String[] {AccountsProvider.Accounts.COLUMN_ID,AccountsProvider.Accounts.COLUMN_TITLE},
+                                   null,null,AccountsProvider.Accounts.COLUMN_TITLE+" ASC");
+    try
+    {
+    if(accounts!=null )
+      while(accounts.moveToNext())
+      {
+        AccountPreference accountPreference = new AccountPreference(this, accounts.getLong(0), accounts.getString(1));
+        accountPreference.setOnPreferenceClickListener(accountClickListener);
+        _mAccountsCategory.addPreference(accountPreference);
+      }
+    }
+    finally
+    {
+      if(accounts!=null)
+        accounts.close();
+    }
+  }
+  /**
+   * Activity восстановлена
+   */
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    getContentResolver().registerContentObserver(AccountsProvider.Accounts.CONTENT_URI,true,_mAccountsObserver);
+  }
+  /**
+   * Activity бюольше не видна
+   */
+  @Override
+  protected void onPause()
+  {
+    super.onPause();
+    getContentResolver().unregisterContentObserver(_mAccountsObserver);
+  }
+  /**
+   * Обработка щелчка по строчке "Добавить аккаунт"
+   * @param preference строка по которой щелкнули
+   * @return в нашем случае всегда false
+   */
   @Override
   public boolean onPreferenceClick(Preference preference)
   {
-    AddAccountDialog dialog = new AddAccountDialog(this);
-    dialog.setOnAddClickListener(this);
-    dialog.show();
+    if(_mAddAccountDialog==null)
+    {
+      _mAddAccountDialog = new AddAccountDialog(this);
+      _mAddAccountDialog.setOnAddClickListener(this);
+    }
+    _mAddAccountDialog.show();
     return false;
   }
-
+  /**
+   * Изменено значение настройки
+   * @param preference изменяемая настройка
+   * @param value новое значение
+   * @return возвращает true если мы обработали изменение
+   */
   public boolean onPreferenceChange(Preference preference, Object value)
   {
+/////// Медлодия уведомления
     if(preference == _mRingtone)
     {
       Preferences.setSound(this,(String)value);
       return(setSoundSummary((String)value));
     }
-///////
-if(_mUseVibro == preference)
+/////// Использование вибры
+    if(_mUseVibro == preference)
     {
       Preferences.setUseVibration(this,(Boolean)value);
       return true;
     }
-/////////
+///////// Интервал обновления
     if(_mIntervals == preference)
     {
       int interval = Integer.parseInt((String)value);
@@ -170,7 +250,7 @@ if(_mUseVibro == preference)
       }
       return(false);
     }
-/////////
+///////// Автоматической проверкой
     if(_mAutocheck == preference)
     {
       boolean checked = false;
@@ -192,7 +272,7 @@ if(_mUseVibro == preference)
       _mWarnLevels.setEnabled(checked);
       return true;
     }
-//////////
+////////// Уровень оповещения
     if(_mWarnLevels==preference)
     {
       int level = Integer.parseInt((String)value);
@@ -207,10 +287,14 @@ if(_mUseVibro == preference)
       //////
       return(true);
     }
-//////////
+////////// Это не наше
     return false;
   }
-
+  /**
+   * Устанавливает текстовое описание звука
+   * @param uriString урл звука
+   * @return true если все прошло успешно
+   */
   private boolean setSoundSummary(String uriString)
    {
      String summary = null;
@@ -240,96 +324,117 @@ if(_mUseVibro == preference)
      }
      return(false);
    }
-
-  private void initializeWarnLevel()
-  {
-    String levelText = Integer.toString(Preferences.getWarnLevel(this));
-    int index = _mWarnLevels.findIndexOfValue(levelText);
-    if(index>-1)
-    {
-      _mWarnLevels.setSummary(_mWarnLevels.getEntries()[index]);
-      _mWarnLevels.setValue(levelText);
-    }
-    //////
-    _mWarnLevels.setOnPreferenceChangeListener(this);
-  }
-
-  private void initializeVibration()
-  {
-    _mUseVibro.setChecked(Preferences.getUseVibration(this));
-    _mUseVibro.setOnPreferenceChangeListener(this);
-  }
-
-  private void initializeAccounts()
-  {
-    _mAccountsCategory = (PreferenceCategory)findPreference("accounts");
-    AddAccount add_account = new AddAccount(this);
-    add_account.setOnPreferenceClickListener(this);
-    _mAccountsCategory.addPreference(add_account);
-////////
-    Cursor accounts = managedQuery(AccountsProvider.Accounts.CONTENT_URI,
-                                   new String[] {AccountsProvider.Accounts.COLUMN_ID,AccountsProvider.Accounts.COLUMN_TITLE},
-                                   null,null,AccountsProvider.Accounts.COLUMN_TITLE+" ASC");
-    try
-    {
-    if(accounts!=null )
-      while(accounts.moveToNext())
-      {
-        AccountPreference accountPreference = new AccountPreference(this, accounts.getLong(0), accounts.getString(1));
-        accountPreference.setOnPreferenceClickListener(accountClickListener);
-        _mAccountsCategory.addPreference(accountPreference);
-      }
-    }
-    finally
-    {
-      if(accounts!=null)
-        accounts.close();
-    }
-//////// Команды управления
-    _mCommands = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item);
-    _mCommands.add(getString(R.string.edit));
-    _mCommands.add(getString(R.string.delete));
-  }
-
-  protected void onActivityResult (int requestCode, int resultCode, Intent data)
-  {
-    if(requestCode==REQUEST_NEW_ACCOUNT && resultCode==RESULT_OK)
-    {
-      Account account = data.getParcelableExtra(AddAccountActivity.EXTRA_ACCOUNT);
-
-      AccountPreference accountPreference = new AccountPreference(this, account.id, account.title);
-      accountPreference.setOnPreferenceClickListener(accountClickListener);
-      _mAccountsCategory.addPreference(accountPreference);
-      if(!_mResultIsReload)
-        setResult(RESULT_REFRESH);
-    }
-    else if(requestCode==REQUEST_EDIT_ACCOUNT && resultCode==RESULT_OK && !_mResultIsReload)
-    {
-      setResult(RESULT_REFRESH);
-    }
-    else
-      super.onActivityResult(requestCode,resultCode,data);
-  }
-
+  /**
+   * Редактируем аккаунт
+   * @param preference Строка с аккаунтом
+   */
   private void EditPreference(Preference preference)
   {
-    AccountPreference accountPreference = (AccountPreference)preference;
+    /*AccountPreference accountPreference = (AccountPreference)preference;
     Intent intent = new Intent(this,AddAccountActivity.class);
     intent.putExtra(AddAccountActivity.EXTRA_ACCOUNT_ID,accountPreference.getId());
-    startActivityForResult(intent,REQUEST_EDIT_ACCOUNT);
+    startActivityForResult(intent,REQUEST_EDIT_ACCOUNT);*/
+    // TODO: Редактирование аккаунта
+    throw new RuntimeException("Not implemented");
   }
-
+  /**
+   * Удаление аккаунта
+   * @param preference строка с аккаунтом
+   */
   private void DeletePreference(Preference preference)
   {
     //_mStorage.deleteAccount(((AccountPreference)preference).getId());
-    _mAccountsCategory.removePreference(preference);
-    setResult(RESULT_RELOAD);
-    _mResultIsReload = true;
+    //_mAccountsCategory.removePreference(preference);
+    // TODO: Удаление аккаунта
+    throw new RuntimeException("Not implemented");
   }
-
+  /**
+   * Обработка нажатия на кнопку "Добавить" в диалоге
+   * @param dialogInterface диалог
+   * @param type            тип нажатой кнопки
+   */
   @Override
   public void onClick(DialogInterface dialogInterface, int type)
   {
-    //To change body of implemented methods use File | Settings | File Templates.
+    Bundle accountData = ((AddAccountDialog)dialogInterface).getAccountData();
+    (new AddAccountTask()).execute(accountData);
+  }
+  /**
+   * Отработка необходимости создать диалог
+   * @param id идентификатор диалога
+   * @return возвращает диалог
+   */
+  @Override
+  protected Dialog onCreateDialog(int id)
+  {
+    if(id==0)
+    {
+      ProgressDialog dialog = new ProgressDialog(this);
+      dialog.setIndeterminate(true);
+      dialog.setMessage(getString(R.string.auth_process));
+      return dialog;
+    }
+    return super.onCreateDialog(id);
+  }
+  /**
+   * ContentObserver для наблюдения за списком аккаунтов
+   */
+  private class AccountsObserver extends ContentObserver
+  {
+    public AccountsObserver(Handler handler)
+    {
+      super(handler);
+    }
+
+    @Override
+    public void onChange(boolean selfChange)
+    {
+      while(_mAccountsCategory.getPreferenceCount()>1)
+      {
+        Preference preference = _mAccountsCategory.getPreference(1);
+        _mAccountsCategory.removePreference(preference);
+      }
+      //---
+      fillAccountsList();
+    }
+  }
+  /**
+   * Асинхронное задание для добавления аккаунта
+   */
+  private class AddAccountTask extends AsyncTask<Bundle,Void,Integer>
+  {
+    @Override
+    protected void onPreExecute()
+    {
+      showDialog(0);
+    }
+
+    @Override
+    protected Integer doInBackground(Bundle... bundles)
+    {
+      if(bundles.length!=1)
+        return null;
+      //---
+      return Request.addAccount(CommonSettings.this,bundles[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Integer result)
+    {
+      dismissDialog(0);
+      removeDialog(0);
+      ////////
+      if(result==null)
+        return;
+      ////////
+      int textId = 0;
+      if(result == IStorage.RES_ERR_NETWORK_ERROR)
+        textId = R.string.network_error;
+      else if(result<IStorage.RES_ERR_CUSTOM_FIRST)
+        textId = R.string.network_error;//_mStorage.errorMessage(-result+IStorage.RES_ERR_CUSTOM_FIRST);
+
+      if(textId>0)
+        Toast.makeText(CommonSettings.this, textId, Toast.LENGTH_SHORT).show();
+    }
   }
 }

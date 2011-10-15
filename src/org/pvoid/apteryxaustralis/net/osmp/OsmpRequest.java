@@ -15,13 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.storage.osmp;
+package org.pvoid.apteryxaustralis.net.osmp;
 
-import android.util.Log;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.types.Group;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.os.Bundle;
+import org.pvoid.apteryxaustralis.net.IRequest;
 import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 import org.pvoid.apteryxaustralis.storage.IStorage;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -36,8 +41,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.TimeZone;
 
-public class OsmpRequest
+public class OsmpRequest implements IRequest
 {
+  public static final String LOGIN    = "login";
+  public static final String PASSWORD = "password";
+  public static final String TERMINAL = "terminal";
+  public static final String ACCOUNT_ID = "id";
+
   private static final URL _sNewApiURL;
   private static final URL _sOldApiURL;
   private static final int _sOffset;
@@ -72,17 +82,21 @@ public class OsmpRequest
     TimeZone zone = TimeZone.getDefault();
     _sOffset = zone.getOffset(System.currentTimeMillis())/3600000;
   }
-
-  static private void startRequestNew(StringBuilder request, Account account)
+  /**
+   * Создает шапку запроса на базе данных по аккаунту
+   * @param request      билдер для текста запроса
+   * @param accountData  данные по аккаунту
+   */
+  static private void startRequestNew(StringBuilder request, Bundle accountData)
   {
     request.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
                     "<request>"+
                     "<auth login=\"");
-    request.append(account.login);
+    request.append(accountData.getString(LOGIN));
     request.append("\" sign=\"");
-    request.append(account.passwordHash);
+    request.append(accountData.getString(PASSWORD));
     request.append("\" signAlg=\"MD5\"/><client terminal=\"");
-    request.append(account.terminal);
+    request.append(accountData.getString(TERMINAL));
     request.append("\" software=\"Dealer v0\" timezone=\"GMT");
 //////////
     if(_sOffset>0)
@@ -91,13 +105,13 @@ public class OsmpRequest
     request.append("\"/>");
   }
 
-  static private void startRequestOld(StringBuilder request,Account account,int requestType, boolean fullRequest)
+  static private void startRequestOld(StringBuilder request, Bundle accountData,int requestType, boolean fullRequest)
   {
     request.append("<?xml version=\"1.0\" encoding=\"windows-1251\"?><request><protocol-version>3.00</protocol-version>")
            .append("<request-type>").append(requestType).append("</request-type>")
-           .append("<terminal-id>").append(account.terminal).append("</terminal-id>")
-           .append("<extra name=\"login\">").append(account.login).append("</extra>")
-           .append("<extra name=\"password-md5\">").append(account.passwordHash).append("</extra>")
+           .append("<terminal-id>").append(accountData.getString(TERMINAL,"")).append("</terminal-id>")
+           .append("<extra name=\"login\">").append(accountData.getString(LOGIN,"")).append("</extra>")
+           .append("<extra name=\"password-md5\">").append(accountData.getString(PASSWORD,"")).append("</extra>")
            .append("<extra name=\"client-software\">Dealer v1.9</extra>");
 ////////
     if(fullRequest)
@@ -106,11 +120,16 @@ public class OsmpRequest
     }
     request.append("</request>");
   }
-
-  static protected int checkAccount(Account account, List<Group> groups)
+  /**
+   * Проверяет аккаунт. В случае если все хорошо, добавляет его
+   * @param context     контекст исполнения. Для вызова провйдера
+   * @param accountData данные по аккаунту
+   * @return код возвращенный сервером
+   */
+  public int checkAccount(Context context, Bundle accountData)
   {
     StringBuilder data = new StringBuilder();
-    startRequestNew(data,account);
+    startRequestNew(data,accountData);
 /////// попросим также информацию об агенте
     data.append("<agents><getAgentInfo/><getAgents/></agents></request>");
 /////// и что же нам ответили
@@ -122,22 +141,75 @@ public class OsmpRequest
       return -response.code;
 ///////
     ResponseParser parser = new ResponseParser();
-    parser.setAccount(account).setGroups(groups);
     if(!parseResponse(parser,response))
       return IStorage.RES_ERR_INCORRECT_RESPONSE;
+///////
+    if(parser.getAccountResult()==0)
+    {
+      final ContentValues values = new ContentValues();
+      final ResponseParser.Account account = parser.getAccount();
+      final List<ResponseParser.Group> groups = parser.getGroups();
+      final ContentResolver resolver = context.getContentResolver();
+/////////// Добавляем аккаунт
+      accountData.putString(ACCOUNT_ID,Long.toString(account.id));
+      values.put(AccountsProvider.Accounts.COLUMN_ID,   account.id);
+      values.put(AccountsProvider.Accounts.COLUMN_TITLE,account.title);
+      values.put(AccountsProvider.Accounts.COLUMN_LOGIN,accountData.getString(LOGIN));
+      values.put(AccountsProvider.Accounts.COLUMN_PASSWORD,accountData.getString(PASSWORD));
+      values.put(AccountsProvider.Accounts.COLUMN_CUSTOM1,accountData.getString(TERMINAL));
+      if(resolver.insert(AccountsProvider.Accounts.CONTENT_URI, values)!=null)
+        resolver.notifyChange(AccountsProvider.Accounts.CONTENT_URI,null);
+/////////// Добавляем группы
+      final long lastUpdateTime = System.currentTimeMillis();
+      boolean groupsUpdated = false;
+      for(ResponseParser.Group group : groups)
+      {
+        values.clear();
+        values.put(OsmpContentProvider.Agents.COLUMN_ACCOUNT,     account.id);
+        values.put(OsmpContentProvider.Agents.COLUMN_AGENT,       group.id);
+        values.put(OsmpContentProvider.Agents.COLUMN_AGENT_NAME,  group.name);
+        values.put(OsmpContentProvider.Agents.COLUMN_BALANCE,     group.balance);
+        values.put(OsmpContentProvider.Agents.COLUMN_LAST_UPDATE, lastUpdateTime);
+        values.put(OsmpContentProvider.Agents.COLUMN_OVERDRAFT,   group.overdraft);
+        values.put(OsmpContentProvider.Agents.COLUMN_STATE,       0);
+        values.put(OsmpContentProvider.Agents.COLUMN_SEEN,        0);
+        if(resolver.insert(OsmpContentProvider.Agents.CONTENT_URI,values)!=null)
+          groupsUpdated = true;
+      }
+//////////
+      if(groupsUpdated)
+        resolver.notifyChange(OsmpContentProvider.Agents.CONTENT_URI,null);
+    }
 ///////
     return parser.getAccountResult();
   }
 
-  static protected int getBalances(Account account, List<Group> groups)
+  public int getBalances(Context context, Bundle accountData)
   {
-    StringBuilder data = new StringBuilder();
-    startRequestNew(data,account);
+    final StringBuilder data = new StringBuilder();
+    final ContentResolver resolver = context.getContentResolver();
+    final ResponseParser parser = new ResponseParser();
+    startRequestNew(data,accountData);
     data.append("<agents>");
 /////// добавим в запрос агентов, для получения балансов
-    for(Group group : groups)
+    final Cursor cursor = resolver.query(OsmpContentProvider.Agents.CONTENT_URI,
+                                         new String[] {OsmpContentProvider.Agents.COLUMN_AGENT},
+                                         OsmpContentProvider.Agents.COLUMN_ACCOUNT+"=?",
+                                         new String[] {accountData.getString(ACCOUNT_ID)},
+                                         null);
+    try
     {
-      data.append("<getBalance><target-agent>").append(group.id).append("</target-agent></getBalance>");
+      if(cursor!=null)
+        while(cursor.moveToNext())
+        {
+          parser.addGroup(cursor.getLong(0));
+          data.append("<getBalance><target-agent>").append(cursor.getString(0)).append("</target-agent></getBalance>");
+        }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
     }
     data.append("</agents></request>");
 /////// и что же нам ответили
@@ -148,16 +220,31 @@ public class OsmpRequest
     if(response.code!=200)
       return -response.code;
 ///////
-    ResponseParser parser = new ResponseParser();
-    parser.setGroups(groups);
+
     if(!parseResponse(parser,response))
       return IStorage.RES_ERR_INCORRECT_RESPONSE;
+/////// Обновим данные
+    final List<ResponseParser.Group> groups = parser.getGroups();
+    final ContentValues values = new ContentValues();
+    boolean notifyObserver = false;
+    for(ResponseParser.Group group : groups)
+    {
+      values.put(OsmpContentProvider.Agents.COLUMN_BALANCE,group.balance);
+      values.put(OsmpContentProvider.Agents.COLUMN_OVERDRAFT,group.overdraft);
+      if(resolver.update(OsmpContentProvider.Agents.CONTENT_URI,
+                      values,
+                      OsmpContentProvider.Agents.COLUMN_AGENT+"=?",
+                      new String[] {Long.toString(group.id)})>0)
+        notifyObserver = true;
+    }
+///////
+    if(notifyObserver)
+      resolver.notifyChange(OsmpContentProvider.Agents.CONTENT_URI,null);
 ///////
     return 0;
-
   }
 
-  static protected int rebootTerminal(Account account, long terminalId)
+  /*static protected int rebootTerminal(Account account, long terminalId)
   {
     if(account==null)
       return IStorage.RES_ERR_INVALID_ACCOUNT;
@@ -194,7 +281,7 @@ public class OsmpRequest
     return IStorage.RES_OK;
   }
 
-  static protected int getTerminals(Account account, List<Terminal> terminals)
+  /*static protected int getTerminals(Account account, List<Terminal> terminals)
   {
     StringBuilder data = new StringBuilder();
     startRequestOld(data, account, 16, true);
@@ -212,7 +299,7 @@ public class OsmpRequest
       return IStorage.RES_ERR_INCORRECT_RESPONSE;
 ///////
     return 0;
-  }
+  }*/
 
   protected static boolean parseResponse(ResponseParser parser, Request.Response response)
   {
@@ -238,15 +325,15 @@ public class OsmpRequest
     }
     catch(ParserConfigurationException e)
     {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
     }
     catch(SAXException e)
     {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
     }
     catch(IOException e)
     {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
     }
 ////////
     return false;

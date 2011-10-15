@@ -67,7 +67,7 @@ public class MainActivity extends FragmentActivity
       // nope
     }
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.main);
+    setContentView(R.layout.activity_main);
     final Resources resources = getResources();
     final ActionBar bar = getSupportActionBar();
     bar.setBackgroundDrawable(resources.getDrawable(R.drawable.top_bar));

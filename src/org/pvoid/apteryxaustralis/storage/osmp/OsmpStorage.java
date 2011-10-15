@@ -18,15 +18,14 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.storage.IStorage;
+import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.ui.TerminalsArrayAdapter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class OsmpStorage implements IStorage
 {
@@ -47,18 +46,12 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
-  public void getAccounts(List<Account> adapter)
-  {
-    _mStorage.getAccounts(adapter);
-  }
-
-  @Override
   public void deleteAccount(long id)
   {
     throw new RuntimeException("Not implemented!");
   }
 
-  @Override
+  /*@Override
   public int addAccount(Account account)
   {
     ArrayList<Group> groups = new ArrayList<Group>();
@@ -80,15 +73,9 @@ public class OsmpStorage implements IStorage
       return RES_ERR_CUSTOM_FIRST - result;
 ///////
     return result;
-  }
+  }*/
 
-  @Override
-  public Account getAccount(long id)
-  {
-    return _mStorage.getAccount(id);
-  }
-
-  @Override
+/*  @Override
   public int updateAccount(Account account, Hashtable<Long,Integer> states)
   {
     ArrayList<Terminal> terminals = new ArrayList<Terminal>();
@@ -119,7 +106,7 @@ public class OsmpStorage implements IStorage
       }
     }
     return result;
-  }
+  }*/
 
   @Override
   public void getGroups(long accountId, List<Group> groups)
@@ -174,7 +161,7 @@ public class OsmpStorage implements IStorage
   }
 
   @Override
-  public int refresh(Account account)
+/*  public int refresh(Account account)
   {
     ArrayList<Group> groups = new ArrayList<Group>();
     int result = OsmpRequest.checkAccount(account, groups);
@@ -196,9 +183,8 @@ public class OsmpStorage implements IStorage
       return RES_ERR_CUSTOM_FIRST - result;
 ///////
     return result;
-  }
+  }*/
 
-  @Override
   public boolean isEmpty()
   {
     return !_mStorage.hasAccounts();
@@ -212,13 +198,15 @@ public class OsmpStorage implements IStorage
 
   public int rebootTerminal(long terminalId, long agentId)
   {
-    Account account = _mStorage.getAccountFromAgent(agentId);
-    return OsmpRequest.rebootTerminal(account,terminalId);
+    /*Account account = _mStorage.getAccountFromAgent(agentId);
+    return OsmpRequest.rebootTerminal(account,terminalId);*/
+    return RES_ERR_CUSTOM_FIRST;
   }
 
   public int switchOffTerminal(long terminalId, long agentId)
   {
-    Account account = _mStorage.getAccountFromAgent(agentId);
-    return OsmpRequest.switchOffTerminal(account,terminalId);
+    /*Account account = _mStorage.getAccountFromAgent(agentId);
+    return OsmpRequest.switchOffTerminal(account, terminalId);*/
+    return RES_ERR_CUSTOM_FIRST;
   }
 }

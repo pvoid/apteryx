@@ -22,10 +22,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.Toast;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class AddAccountDialog extends Dialog implements View.OnClickListener
 {
@@ -40,6 +49,7 @@ public class AddAccountDialog extends Dialog implements View.OnClickListener
         _mListener.onClick(AddAccountDialog.this, DialogInterface.BUTTON_POSITIVE);
     }
   };
+  private final Bundle _mResult = new Bundle();
 
   public AddAccountDialog(Context context)
   {
@@ -73,8 +83,11 @@ public class AddAccountDialog extends Dialog implements View.OnClickListener
         howClicked();
         break;
       case R.id.add:
-        _mHandler.post(_mAddRunnable);
-        dismiss();
+        if(checkAccount())
+        {
+          _mHandler.post(_mAddRunnable);
+          dismiss();
+        }
         break;
     }
   }
@@ -82,5 +95,78 @@ public class AddAccountDialog extends Dialog implements View.OnClickListener
   public void setOnAddClickListener(OnClickListener listener)
   {
     _mListener = listener;
+  }
+  /**
+   * Проверяет валидность введеных данных
+   * @return возвращает true если все в порядке и данные заполнены
+   */
+  private boolean checkAccount()
+  {
+    EditText text = (EditText) findViewById(R.id.login);
+    if(text!=null)
+    {
+      final String login = text.getText().toString();
+      if(TextUtils.isEmpty(login))
+      {
+        Toast.makeText(getContext(), R.string.empty_login, 200).show();
+        text.requestFocus();
+        return false;
+      }
+      _mResult.putString(OsmpRequest.LOGIN,login);
+    }
+////////
+    text = (EditText) findViewById(R.id.password);
+    if(text!=null)
+    {
+      final String password = text.getText().toString();
+      if(TextUtils.isEmpty(password))
+      {
+        Toast.makeText(getContext(), R.string.empty_password, 200).show();
+        text.requestFocus();
+        return false;
+      }
+      else
+      {
+        try
+        {
+          MessageDigest m=MessageDigest.getInstance("MD5");
+          m.reset();
+          m.update(password.getBytes(),0,password.length());
+          BigInteger i = new BigInteger(1,m.digest());
+          _mResult.putString(OsmpRequest.PASSWORD,String.format("%1$032X", i).toLowerCase());
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+          return false;
+        }
+      }
+    }
+////////
+    text = (EditText) findViewById(R.id.terminal);
+    if(text!=null)
+    {
+      final String terminal = text.getText().toString();
+      if(TextUtils.isEmpty(terminal))
+      {
+        Toast.makeText(getContext(), R.string.empty_terminal, 200).show();
+        text.requestFocus();
+        return false;
+      }
+      _mResult.putString(OsmpRequest.TERMINAL,terminal);
+    }
+////////
+    return true;
+  }
+
+  @Override
+  public void show()
+  {
+    _mResult.clear();
+    super.show();
+  }
+
+  public Bundle getAccountData()
+  {
+    return _mResult;
   }
 }

@@ -18,14 +18,10 @@
 package org.pvoid.apteryxaustralis.storage;
 
 
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
-import org.pvoid.apteryxaustralis.types.Account;
 import org.pvoid.apteryxaustralis.types.Group;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.ui.TerminalsArrayAdapter;
 
-import java.util.Hashtable;
 import java.util.List;
 
 public interface IStorage
@@ -41,16 +37,11 @@ public interface IStorage
 
   static final int RES_ERR_CUSTOM_FIRST = -20;
 
-  void      getAccounts(final List<Account> adapter);
   void      deleteAccount(long id);
-  int       addAccount(Account account);
-  Account   getAccount(long id);
-  int       updateAccount(Account account, Hashtable<Long,Integer> states);
   void      getGroups(long accountId, List<Group> groups);
   void      getGroups(List<Group> groups);
   void      getTerminals(long accountId, Group group, TerminalsArrayAdapter terminals);
   ITerminal getTerminal(long id);
-  int       refresh(Account account);
   boolean   isEmpty();
   int       errorMessage(int errorCode);
 }

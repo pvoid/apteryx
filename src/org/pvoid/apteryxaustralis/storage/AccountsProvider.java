@@ -29,7 +29,7 @@ import android.net.Uri;
 public class AccountsProvider extends ContentProvider
 {
   public static final String AUTHORITY = "org.pvoid.apteryxaustralis.storage.accounts";
-    private static final int ACCOUNTS_REQUEST = 1;
+  private static final int ACCOUNTS_REQUEST = 1;
 
   public static interface Accounts
   {
@@ -69,8 +69,8 @@ public class AccountsProvider extends ContentProvider
       case ACCOUNTS_REQUEST:
         final SQLiteDatabase db = _mStorage.getReadableDatabase();
         if(db==null)
-          return null;
-
+          break;
+        /////////
         return db.query(Accounts.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
     }
     return null;
@@ -90,6 +90,17 @@ public class AccountsProvider extends ContentProvider
   @Override
   public Uri insert(Uri uri, ContentValues contentValues)
   {
+    switch(_sUriMather.match(uri))
+    {
+      case ACCOUNTS_REQUEST:
+        final SQLiteDatabase db = _mStorage.getWritableDatabase();
+        if(db==null)
+          break;
+        ////////
+        if(db.insert(Accounts.TABLE_NAME,null,contentValues)!=-1)
+          return uri.buildUpon().appendQueryParameter(Accounts.COLUMN_ID,contentValues.getAsString(Accounts.COLUMN_ID)).build();
+        break;
+    }
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -111,15 +122,18 @@ public class AccountsProvider extends ContentProvider
     private static final int    VERSION = 1;
 
     private static final String CREATE_ACCOUNTS_TABLE = "create table " + Accounts.TABLE_NAME + " (" +
-                                                        Accounts.COLUMN_ID + " text primary key," +
+                                                        "_id INTEGER PRIMARY KEY AUTOINCREMENT,"+
+                                                        Accounts.COLUMN_ID + " text," +
                                                         Accounts.COLUMN_TITLE + " text not null," +
                                                         Accounts.COLUMN_LOGIN + " text not null," +
                                                         Accounts.COLUMN_PASSWORD + " text not null," +
-                                                        Accounts.COLUMN_CUSTOM1 + " text not null,"+
-                                                        Accounts.COLUMN_CUSTOM2 + " text not null,"+
-                                                        Accounts.COLUMN_CUSTOM3 + " text not null,"+
-                                                        Accounts.COLUMN_CUSTOM4 + " text not null"+
+                                                        Accounts.COLUMN_CUSTOM1 + " text default '',"+
+                                                        Accounts.COLUMN_CUSTOM2 + " text default '',"+
+                                                        Accounts.COLUMN_CUSTOM3 + " text default '',"+
+                                                        Accounts.COLUMN_CUSTOM4 + " text default ''"+
                                                         ");";
+    private static final String CREATE_ACCOUNTS_INDEX = "create unique index idx_accouns_id on " + Accounts.TABLE_NAME +
+                                                        " (" + Accounts.COLUMN_ID + ")";
 
     public AccountStorage(Context context)
     {
@@ -130,6 +144,7 @@ public class AccountsProvider extends ContentProvider
     public void onCreate(SQLiteDatabase database)
     {
       database.execSQL(CREATE_ACCOUNTS_TABLE);
+      database.execSQL(CREATE_ACCOUNTS_INDEX);
     }
 
     @Override

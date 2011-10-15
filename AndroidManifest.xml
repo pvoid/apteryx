@@ -30,9 +30,6 @@
           <action android:name="org.pvoid.apteryx.StatusUpdatedMessage" />
         </intent-filter>
       </activity>
-      <activity android:name=".preference.AddAccountActivity"
-                android:configChanges="orientation|keyboardHidden"
-                android:label="@string/add_account" />
       <activity android:name=".preference.CommonSettings"
                 android:label="@string/settings"
                 android:configChanges="orientation|keyboardHidden"/>

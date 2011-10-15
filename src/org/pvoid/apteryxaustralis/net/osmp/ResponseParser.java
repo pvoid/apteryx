@@ -15,18 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryxaustralis.storage.osmp;
+package org.pvoid.apteryxaustralis.net.osmp;
 
 import android.text.TextUtils;
 import android.util.Log;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.types.Group;
+import org.pvoid.apteryxaustralis.storage.osmp.Terminal;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -39,8 +39,8 @@ public class ResponseParser extends DefaultHandler
   private static final byte STATE_BALANCE_VALUE = 4;
   private static final byte STATE_BALANCE_OVERDRAFT = 5;
 
-  private Account _mAccount;
-  private List<Group> _mGroups;
+  private final Account _mAccount = new Account();
+  private final List<Group> _mGroups = new ArrayList<Group>();
   private int _mGroupIndex;
   private List<Terminal> _mTerminals;
   private int _mState = STATE_NONE;
@@ -52,18 +52,6 @@ public class ResponseParser extends DefaultHandler
 
   public ResponseParser()
   {
-  }
-
-  public ResponseParser setAccount(Account account)
-  {
-    _mAccount = account;
-    return this;
-  }
-
-  public ResponseParser setGroups(List<Group> groups)
-  {
-    _mGroups = groups;
-    return this;
   }
 
   public ResponseParser setTerminals(List<Terminal> terminals)
@@ -305,5 +293,36 @@ public class ResponseParser extends DefaultHandler
   public void characters(char[] ch, int start, int length)
   {
     _mText.append(ch,start,length);
+  }
+
+  public Account getAccount()
+  {
+    return _mAccount;
+  }
+
+  public List<Group> getGroups()
+  {
+    return _mGroups;
+  }
+
+  public void addGroup(long id)
+  {
+    Group group = new Group();
+    group.id = id;
+    _mGroups.add(group);
+  }
+
+  public static class Account
+  {
+    public long id;
+    public String title;
+  }
+
+  public static class Group
+  {
+    public long id;
+    public String name;
+    public double balance;
+    public double overdraft;
   }
 }

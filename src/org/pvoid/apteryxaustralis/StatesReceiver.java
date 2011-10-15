@@ -17,21 +17,15 @@
 
 package org.pvoid.apteryxaustralis;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-
-import android.os.PowerManager;
-import org.pvoid.apteryxaustralis.storage.States;
-import org.pvoid.apteryxaustralis.types.Account;
-import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.preference.Preferences;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
 import org.pvoid.apteryxaustralis.types.ITerminal;
 
 public class StatesReceiver extends BroadcastReceiver
@@ -42,7 +36,7 @@ public class StatesReceiver extends BroadcastReceiver
   {
     int result = -1;
     OsmpStorage storage = new OsmpStorage(context);
-    ArrayList<Account> accounts = new ArrayList<Account>();
+    /*ArrayList<Account> accounts = new ArrayList<Account>();
     //---
     storage.getAccounts(accounts);
     if(accounts.size()>0)
@@ -57,7 +51,7 @@ public class StatesReceiver extends BroadcastReceiver
 
       States statesStorage = new States(context);
       statesStorage.updateGroupsStates(states);
-    }
+    }*/
 
     return result;
   }
