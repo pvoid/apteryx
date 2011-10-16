@@ -34,6 +34,15 @@ public class Request
 {
   private static OsmpRequest _mOsmpRequest;
 
+  public static final int STATE_OK = 0;
+  public static final int STATE_WARNING = 1;
+  public static final int STATE_ERROR = 2;
+  public static final int STATE_ERROR_CRITICAL = 3;
+
+  public static final int RES_ERR_NETWORK_ERROR = -1;
+  public static final int RES_ERR_INCORRECT_RESPONSE = -2;
+  public static final int RES_ERR_CUSTOM_FIRST = -20;
+
   static
   {
     SSLInitializer.Initialize();
@@ -101,6 +110,8 @@ public class Request
     int result = _mOsmpRequest.checkAccount(context,accountData);
     if(result==0)
       result = _mOsmpRequest.getBalances(context,accountData);
+    if(result==0)
+      result = _mOsmpRequest.getTerminals(context,accountData);
     ////////
     return result;
   }

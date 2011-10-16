@@ -19,20 +19,7 @@ package org.pvoid.apteryxaustralis.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.types.ITerminal;
-import org.pvoid.apteryxaustralis.types.InfoLine;
-import org.pvoid.apteryxaustralis.types.StatusLine;
-import org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem;
-import org.pvoid.apteryxaustralis.ui.widgets.StateLine;
-
-import java.util.ArrayList;
 
 public class FullInfo extends Activity
 {
@@ -52,7 +39,7 @@ public class FullInfo extends Activity
       return;
     }
 ////////
-    OsmpStorage storage = new OsmpStorage(this);
+    /*OsmpStorage storage = new OsmpStorage(this);
     ITerminal terminal = storage.getTerminal(id);
     if(terminal==null)
     {
@@ -122,6 +109,6 @@ public class FullInfo extends Activity
     {
       View view = findViewById(R.id.sep_line);
       view.setVisibility(View.GONE);
-    }
+    }*/
   }
 }

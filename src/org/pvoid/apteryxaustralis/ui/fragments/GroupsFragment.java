@@ -18,8 +18,10 @@
 package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
@@ -33,11 +35,37 @@ import org.pvoid.apteryxaustralis.R;
 
 public class GroupsFragment extends ListFragment
 {
+  private final GroupsObserver _mObserver = new GroupsObserver(new Handler());
+
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
     setListAdapter(new GroupsAdapter(getActivity()));
+    getActivity().getContentResolver().registerContentObserver(OsmpContentProvider.Agents.CONTENT_URI,true,_mObserver);
     super.onViewCreated(view, savedInstanceState);
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    getActivity().getContentResolver().unregisterContentObserver(_mObserver);
+  }
+
+  private class GroupsObserver extends ContentObserver
+  {
+    public GroupsObserver(Handler handler)
+    {
+      super(handler);
+    }
+
+    @Override
+    public void onChange(boolean selfChange)
+    {
+      GroupsAdapter adapter = (GroupsAdapter) getListAdapter();
+      if(adapter!=null)
+        adapter.refresh();
+    }
   }
 
   private class GroupsAdapter extends CursorAdapter
@@ -99,6 +127,11 @@ public class GroupsFragment extends ListFragment
       ImageView image = (ImageView) view.findViewById(R.id.agent_state);
       if(image!=null)
         image.getDrawable().setLevel(cursor.getInt(2));
+    }
+
+    public void refresh()
+    {
+      getCursor().requery();
     }
   }
 }

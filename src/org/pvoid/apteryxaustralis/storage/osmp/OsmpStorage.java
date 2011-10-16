@@ -18,23 +18,22 @@
 package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.Context;
-import org.pvoid.apteryxaustralis.storage.IStorage;
+import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.osmp.ResponseParser;
 import org.pvoid.apteryxaustralis.types.Group;
-import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.ui.TerminalsArrayAdapter;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class OsmpStorage implements IStorage
+public class OsmpStorage
 {
   private Storage _mStorage;
 
-  private final Comparator<Terminal> _mComparatorById = new Comparator<Terminal>()
+  private final Comparator<ResponseParser.Terminal> _mComparatorById = new Comparator<ResponseParser.Terminal>()
   {
     @Override
-    public int compare(Terminal o1, Terminal o2)
+    public int compare(ResponseParser.Terminal o1, ResponseParser.Terminal o2)
     {
       return (int) (o1.id() - o2.id());
     }
@@ -45,7 +44,6 @@ public class OsmpStorage implements IStorage
     _mStorage = new Storage(context.getApplicationContext());
   }
 
-  @Override
   public void deleteAccount(long id)
   {
     throw new RuntimeException("Not implemented!");
@@ -108,30 +106,27 @@ public class OsmpStorage implements IStorage
     return result;
   }*/
 
-  @Override
   public void getGroups(long accountId, List<Group> groups)
   {
     _mStorage.getAgents(accountId, groups);
   }
 
-  @Override
   public void getGroups(List<Group> groups)
   {
     _mStorage.getAgentsActive(groups);
   }
 
-  @Override
   public void getTerminals(long accountId, Group group, TerminalsArrayAdapter terminals)
   {
-    ArrayList<Terminal> terminalsList = new ArrayList<Terminal>();
+    /*ArrayList<ResponseParser.Terminal> terminalsList = new ArrayList<ResponseParser.Terminal>();
     _mStorage.getTerminals(group.id,terminalsList);
     int adapterIndex = 0;
     while(adapterIndex<terminals.getCount())
     {
 //////// Ищем имеющийся в новых
-      Terminal current = (Terminal)terminals.getItem(adapterIndex);
+      ResponseParser.Terminal current = (ResponseParser.Terminal)terminals.getItem(adapterIndex);
       boolean found = false;
-      for(Terminal terminal : terminalsList)
+      for(ResponseParser.Terminal terminal : terminalsList)
       {
         if(terminal.id() == current.id())
         {
@@ -148,19 +143,13 @@ public class OsmpStorage implements IStorage
         terminals.remove(current);
     }
 //////// то что осталось в списке новое. добавим его.
-    for(Terminal terminal : terminalsList)
+    for(ResponseParser.Terminal terminal : terminalsList)
       {
         terminals.add(terminal);
-      }
+      }*/
   }
 
-  @Override
-  public ITerminal getTerminal(long id)
-  {
-    return _mStorage.getTerminal(id);
-  }
 
-  @Override
 /*  public int refresh(Account account)
   {
     ArrayList<Group> groups = new ArrayList<Group>();
@@ -190,7 +179,6 @@ public class OsmpStorage implements IStorage
     return !_mStorage.hasAccounts();
   }
 
-  @Override
   public int errorMessage(int errorCode)
   {
     return ErrorCodes.Message(errorCode);
@@ -200,13 +188,13 @@ public class OsmpStorage implements IStorage
   {
     /*Account account = _mStorage.getAccountFromAgent(agentId);
     return OsmpRequest.rebootTerminal(account,terminalId);*/
-    return RES_ERR_CUSTOM_FIRST;
+    return Request.RES_ERR_CUSTOM_FIRST;
   }
 
   public int switchOffTerminal(long terminalId, long agentId)
   {
     /*Account account = _mStorage.getAccountFromAgent(agentId);
     return OsmpRequest.switchOffTerminal(account, terminalId);*/
-    return RES_ERR_CUSTOM_FIRST;
+    return Request.RES_ERR_CUSTOM_FIRST;
   }
 }

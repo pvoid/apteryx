@@ -17,20 +17,20 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
-
-import android.util.Log;
-import org.pvoid.apteryxaustralis.types.Group;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+import org.pvoid.apteryxaustralis.net.osmp.ResponseParser;
+import org.pvoid.apteryxaustralis.types.Group;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
 
 class Storage
 {
@@ -433,7 +433,7 @@ class Storage
     }
   } */
 
-  public void saveTerminals(long accountId, final List<Terminal> terminals)
+  public void saveTerminals(long accountId, final List<ResponseParser.Terminal> terminals)
   {
     synchronized(_mLock)
     {
@@ -441,7 +441,7 @@ class Storage
 
       SQLiteDatabase db = OpenWrite();
       db.delete(Terminals.TABLE_NAME, Terminals.COLUMN_ACCOUNTID + "=?", new String[] {Long.toString(accountId)});
-      for(Terminal terminal : terminals )
+      for(ResponseParser.Terminal terminal : terminals )
       {
         values.put(Terminals.COLUMN_ID, terminal.id());
         values.put(Terminals.COLUMN_ADDRESS, terminal.Address());
@@ -509,7 +509,7 @@ class Storage
     }
   }
   
-  public void getTerminals(final long agentId, final List<Terminal> terminals)
+  public void getTerminals(final long agentId, final List<ResponseParser.Terminal> terminals)
   {
     synchronized(_mLock)
     {
@@ -558,7 +558,7 @@ class Storage
             if(cursor.moveToFirst())
               do
               {
-                Terminal terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+                ResponseParser.Terminal terminal = new ResponseParser.Terminal(cursor.getLong(0), cursor.getString(1));
                 terminal.State(cursor.getInt(2));
                 terminal.printer_state = cursor.getString(3);
                 terminal.cashbin_state = cursor.getString(4);
@@ -733,11 +733,11 @@ class Storage
     }
   }
 
-  public Terminal getTerminal(long id)
+  public ResponseParser.Terminal getTerminal(long id)
   {
     synchronized(_mLock)
     {
-      Terminal terminal = null;
+      ResponseParser.Terminal terminal = null;
       SQLiteDatabase db = OpenRead();
       try
       {
@@ -772,7 +772,7 @@ class Storage
           {
             if(cursor.moveToFirst())
             {
-              terminal = new Terminal(cursor.getLong(0), cursor.getString(1));
+              terminal = new ResponseParser.Terminal(cursor.getLong(0), cursor.getString(1));
               terminal.State(cursor.getInt(2));
               terminal.printer_state = cursor.getString(3);
               terminal.cashbin_state = cursor.getString(4);

@@ -25,7 +25,6 @@ import android.os.Bundle;
 import org.pvoid.apteryxaustralis.net.IRequest;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
-import org.pvoid.apteryxaustralis.storage.IStorage;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -109,9 +108,9 @@ public class OsmpRequest implements IRequest
   {
     request.append("<?xml version=\"1.0\" encoding=\"windows-1251\"?><request><protocol-version>3.00</protocol-version>")
            .append("<request-type>").append(requestType).append("</request-type>")
-           .append("<terminal-id>").append(accountData.getString(TERMINAL,"")).append("</terminal-id>")
-           .append("<extra name=\"login\">").append(accountData.getString(LOGIN,"")).append("</extra>")
-           .append("<extra name=\"password-md5\">").append(accountData.getString(PASSWORD,"")).append("</extra>")
+           .append("<terminal-id>").append(accountData.getString(TERMINAL)).append("</terminal-id>")
+           .append("<extra name=\"login\">").append(accountData.getString(LOGIN)).append("</extra>")
+           .append("<extra name=\"password-md5\">").append(accountData.getString(PASSWORD)).append("</extra>")
            .append("<extra name=\"client-software\">Dealer v1.9</extra>");
 ////////
     if(fullRequest)
@@ -135,14 +134,14 @@ public class OsmpRequest implements IRequest
 /////// и что же нам ответили
     Request.Response response = Request.Send(_sNewApiURL,data.toString(),"utf-8");
     if(response==null)
-      return IStorage.RES_ERR_NETWORK_ERROR;
+      return Request.RES_ERR_NETWORK_ERROR;
 ///////
     if(response.code!=200)
       return -response.code;
 ///////
     ResponseParser parser = new ResponseParser();
     if(!parseResponse(parser,response))
-      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+      return Request.RES_ERR_INCORRECT_RESPONSE;
 ///////
     if(parser.getAccountResult()==0)
     {
@@ -215,14 +214,14 @@ public class OsmpRequest implements IRequest
 /////// и что же нам ответили
     Request.Response response = Request.Send(_sNewApiURL,data.toString(),"utf-8");
     if(response==null)
-      return IStorage.RES_ERR_NETWORK_ERROR;
+      return Request.RES_ERR_NETWORK_ERROR;
 ///////
     if(response.code!=200)
       return -response.code;
 ///////
 
     if(!parseResponse(parser,response))
-      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+      return Request.RES_ERR_INCORRECT_RESPONSE;
 /////// Обновим данные
     final List<ResponseParser.Group> groups = parser.getGroups();
     final ContentValues values = new ContentValues();
@@ -279,27 +278,63 @@ public class OsmpRequest implements IRequest
     if(response.code!=200)
       return -response.code;
     return IStorage.RES_OK;
-  }
+  }*/
 
-  /*static protected int getTerminals(Account account, List<Terminal> terminals)
+  public int getTerminals(Context context, Bundle accountData)
   {
     StringBuilder data = new StringBuilder();
-    startRequestOld(data, account, 16, true);
+    startRequestOld(data, accountData, 16, true);
 //////////
     Request.Response response = Request.Send(_sOldApiURL,data.toString(),"windows-1251");
     if(response==null)
-      return IStorage.RES_ERR_NETWORK_ERROR;
+      return Request.RES_ERR_NETWORK_ERROR;
 /////////
     if(response.code!=200)
       return -response.code;
 ///////
     ResponseParser parser = new ResponseParser();
-    parser.setTerminals(terminals);
     if(!parseResponse(parser,response))
-      return IStorage.RES_ERR_INCORRECT_RESPONSE;
+      return Request.RES_ERR_INCORRECT_RESPONSE;
+///////
+    final List<ResponseParser.Terminal> terminals = parser.getTerminals();
+    final ContentValues values = new ContentValues();
+    final ContentResolver resolver = context.getContentResolver();
+    for(ResponseParser.Terminal terminal : terminals)
+    {
+      values.clear();
+      values.put(OsmpContentProvider.Terminals.COLUMN_ID,terminal.id());
+      values.put(OsmpContentProvider.Terminals.COLUMN_ADDRESS,terminal.Address());
+      values.put(OsmpContentProvider.Terminals.COLUMN_STATE,terminal.State());
+      values.put(OsmpContentProvider.Terminals.COLUMN_MS,terminal.ms);
+      values.put(OsmpContentProvider.Terminals.COLUMN_ACCOUNTID,accountData.getString(ACCOUNT_ID));
+      values.put(OsmpContentProvider.Terminals.COLUMN_PRINTERSTATE,terminal.printer_state);
+      values.put(OsmpContentProvider.Terminals.COLUMN_CASHBINSTATE,terminal.cashbin_state);
+      values.put(OsmpContentProvider.Terminals.COLUMN_CASH,terminal.cash);
+      values.put(OsmpContentProvider.Terminals.COLUMN_LASTACTIVITY,terminal.lastActivity);
+      values.put(OsmpContentProvider.Terminals.COLUMN_LASTPAYMENT,terminal.lastPayment);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS,terminal.bondsCount);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BALANCE,terminal.balance);
+      values.put(OsmpContentProvider.Terminals.COLUMN_SIGNALLEVEL,terminal.signalLevel);
+      values.put(OsmpContentProvider.Terminals.COLUMN_SOFTVERSION,terminal.softVersion);
+      values.put(OsmpContentProvider.Terminals.COLUMN_PRINTERMODEL,terminal.printerModel);
+      values.put(OsmpContentProvider.Terminals.COLUMN_CASHBINMODEL,terminal.cashbinModel);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS10,terminal.bonds10count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS50,terminal.bonds50count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS100,terminal.bonds100count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS500,terminal.bonds500count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS1000,terminal.bonds1000count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS5000,terminal.bonds5000count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_BONDS10000,terminal.bonds10000count);
+      values.put(OsmpContentProvider.Terminals.COLUMN_PAYSPERHOUR,terminal.paysPerHour);
+      values.put(OsmpContentProvider.Terminals.COLUMN_AGENTID,terminal.agentId);
+      values.put(OsmpContentProvider.Terminals.COLUMN_AGENTNAME,terminal.agentName);
+      resolver.insert(OsmpContentProvider.Terminals.CONTENT_URI,values);
+    }
+///////
+    resolver.notifyChange(OsmpContentProvider.Terminals.CONTENT_URI,null);
 ///////
     return 0;
-  }*/
+  }
 
   protected static boolean parseResponse(ResponseParser parser, Request.Response response)
   {

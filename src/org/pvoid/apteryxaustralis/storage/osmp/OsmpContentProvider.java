@@ -30,6 +30,7 @@ public class OsmpContentProvider extends ContentProvider
   private static final int AGENTS_REQUEST = 1;
   private static final int TERMINALS_REQUEST = 2;
 
+
   public static interface Agents
   {
     static final String MIMETYPE    = "vnd.org.pvoid.osmp.agent";
@@ -56,7 +57,6 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_MS = "ms";
     static final String COLUMN_PRINTERSTATE = "printer_state";
     static final String COLUMN_CASHBINSTATE = "cashbin_state";
-    static final String COLUMN_LPD = "lpd";
     static final String COLUMN_CASH = "cash";
     static final String COLUMN_LASTACTIVITY = "last_activity";
     static final String COLUMN_LASTPAYMENT = "last_payment";
@@ -126,9 +126,19 @@ public class OsmpContentProvider extends ContentProvider
     switch(_sUriMather.match(uri))
     {
       case AGENTS_REQUEST:
+      {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
         if(db.insert(Agents.TABLE_NAME,null,contentValues)!=-1)
           return uri;
+      }
+      case TERMINALS_REQUEST:
+      {
+        final SQLiteDatabase db = _mStorage.getWritableDatabase();
+        if(db.insert(Terminals.TABLE_NAME,null,contentValues)!=-1)
+          return uri;
+        if(db.update(Terminals.TABLE_NAME,contentValues,Terminals.COLUMN_ID+"=?",new String[]{contentValues.getAsString(Terminals.COLUMN_ID)})>0)
+          return uri;
+      }
     }
     return null;
   }
@@ -145,8 +155,17 @@ public class OsmpContentProvider extends ContentProvider
     switch(_sUriMather.match(uri))
     {
       case AGENTS_REQUEST:
+      {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
         return db.update(Agents.TABLE_NAME,contentValues,whereClause,selectionArgs);
+      }
+      case TERMINALS_REQUEST:
+      {
+        final SQLiteDatabase db = _mStorage.getWritableDatabase();
+        if(db.replace(Terminals.TABLE_NAME,null,contentValues)!=-1)
+          return 1;
+        return -1;
+      }
     }
     return -1;
   }

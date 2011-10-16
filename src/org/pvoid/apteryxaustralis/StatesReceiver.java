@@ -24,9 +24,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.types.ITerminal;
 
 public class StatesReceiver extends BroadcastReceiver
 {
@@ -82,7 +82,7 @@ public class StatesReceiver extends BroadcastReceiver
         {
           Notifier.showNotification(_mContext,warn);
         }
-        else if(warn== ITerminal.STATE_OK)
+        else if(warn== Request.STATE_OK)
           Notifier.hideNotification(_mContext,false);
 
         long interval = Preferences.getUpdateInterval(_mContext);

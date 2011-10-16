@@ -31,7 +31,7 @@ public class OsmpContentStorage extends SQLiteOpenHelper
   private static interface Agents
   {
     static final String CREATE_SQL = "create table " + OsmpContentProvider.Agents.TABLE_NAME +" ("+
-                                     OsmpContentProvider.Agents.COLUMN_AGENT + " INTEGER PRIMARY KEY AUTOINCREMENT,"+
+                                     OsmpContentProvider.Agents.COLUMN_AGENT + " INTEGER PRIMARY KEY,"+
                                      OsmpContentProvider.Agents.COLUMN_ACCOUNT+" text not null," +
                                      OsmpContentProvider.Agents.COLUMN_AGENT_NAME+" text not null," +
                                      OsmpContentProvider.Agents.COLUMN_BALANCE+" text not null," +
@@ -57,14 +57,13 @@ public class OsmpContentStorage extends SQLiteOpenHelper
   private static interface Terminals
   {
     static final String CREATE_SQL = "create table "+OsmpContentProvider.Terminals.TABLE_NAME+" ("+
-                                     OsmpContentProvider.Terminals.COLUMN_ID +" integer not null primary key asc,"+
+                                     OsmpContentProvider.Terminals.COLUMN_ID +" integer not null primary key,"+
                                      OsmpContentProvider.Terminals.COLUMN_ADDRESS + " text not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_STATE + " integer," +
                                      OsmpContentProvider.Terminals.COLUMN_MS + " integer not null," +
                                      OsmpContentProvider.Terminals.COLUMN_ACCOUNTID + " integer not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_PRINTERSTATE + " text not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_CASHBINSTATE + " text not null," +
-                                     OsmpContentProvider.Terminals.COLUMN_LPD + " text not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_CASH + " integer not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_LASTACTIVITY + " text not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_LASTPAYMENT + " text not null,"+

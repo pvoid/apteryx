@@ -22,25 +22,15 @@ import android.database.DataSetObserver;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListAdapter;
-import android.widget.TextView;
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.storage.osmp.Terminal;
 import org.pvoid.apteryxaustralis.types.Group;
-import org.pvoid.apteryxaustralis.types.ITerminal;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TerminalsArrayAdapter implements ListAdapter
 {
   ReentrantLock _mLock;
   private final LayoutInflater _mInflater;
-  private ArrayList<ITerminal> _mTerminals;
   private Group _mGroup;
   private DataSetObserver _mObserver;
   private final Context _mContext;
@@ -49,7 +39,6 @@ public class TerminalsArrayAdapter implements ListAdapter
   public TerminalsArrayAdapter(Context context, Group group)
   {
     _mLock = new ReentrantLock();
-    _mTerminals = new ArrayList<ITerminal>(5);
     _mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     _mGroup = group;
     _mContext = context;
@@ -77,32 +66,13 @@ public class TerminalsArrayAdapter implements ListAdapter
   @Override
   public int getCount()
   {
-    _mLock.lock();
-    try
-    {
-      return _mTerminals.size();
-    }
-    finally
-    {
-      _mLock.unlock();
-    }
+    return 0;
   }
 
   @Override
   public Object getItem(int index)
   {
-    _mLock.lock();
-    try
-    {
-      if(index<0 || index>=_mTerminals.size())
-        return null;
-
-      return _mTerminals.get(index);
-    }
-    finally
-    {
-      _mLock.unlock();
-    }
+    return null;
   }
 
   @Override
@@ -121,7 +91,7 @@ public class TerminalsArrayAdapter implements ListAdapter
   public View getView(int position, View convertView, ViewGroup parent)
   {
     View view = convertView;
-    if(view==null)
+    /*if(view==null)
     {
       view = _mInflater.inflate(R.layout.terminal, null);
     }
@@ -149,7 +119,7 @@ public class TerminalsArrayAdapter implements ListAdapter
           icon.setImageResource(R.drawable.ic_terminal_inactive);
           break;
       }
-    }
+    }*/
     return view;
   }
 
@@ -168,15 +138,7 @@ public class TerminalsArrayAdapter implements ListAdapter
   @Override
   public boolean isEmpty()
   {
-    _mLock.lock();
-    try
-    {
-      return _mTerminals.isEmpty();
-    }
-    finally
-    {
-      _mLock.unlock();
-    }
+    return false;
   }
 
   public void setGroup(Group group)
@@ -204,32 +166,6 @@ public class TerminalsArrayAdapter implements ListAdapter
   public boolean isEnabled(int i)
   {
     return true;
-  }
-
-  public void sort(Comparator<ITerminal> comparator)
-  {
-    _mLock.lock();
-    try
-    {
-      Collections.sort(_mTerminals,comparator);
-      _mCash = 0;
-      for(ITerminal terminal : _mTerminals)
-        _mCash += terminal.getCash();
-    }
-    finally
-    {
-      _mLock.unlock();
-    }
-  }
-
-  public void add(ITerminal terminal)
-  {
-    _mTerminals.add(terminal);
-  }
-
-  public void remove(ITerminal current)
-  {
-    _mTerminals.remove(current);
   }
 
   public void notifyList()

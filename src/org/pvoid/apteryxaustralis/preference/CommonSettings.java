@@ -40,7 +40,6 @@ import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
-import org.pvoid.apteryxaustralis.storage.IStorage;
 
 public class CommonSettings extends PreferenceActivity implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener, DialogInterface.OnClickListener
 {
@@ -428,9 +427,9 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
         return;
       ////////
       int textId = 0;
-      if(result == IStorage.RES_ERR_NETWORK_ERROR)
+      if(result == Request.RES_ERR_NETWORK_ERROR)
         textId = R.string.network_error;
-      else if(result<IStorage.RES_ERR_CUSTOM_FIRST)
+      else if(result<Request.RES_ERR_CUSTOM_FIRST)
         textId = R.string.network_error;//_mStorage.errorMessage(-result+IStorage.RES_ERR_CUSTOM_FIRST);
 
       if(textId>0)

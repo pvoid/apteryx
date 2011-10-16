@@ -27,8 +27,8 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.widget.RemoteViews;
 
+import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.types.ITerminal;
 import org.pvoid.apteryxaustralis.ui.MainActivity;
 
 public class Notifier
@@ -61,13 +61,13 @@ public class Notifier
     Notification notification = getIcon(context);
     switch(level)
     {
-      case ITerminal.STATE_WARNING:
+      case Request.STATE_WARNING:
         notification.icon = R.drawable.ic_terminal_pending;
         break;
-      case ITerminal.STATE_ERROR:
+      case Request.STATE_ERROR:
         notification.icon = R.drawable.ic_terminal_printer_error;
         break;
-      case ITerminal.STATE_ERROR_CRITICAL:
+      case Request.STATE_ERROR_CRITICAL:
         notification.icon = R.drawable.ic_terminal_inactive;
         break;
     }
