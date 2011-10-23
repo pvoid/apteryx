@@ -335,9 +335,7 @@ public class ResponseParser extends DefaultHandler
 
   public static class Terminal
   {
-    protected final static int OSMP_STATE_OK = 0;
-    protected final static int OSMP_STATE_WARRNING = 2;
-    protected final static int OSMP_STATE_ERROR = 1;
+
 
     private final static int ACTION_REBOOT = 0;
     private final static int ACTION_POWER_OFF = 1;
@@ -461,84 +459,11 @@ public class ResponseParser extends DefaultHandler
       return tid;
     }
 
-    public int getState()
-    {
-      /*switch(_mState)
-      {
-        case OSMP_STATE_OK:
-          return ITerminal.STATE_OK;
-        case OSMP_STATE_WARRNING:
-          return ITerminal.STATE_WARNING;
-        default:
-          if("OK".equals(printer_state) || System.currentTimeMillis() - lastActivity>60*60*1000)
-            return ITerminal.STATE_ERROR_CRITICAL;
-          return ITerminal.STATE_ERROR;
-      }*/
-      return 0;
-    }
-
-
     public String getTitle()
     {
       return address;
     }
 
-    public String getStatus(Context context)
-    {
-  ////////// Ошибки принтера или купюроприемника вперед
-      if(!"OK".equals(cashbin_state))
-        return context.getString(R.string.cachebin) + ": " + cashbin_state;
-
-      if(!"OK".equals(printer_state))
-        return context.getString(R.string.printer) + ": " + printer_state;
-  ////////// Потом проверим флаги. Сначала ошибки железа
-      if((ms & STATE_PRINTER_STACKER_ERROR) !=0)
-        return context.getString(R.string.STATE_PRINTER_STACKER_ERROR);
-      if((ms & STATE_STACKER_REMOVED) !=0)
-        return context.getString(R.string.STATE_STACKER_REMOVED);
-      if((ms & STATE_HARDDRIVE_PROBLEMS) !=0)
-        return context.getString(R.string.STATE_HARDDRIVE_PROBLEMS);
-      if((ms & STATE_DEVICES_ABSENT) !=0)
-        return context.getString(R.string.STATE_DEVICES_ABSENT);
-      if((ms & STATE_HARDWARE_OR_SOFTWARE_PROBLEM) !=0)
-        return context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM);
-  ////////// Потом вероятные угрозы
-      if((ms & STATE_ASO_MODIFIED) !=0)
-        return context.getString(R.string.STATE_ASO_MODIFIED);
-      if((ms & STATE_INTERFACE_MODIFIED) !=0)
-        return context.getString(R.string.STATE_INTERFACE_MODIFIED);
-      /*if((ms & STATE_FAIR_FTP_IP) !=0)
-        return context.getString(R.string.STATE_FAIR_FTP_IP);*/
-      if((ms & STATE_UNAUTHORIZED_SOFTWARE) !=0)
-        return context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE);
-  ////////// Ошибки настройки
-      if((ms & STATE_INTERFACE_ERROR) !=0)
-        return context.getString(R.string.STATE_INTERFACE_ERROR);
-      if((ms & STATE_STOPPED_DUE_BALANCE) !=0)
-        return context.getString(R.string.STATE_STOPPED_DUE_BALANCE);
-  ///////// Ну и прочее
-      if((ms & STATE_PAPER_COMING_TO_END) !=0)
-        return context.getString(R.string.STATE_PAPER_COMING_TO_END);
-
-      StringBuilder status = new StringBuilder();
-      switch(_mState)
-      {
-        case OSMP_STATE_OK:
-          status.append(context.getString(R.string.fullinfo_cash)).append(' ').append(TextFormat.formatMoney(cash, true));
-          break;
-        case OSMP_STATE_WARRNING:
-          status.append(context.getString(R.string.last_payment))
-                .append(' ')
-                .append(TextFormat.formatDateSmart(context, lastPayment));
-          break;
-        case OSMP_STATE_ERROR:
-          status.append(context.getString(R.string.last_activity))
-                .append(' ')
-                .append(TextFormat.formatDateSmart(context, lastActivity));
-          break;
-      }
-      return status.toString();
-    }
 
     public void getStatuses(Context context, List<StatusLine> statuses)
     {

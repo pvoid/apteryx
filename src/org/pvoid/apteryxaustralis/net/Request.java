@@ -101,19 +101,35 @@ public class Request
    */
   public static int addAccount(Context context, Bundle accountData)
   {
+    final OsmpRequest request = getOsmpRequest();
+    ////////
+    int result = request.checkAccount(context,accountData);
+    if(result==0)
+      result = request.getBalances(context,accountData);
+    if(result==0)
+      result = request.getTerminals(context,accountData);
+    ////////
+    return result;
+  }
+
+  public static int refresh(Context context, Bundle accountData)
+  {
+    final OsmpRequest request = getOsmpRequest();
+    ////////
+    int result = request.getBalances(context,accountData);
+    if(result==0)
+      result = request.getTerminals(context,accountData);
+    return result;
+  }
+
+  private static OsmpRequest getOsmpRequest()
+  {
     synchronized(OsmpRequest.class)
     {
       if(_mOsmpRequest==null)
         _mOsmpRequest = new OsmpRequest();
     }
-    ////////
-    int result = _mOsmpRequest.checkAccount(context,accountData);
-    if(result==0)
-      result = _mOsmpRequest.getBalances(context,accountData);
-    if(result==0)
-      result = _mOsmpRequest.getTerminals(context,accountData);
-    ////////
-    return result;
+    return _mOsmpRequest;
   }
 
   public static class Response

@@ -22,20 +22,48 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
+import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
 public class StatesReceiver extends BroadcastReceiver
 {
-  public static final String REFRESH_BROADCAST_MESSAGE = "org.pvoid.apteryx.StatusUpdatedMessage";
+  private static final String[] PROJECTION = new String[]
+                                                 {
+                                                  AccountsProvider.Accounts.COLUMN_ID,
+                                                  AccountsProvider.Accounts.COLUMN_LOGIN,
+                                                  AccountsProvider.Accounts.COLUMN_PASSWORD,
+                                                  AccountsProvider.Accounts.COLUMN_CUSTOM1
+                                                 };
 
   public static int refreshData(Context context)
   {
     int result = -1;
-    OsmpStorage storage = new OsmpStorage(context);
+    final Cursor cursor = context.getContentResolver().query(AccountsProvider.Accounts.CONTENT_URI,
+                                                             PROJECTION,
+                                                             null,null,null);
+    final Bundle accountData = new Bundle();
+    try
+    {
+      while(cursor.moveToNext())
+      {
+        accountData.putString(OsmpRequest.ACCOUNT_ID,cursor.getString(0));
+        accountData.putString(OsmpRequest.LOGIN,cursor.getString(1));
+        accountData.putString(OsmpRequest.PASSWORD,cursor.getString(2));
+        accountData.putString(OsmpRequest.TERMINAL,cursor.getString(3));
+        Request.refresh(context,accountData);
+      }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
     /*ArrayList<Account> accounts = new ArrayList<Account>();
     //---
     storage.getAccounts(accounts);
@@ -75,8 +103,8 @@ public class StatesReceiver extends BroadcastReceiver
       try
       {
         int warn = refreshData(_mContext);
-        Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
-        _mContext.sendBroadcast(broadcastIntent);
+        /*Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
+        _mContext.sendBroadcast(broadcastIntent);*/
 
         if(warn>0 && warn>=Preferences.getWarnLevel(_mContext))
         {

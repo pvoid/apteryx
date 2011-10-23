@@ -336,6 +336,12 @@ public class OsmpRequest implements IRequest
     return 0;
   }
 
+  public int refresh(Context context)
+  {
+
+    return 0;
+  }
+
   protected static boolean parseResponse(ResponseParser parser, Request.Response response)
   {
     try

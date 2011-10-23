@@ -19,10 +19,13 @@ package org.pvoid.apteryxaustralis.storage.osmp;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.TextFormat;
 
 public class OsmpContentProvider extends ContentProvider
 {
@@ -79,6 +82,43 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_ACCOUNTID = "account_id";
   }
 
+  protected final static int OSMP_STATE_OK = 0;
+  protected final static int OSMP_STATE_WARRNING = 2;
+  protected final static int OSMP_STATE_ERROR = 1;
+
+  public static final int STATE_OK = 0;
+  public static final int STATE_WARNING = 1;
+  public static final int STATE_ERROR = 2;
+  public static final int STATE_ERROR_CRITICAL = 3;
+
+  final static int STATE_PRINTER_STACKER_ERROR = 1;// Автомат остановлен из-за ошибок купюроприемника или принтера
+  final static int STATE_INTERFACE_ERROR = 2; //Автомат остановлен из-за ошибки в конфигурации интерфейса.
+  // Новый интерфейс загружается с сервера
+  final static int STATE_UPLOADING_UPDATES = 4; // Автомат загружает с сервера обновление приложения
+  final static int STATE_DEVICES_ABSENT = 8; // Автомат остановлен из-за того, что при старте не обнаружено
+  // оборудование (купюроприемник или принтер)
+  final static int STATE_WATCHDOG_TIMER = 0x10; // Работает сторожевой таймер
+  final static int STATE_PAPER_COMING_TO_END = 0x20; // В принтере скоро закончится бумага
+  final static int STATE_STACKER_REMOVED = 0x40; // C автомата был снят купюроприемник
+  final static int STATE_ESSENTIAL_ELEMENTS_ERROR = 0x80; // Отсутствуют или неверно заполнены один или
+  // несколько реквизитов для терминала
+  final static int STATE_HARDDRIVE_PROBLEMS = 0x100; //256 Проблемы с жестким диском
+  final static int STATE_STOPPED_DUE_BALANCE = 0x200; // Остановлен по сигналу сервера или из-за отсутствия денег на счету агента
+  final static int STATE_HARDWARE_OR_SOFTWARE_PROBLEM  = 0x400; // Остановлен из-за проблем с железом или интерфейса
+  final static int STATE_HAS_SECOND_MONITOR  = 0x800; // Автомат оснащен вторым монитором.
+  final static int STATE_ALTERNATE_NETWORK_USED  = 0x1000; // Автомат использует альтернативную сеть
+  final static int STATE_UNAUTHORIZED_SOFTWARE  = 0x2000; // Используется ПО, вызывающее сбои в работе автомата
+  final static int STATE_PROXY_SERVER  = 0x4000; // Автомат работает через прокси
+  final static int STATE_UPDATING_CONFIGURATION = 0x10000; // Терминал обновляет конфигурацию
+  final static int STATE_UPDATING_NUMBERS = 0x20000; // Терминал обновляет номерные емкости.
+  final static int STATE_UPDATING_PROVIDERS  = 0x40000; // Терминал обновляет список провайдеров.
+  final static int STATE_UPDATING_ADVERT     = 0x80000; // Терминал проверяет и обновляет рекламный плэйлист.
+  final static int STATE_UPDATING_FILES = 0x100000; // Терминал проверяет и обновляет файлы.
+  final static int STATE_FAIR_FTP_IP = 0x200000; // Подменен IP-адрес FTP сервера
+  final static int STATE_ASO_MODIFIED = 0x400000; // Модифицировано приложение АСО.
+  final static int STATE_INTERFACE_MODIFIED = 0x800000; // Модифицирован интерфейс
+  final static int STATE_ASO_ENABLED = 0x1000000; // Монитор АСО выключен.
+
   private static final UriMatcher _sUriMather;
   static
   {
@@ -101,8 +141,15 @@ public class OsmpContentProvider extends ContentProvider
     switch(_sUriMather.match(uri))
     {
       case AGENTS_REQUEST:
+      {
         final SQLiteDatabase db = _mStorage.getReadableDatabase();
         return db.query(Agents.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+      }
+      case TERMINALS_REQUEST:
+      {
+        final SQLiteDatabase db = _mStorage.getReadableDatabase();
+        return db.query(Terminals.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+      }
     }
     return null;
   }
@@ -169,4 +216,76 @@ public class OsmpContentProvider extends ContentProvider
     }
     return -1;
   }
+
+  public static String getTerminalStatus(Context context, String cashbinState, String printerState, int ms, int state, int cash, long lastPayment, long lastActivity)
+    {
+  ////////// Ошибки принтера или купюроприемника вперед
+      if(!"OK".equals(cashbinState))
+        return context.getString(R.string.cachebin) + ": " + cashbinState;
+
+      if(!"OK".equals(printerState))
+        return context.getString(R.string.printer) + ": " + printerState;
+  ////////// Потом проверим флаги. Сначала ошибки железа
+      if((ms & STATE_PRINTER_STACKER_ERROR) !=0)
+        return context.getString(R.string.STATE_PRINTER_STACKER_ERROR);
+      if((ms & STATE_STACKER_REMOVED) !=0)
+        return context.getString(R.string.STATE_STACKER_REMOVED);
+      if((ms & STATE_HARDDRIVE_PROBLEMS) !=0)
+        return context.getString(R.string.STATE_HARDDRIVE_PROBLEMS);
+      if((ms & STATE_DEVICES_ABSENT) !=0)
+        return context.getString(R.string.STATE_DEVICES_ABSENT);
+      if((ms & STATE_HARDWARE_OR_SOFTWARE_PROBLEM) !=0)
+        return context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM);
+  ////////// Потом вероятные угрозы
+      if((ms & STATE_ASO_MODIFIED) !=0)
+        return context.getString(R.string.STATE_ASO_MODIFIED);
+      if((ms & STATE_INTERFACE_MODIFIED) !=0)
+        return context.getString(R.string.STATE_INTERFACE_MODIFIED);
+      /*if((ms & STATE_FAIR_FTP_IP) !=0)
+        return context.getString(R.string.STATE_FAIR_FTP_IP);*/
+      if((ms & STATE_UNAUTHORIZED_SOFTWARE) !=0)
+        return context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE);
+  ////////// Ошибки настройки
+      if((ms & STATE_INTERFACE_ERROR) !=0)
+        return context.getString(R.string.STATE_INTERFACE_ERROR);
+      if((ms & STATE_STOPPED_DUE_BALANCE) !=0)
+        return context.getString(R.string.STATE_STOPPED_DUE_BALANCE);
+  ///////// Ну и прочее
+      if((ms & STATE_PAPER_COMING_TO_END) !=0)
+        return context.getString(R.string.STATE_PAPER_COMING_TO_END);
+
+      StringBuilder status = new StringBuilder();
+      switch(state)
+      {
+        case OSMP_STATE_OK:
+          status.append(context.getString(R.string.fullinfo_cash)).append(' ').append(TextFormat.formatMoney(cash, true));
+          break;
+        case OSMP_STATE_WARRNING:
+          status.append(context.getString(R.string.last_payment))
+                .append(' ')
+                .append(TextFormat.formatDateSmart(context, lastPayment));
+          break;
+        case OSMP_STATE_ERROR:
+          status.append(context.getString(R.string.last_activity))
+                .append(' ')
+                .append(TextFormat.formatDateSmart(context, lastActivity));
+          break;
+      }
+      return status.toString();
+    }
+
+  public static int getState(int state, String printerState, long lastActivity)
+    {
+      switch(state)
+      {
+        case OsmpContentProvider.OSMP_STATE_OK:
+          return STATE_OK;
+        case OSMP_STATE_WARRNING:
+          return STATE_WARNING;
+        default:
+          if("OK".equals(printerState) || System.currentTimeMillis() - lastActivity>60*60*1000)
+            return STATE_ERROR_CRITICAL;
+          return STATE_ERROR;
+      }
+    }
 }
