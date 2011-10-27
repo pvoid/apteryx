@@ -60,13 +60,13 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_MS = "ms";
     static final String COLUMN_PRINTERSTATE = "printer_state";
     static final String COLUMN_CASHBINSTATE = "cashbin_state";
-    static final String COLUMN_CASH = "cash";
+    static final String COLUMN_CASH         = "cash";
     static final String COLUMN_LASTACTIVITY = "last_activity";
-    static final String COLUMN_LASTPAYMENT = "last_payment";
-    static final String COLUMN_BONDS = "bonds_count";
-    static final String COLUMN_BALANCE = "balance";
-    static final String COLUMN_SIGNALLEVEL = "signal_level";
-    static final String COLUMN_SOFTVERSION = "soft_version";
+    static final String COLUMN_LASTPAYMENT  = "last_payment";
+    static final String COLUMN_BONDS        = "bonds_count";
+    static final String COLUMN_BALANCE      = "balance";
+    static final String COLUMN_SIGNALLEVEL  = "signal_level";
+    static final String COLUMN_SOFTVERSION  = "soft_version";
     static final String COLUMN_PRINTERMODEL = "printer_model";
     static final String COLUMN_CASHBINMODEL = "cashbin_model";
     static final String COLUMN_BONDS10 = "bonds_10";
@@ -80,6 +80,7 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_AGENTID = "agent_id";
     static final String COLUMN_AGENTNAME = "agent_name";
     static final String COLUMN_ACCOUNTID = "account_id";
+    static final String COLUMN_FINAL_STATE = "final_state";
   }
 
   protected final static int OSMP_STATE_OK = 0;
@@ -181,6 +182,9 @@ public class OsmpContentProvider extends ContentProvider
       case TERMINALS_REQUEST:
       {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
+        contentValues.put(Terminals.COLUMN_FINAL_STATE,getState(contentValues.getAsInteger(Terminals.COLUMN_STATE),
+                                                                contentValues.getAsString(Terminals.COLUMN_PRINTERSTATE),
+                                                                contentValues.getAsLong(Terminals.COLUMN_LASTACTIVITY)));
         if(db.insert(Terminals.TABLE_NAME,null,contentValues)!=-1)
           return uri;
         if(db.update(Terminals.TABLE_NAME,contentValues,Terminals.COLUMN_ID+"=?",new String[]{contentValues.getAsString(Terminals.COLUMN_ID)})>0)

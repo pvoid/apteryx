@@ -82,6 +82,7 @@ public class OsmpContentStorage extends SQLiteOpenHelper
                                      OsmpContentProvider.Terminals.COLUMN_BONDS10000 + " integer not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_PAYSPERHOUR + " text not null,"+
                                      OsmpContentProvider.Terminals.COLUMN_AGENTID + " text not null," +
+                                     OsmpContentProvider.Terminals.COLUMN_FINAL_STATE + " integer not null," +
                                      OsmpContentProvider.Terminals.COLUMN_AGENTNAME + " text not null);";
   }
 

@@ -101,9 +101,12 @@ public class TerminalsFragment extends ListFragment
                                                  OsmpContentProvider.Terminals.COLUMN_MS,
                                                  OsmpContentProvider.Terminals.COLUMN_CASH,
                                                  OsmpContentProvider.Terminals.COLUMN_LASTPAYMENT,
-                                                 OsmpContentProvider.Terminals.COLUMN_LASTACTIVITY
+                                                 OsmpContentProvider.Terminals.COLUMN_LASTACTIVITY,
+                                                 OsmpContentProvider.Terminals.COLUMN_FINAL_STATE
                                                },
-                                               getWhereClause() ,null,OsmpContentProvider.Terminals.COLUMN_ADDRESS),
+                                               getWhereClause() ,null,
+                                               OsmpContentProvider.Terminals.COLUMN_FINAL_STATE +" desc, "+
+                                               OsmpContentProvider.Terminals.COLUMN_ADDRESS),
             true);
     }
 
@@ -132,7 +135,7 @@ public class TerminalsFragment extends ListFragment
                                                             ));
 //////////
       final ImageView image = (ImageView) view.findViewById(R.id.icon);
-      switch(OsmpContentProvider.getState(cursor.getInt(4),cursor.getString(2),cursor.getLong(8)))
+      switch(cursor.getInt(9))
       {
         case OsmpContentProvider.STATE_OK:
           image.setImageResource(R.drawable.ic_terminal_active);
