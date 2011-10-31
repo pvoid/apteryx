@@ -299,6 +299,7 @@ public class OsmpRequest implements IRequest
     final List<ResponseParser.Terminal> terminals = parser.getTerminals();
     final ContentValues values = new ContentValues();
     final ContentResolver resolver = context.getContentResolver();
+    boolean notifyObserver = false;
     for(ResponseParser.Terminal terminal : terminals)
     {
       values.clear();
@@ -328,10 +329,15 @@ public class OsmpRequest implements IRequest
       values.put(OsmpContentProvider.Terminals.COLUMN_PAYSPERHOUR,terminal.paysPerHour);
       values.put(OsmpContentProvider.Terminals.COLUMN_AGENTID,terminal.agentId);
       values.put(OsmpContentProvider.Terminals.COLUMN_AGENTNAME,terminal.agentName);
-      resolver.insert(OsmpContentProvider.Terminals.CONTENT_URI,values);
+      if(resolver.insert(OsmpContentProvider.Terminals.CONTENT_URI,values)!=null)
+        notifyObserver = true;
     }
 ///////
-    resolver.notifyChange(OsmpContentProvider.Terminals.CONTENT_URI,null);
+    if(notifyObserver)
+    {
+      resolver.notifyChange(OsmpContentProvider.Terminals.CONTENT_URI,null);
+      resolver.notifyChange(OsmpContentProvider.Agents.CONTENT_URI,null);
+    }
 ///////
     return 0;
   }

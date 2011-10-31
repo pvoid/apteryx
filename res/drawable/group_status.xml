@@ -21,4 +21,5 @@
   <item android:drawable="@drawable/group_status_ok" android:maxLevel="0"/>
   <item android:drawable="@drawable/group_status_warn" android:maxLevel="1"/>
   <item android:drawable="@drawable/group_status_error" android:maxLevel="2"/>
+  <item android:drawable="@drawable/group_status_error_critical" android:maxLevel="3"/>
 </level-list>

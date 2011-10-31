@@ -19,16 +19,16 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="fill_parent"
-                android:layout_height="?actionBarSize">
+                android:layout_height="52dp">
   <TextView android:id="@+id/agent_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="#ffffffff"
             android:singleLine="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"/>
-  <TextView android:id="@+id/agent_balance_title"
+            android:layout_centerVertical="true"/>
+  <!--TextView android:id="@+id/agent_balance_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -68,5 +68,5 @@
             android:layout_toRightOf="@id/agent_overdraft_title"
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="3dp"
-            android:ellipsize="marquee" />
+            android:ellipsize="marquee" /-->
 </RelativeLayout>

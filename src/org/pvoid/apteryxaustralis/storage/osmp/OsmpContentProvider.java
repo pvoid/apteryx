@@ -17,13 +17,11 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.TextFormat;
 
@@ -182,16 +180,39 @@ public class OsmpContentProvider extends ContentProvider
       case TERMINALS_REQUEST:
       {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
-        contentValues.put(Terminals.COLUMN_FINAL_STATE,getState(contentValues.getAsInteger(Terminals.COLUMN_STATE),
-                                                                contentValues.getAsString(Terminals.COLUMN_PRINTERSTATE),
-                                                                contentValues.getAsLong(Terminals.COLUMN_LASTACTIVITY)));
-        if(db.insert(Terminals.TABLE_NAME,null,contentValues)!=-1)
+        final int state = getState(contentValues.getAsInteger(Terminals.COLUMN_STATE),
+                                                              contentValues.getAsString(Terminals.COLUMN_PRINTERSTATE),
+                                                              contentValues.getAsLong(Terminals.COLUMN_LASTACTIVITY));
+        final long agentId = contentValues.getAsLong(Terminals.COLUMN_AGENTID);
+        contentValues.put(Terminals.COLUMN_FINAL_STATE,state);
+        boolean result = db.update(Terminals.TABLE_NAME, contentValues, Terminals.COLUMN_ID + "=?", new String[]{contentValues.getAsString(Terminals.COLUMN_ID)})>0;
+        if(!result)
+          result = db.insert(Terminals.TABLE_NAME,null,contentValues)!=-1;
+//////////////
+        if(result)
+        {
+          updateGroup(db,agentId,state);
           return uri;
-        if(db.update(Terminals.TABLE_NAME,contentValues,Terminals.COLUMN_ID+"=?",new String[]{contentValues.getAsString(Terminals.COLUMN_ID)})>0)
-          return uri;
+        }
       }
     }
     return null;
+  }
+
+  private boolean updateGroup(SQLiteDatabase db, long groupId, int state)
+  {
+
+    final ContentValues values = new ContentValues();
+    values.put(Agents.COLUMN_STATE,state);
+    values.put(Agents.COLUMN_SEEN,0);
+    boolean result = db.update(Agents.TABLE_NAME,values,
+              Agents.COLUMN_AGENT+"=? AND ("+Agents.COLUMN_STATE+"<? OR "+Agents.COLUMN_STATE+"=? AND "+Agents.COLUMN_SEEN+"=1)",
+              new String[]{Long.toString(groupId),Integer.toString(state),Integer.toString(state)})>0;
+
+    if(result)
+      Log.e("Apteryx","State "+state+" for group " + groupId);
+
+    return result;
   }
 
   @Override
