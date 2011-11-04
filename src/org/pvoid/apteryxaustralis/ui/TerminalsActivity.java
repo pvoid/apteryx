@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +26,7 @@ import android.support.v4.app.FragmentManager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
 import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.GroupsAdapter;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsFragment;
 
@@ -39,6 +41,8 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
       showRefreshProgress(false);
     }
   };
+  private GroupsAdapter  _mGroups;
+  private final GroupsObserver _mObserver = new GroupsObserver(new Handler());
 
   public void onCreate(Bundle savedInstanceState)
   {
@@ -59,7 +63,23 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
 
     final ActionBar bar = getSupportActionBar();
     bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-    bar.setListNavigationCallbacks(new GroupsAdapter(this, R.layout.record_group_actionbar),this);
+    _mGroups = new GroupsAdapter(this, R.layout.record_group_actionbar);
+    bar.setListNavigationCallbacks(_mGroups,this);
+  }
+
+  @Override
+  protected void onPause()
+  {
+    super.onPause();
+    getContentResolver().unregisterContentObserver(_mObserver);
+  }
+
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    _mGroups.refresh();
+    getContentResolver().registerContentObserver(OsmpContentProvider.Agents.CONTENT_URI,true, _mObserver);
   }
 
   @Override
@@ -88,6 +108,21 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
       }
       Request.refresh(TerminalsActivity.this, bundle);
       _mUiHandler.post(_mStopRefreshRunnable);
+    }
+  }
+
+  private class GroupsObserver extends ContentObserver
+  {
+    public GroupsObserver(Handler handler)
+    {
+      super(handler);
+    }
+
+    @Override
+    public void onChange(boolean selfChange)
+    {
+      super.onChange(selfChange);
+      _mGroups.refresh();
     }
   }
 }

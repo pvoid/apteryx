@@ -17,20 +17,16 @@
 
 package org.pvoid.apteryxaustralis.ui.fragments;
 
-import android.content.Context;
+import android.content.Intent;
 import android.database.ContentObserver;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ListFragment;
-import android.support.v4.widget.CursorAdapter;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ListView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
+import org.pvoid.apteryxaustralis.ui.TerminalInfoActivity;
 
 public class TerminalsFragment extends ListFragment
 {
@@ -59,7 +55,7 @@ public class TerminalsFragment extends ListFragment
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
-    setListAdapter(new TerminalsCursorAdapter(getActivity()));
+    setListAdapter(new TerminalsCursorAdapter(getActivity(),getWhereClause(), R.layout.terminal));
     getActivity().getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,true,_mTerminalsObserver);
   }
 
@@ -68,6 +64,14 @@ public class TerminalsFragment extends ListFragment
   {
     super.onDestroyView();
     getActivity().getContentResolver().unregisterContentObserver(_mTerminalsObserver);
+  }
+
+  @Override
+  public void onListItemClick(ListView l, View v, int position, long id)
+  {
+    Intent intent = new Intent(getActivity(), TerminalInfoActivity.class);
+    intent.putExtra(TerminalInfoFragment.EXTRA_TERMINAL,id);
+    startActivity(intent);
   }
 
   private class TerminalsObserver extends ContentObserver
@@ -82,82 +86,6 @@ public class TerminalsFragment extends ListFragment
     {
       super.onChange(selfChange);
       ((TerminalsCursorAdapter)getListAdapter()).refresh();
-    }
-  }
-
-  private class TerminalsCursorAdapter extends CursorAdapter
-  {
-    public TerminalsCursorAdapter(Context context)
-    {
-      super(context,
-            context.getContentResolver().query(OsmpContentProvider.Terminals.CONTENT_URI,
-                                               new String[]
-                                               {
-                                                 OsmpContentProvider.Terminals.COLUMN_ID,
-                                                 OsmpContentProvider.Terminals.COLUMN_ADDRESS,
-                                                 OsmpContentProvider.Terminals.COLUMN_PRINTERSTATE,
-                                                 OsmpContentProvider.Terminals.COLUMN_CASHBINSTATE,
-                                                 OsmpContentProvider.Terminals.COLUMN_STATE,
-                                                 OsmpContentProvider.Terminals.COLUMN_MS,
-                                                 OsmpContentProvider.Terminals.COLUMN_CASH,
-                                                 OsmpContentProvider.Terminals.COLUMN_LASTPAYMENT,
-                                                 OsmpContentProvider.Terminals.COLUMN_LASTACTIVITY,
-                                                 OsmpContentProvider.Terminals.COLUMN_FINAL_STATE
-                                               },
-                                               getWhereClause() ,null,
-                                               OsmpContentProvider.Terminals.COLUMN_FINAL_STATE +" desc, "+
-                                               OsmpContentProvider.Terminals.COLUMN_ADDRESS),
-            true);
-    }
-
-    @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent)
-    {
-      final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      return inflater.inflate(R.layout.terminal,parent,false);
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor)
-    {
-      TextView textView = (TextView) view.findViewById(R.id.list_title);
-      textView.setText(cursor.getString(1));
-//////////
-      textView = (TextView) view.findViewById(R.id.status);
-      textView.setText(OsmpContentProvider.getTerminalStatus(getActivity(),
-                                                             cursor.getString(3),
-                                                             cursor.getString(2),
-                                                             cursor.getInt(5),
-                                                             cursor.getInt(4),
-                                                             cursor.getInt(6),
-                                                             cursor.getLong(7),
-                                                             cursor.getLong(8)
-                                                            ));
-//////////
-      final ImageView image = (ImageView) view.findViewById(R.id.icon);
-      switch(cursor.getInt(9))
-      {
-        case OsmpContentProvider.STATE_OK:
-          image.setImageResource(R.drawable.ic_terminal_active);
-          break;
-        case OsmpContentProvider.STATE_WARNING:
-          image.setImageResource(R.drawable.ic_terminal_pending);
-          break;
-        case OsmpContentProvider.STATE_ERROR:
-          image.setImageResource(R.drawable.ic_terminal_printer_error);
-          break;
-        case OsmpContentProvider.STATE_ERROR_CRITICAL:
-          image.setImageResource(R.drawable.ic_terminal_inactive);
-          break;
-        default:
-          image.setImageResource(R.drawable.ic_terminal_unknown);
-          break;
-      }
-    }
-
-    public void refresh()
-    {
-      getCursor().requery();
     }
   }
 }

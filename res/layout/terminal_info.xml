@@ -15,72 +15,31 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:minHeight="?android:attr/listPreferredItemHeight"
                 android:orientation="vertical">
-    <RelativeLayout android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/top_bar"
-                    android:padding="5dip">
-      <ImageView android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:id="@+id/status_icon"
-                 android:layout_marginRight="5dip"
-                 android:layout_centerVertical="true"
-                 android:layout_alignParentLeft="true"/>
-      <TextView android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#ffffff"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:layout_toRightOf="@id/status_icon"
-                android:layout_centerVertical="true"
-                android:shadowColor="#000000"
-                android:shadowRadius="2"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:textStyle="bold"
-                android:id="@+id/name" />
-      <!--TextView android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#d8d8d8"
-                android:id="@+id/time"
-                android:layout_toRightOf="@id/status_icon"
-                android:shadowColor="#000000"
-                android:shadowRadius="2"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:textStyle="bold"
-                android:layout_below="@id/name"/-->
-    </RelativeLayout>
-    <ScrollView android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:fillViewport="true">
-      <LinearLayout android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/info">
-        <LinearLayout android:layout_width="fill_parent"
-                      android:layout_height="wrap_content"
-                      android:id="@+id/states"
-                      android:layout_marginTop="6dp"
-                      android:layout_marginLeft="10dp"
-                      android:layout_marginRight="10dp"
-                      android:layout_marginBottom="10dp"
-                      android:orientation="vertical" />
-        <ImageView android:layout_width="fill_parent"
-                   android:layout_height="1dip"
-                   android:id="@+id/sep_line"
-                   android:src="@drawable/list_line"/>
-    <!-- Сумма наличности в терминале -->
-        <!--org.pvoid.apteryxaustralis.ui.widgets.FullInfoItem
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:text="@string/fullinfo_cash"
-                  android:id="@+id/cash"/-->
-    <!-- Последний платеж -->
-      </LinearLayout>
-  </ScrollView>
-</LinearLayout>
+    <TextView android:id="@+id/title"
+              android:textStyle="bold"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:layout_alignParentLeft="true"
+              android:layout_alignParentTop="true"
+              android:layout_marginTop="9dp"
+              android:layout_marginLeft="9dp"
+              android:singleLine="true"
+              android:ellipsize="middle"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/value"
+              android:textAppearance="?android:attr/textAppearanceMedium"
+              android:layout_alignParentRight="true"
+              android:layout_alignParentBottom="true"
+              android:layout_marginBottom="9dp"
+              android:layout_marginRight="9dp"
+              android:gravity="right"
+              android:singleLine="true"
+              android:ellipsize="middle"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+</RelativeLayout>

@@ -21,7 +21,6 @@ import android.content.Context;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.osmp.ResponseParser;
 import org.pvoid.apteryxaustralis.types.Group;
-import org.pvoid.apteryxaustralis.ui.TerminalsArrayAdapter;
 
 import java.util.Comparator;
 import java.util.List;
@@ -115,40 +114,6 @@ public class OsmpStorage
   {
     _mStorage.getAgentsActive(groups);
   }
-
-  public void getTerminals(long accountId, Group group, TerminalsArrayAdapter terminals)
-  {
-    /*ArrayList<ResponseParser.Terminal> terminalsList = new ArrayList<ResponseParser.Terminal>();
-    _mStorage.getTerminals(group.id,terminalsList);
-    int adapterIndex = 0;
-    while(adapterIndex<terminals.getCount())
-    {
-//////// Ищем имеющийся в новых
-      ResponseParser.Terminal current = (ResponseParser.Terminal)terminals.getItem(adapterIndex);
-      boolean found = false;
-      for(ResponseParser.Terminal terminal : terminalsList)
-      {
-        if(terminal.id() == current.id())
-        {
-          current.update(terminal);
-          terminalsList.remove(terminal);
-          found = true;
-          break;
-        }
-      }
-//////// если нашли увеличим индекс, если нет удалим текущий
-      if(found)
-        ++adapterIndex;
-      else
-        terminals.remove(current);
-    }
-//////// то что осталось в списке новое. добавим его.
-    for(ResponseParser.Terminal terminal : terminalsList)
-      {
-        terminals.add(terminal);
-      }*/
-  }
-
 
 /*  public int refresh(Account account)
   {

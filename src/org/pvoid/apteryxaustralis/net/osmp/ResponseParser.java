@@ -72,7 +72,7 @@ public class ResponseParser extends DefaultHandler
   {
     _mGroupIndex = 0;
     _mDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    TimeZone timezone = TimeZone.getTimeZone("Europe/Moscow");
+    TimeZone timezone = TimeZone.getTimeZone("UTC");
     _mDateFormat.setTimeZone(timezone);
   }
 
@@ -144,7 +144,7 @@ public class ResponseParser extends DefaultHandler
 //////// последняя активность
       try
       {
-        terminal.lastActivity = _mDateFormat.parse(getString(attributes, "lat")).getTime();
+        terminal.lastActivity = _mDateFormat.parse(getString(attributes, "lat")).getTime()-4*60*60*1000;
       }
       catch(ParseException e)
       {
@@ -154,7 +154,7 @@ public class ResponseParser extends DefaultHandler
 //////// последний платеж
       try
       {
-        terminal.lastPayment = _mDateFormat.parse(getString(attributes, "lpd")).getTime();
+        terminal.lastPayment = _mDateFormat.parse(getString(attributes, "lpd")).getTime()-4*60*60*1000;
       }
       catch(ParseException e)
       {
@@ -287,6 +287,7 @@ public class ResponseParser extends DefaultHandler
         {
           e.printStackTrace();
         }
+      //noinspection UnnecessaryReturnStatement
       return;
     }
   }
@@ -420,50 +421,11 @@ public class ResponseParser extends DefaultHandler
       return(_mState);
     }
 
-    public void update(Terminal terminal)
-    {
-      _mState = terminal.State();
-      printer_state = terminal.printer_state;
-      cashbin_state = terminal.cashbin_state;
-      cash = terminal.cash;
-      lastActivity = terminal.lastActivity;
-      lastPayment = terminal.lastPayment;
-      bondsCount = terminal.bondsCount;
-      balance = terminal.balance;
-      signalLevel = terminal.signalLevel;
-      softVersion = terminal.softVersion;
-      printerModel = terminal.printerModel;
-      cashbinModel = terminal.cashbinModel;
-      bonds10count = terminal.bonds10count;
-      bonds50count = terminal.bonds50count;
-      bonds100count = terminal.bonds100count;
-      bonds500count = terminal.bonds500count;
-      bonds1000count = terminal.bonds1000count;
-      bonds5000count = terminal.bonds5000count;
-      bonds10000count = terminal.bonds10000count;
-      paysPerHour = terminal.paysPerHour;
-      agentId = terminal.agentId;
-      agentName = terminal.agentName;
-      address = terminal.address;
-      ms = terminal.ms;
-    }
-
     @Override
     public String toString()
     {
       return address;
     }
-
-    public long getId()
-    {
-      return tid;
-    }
-
-    public String getTitle()
-    {
-      return address;
-    }
-
 
     public void getStatuses(Context context, List<StatusLine> statuses)
     {
@@ -600,11 +562,6 @@ public class ResponseParser extends DefaultHandler
           break;
       }
     }*/
-
-    public int getCash()
-    {
-      return cash;
-    }
 
     private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
     {

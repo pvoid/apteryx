@@ -19,13 +19,32 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="fill_parent"
-                android:layout_height="52dp">
-  <TextView android:id="@+id/agent_name"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:minHeight="?android:attr/listPreferredItemHeight">
+  <TextView android:id="@+id/list_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#ffffffff"
+            android:singleLine="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"/>
+  <TextView android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:singleLine="true"
             android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"/>
+            android:layout_alignParentBottom="true"
+            android:text="@string/balance_title"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="10dp"
+            android:ellipsize="marquee" />
+  <ImageView android:id="@+id/icon"
+             android:src="@drawable/group_status"
+             android:layout_alignParentLeft="true"
+             android:layout_alignParentTop="true"
+             android:layout_width="6dip"
+             android:layout_height="fill_parent"/>
 </RelativeLayout>

@@ -17,15 +17,9 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="fill_parent"
-                android:layout_height="52dp">
-  <TextView android:id="@+id/agent_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#ffffffff"
-            android:singleLine="true"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"/>
-</RelativeLayout>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:drawable="@drawable/ic_terminal_active" android:maxLevel="0" />
+  <item android:drawable="@drawable/ic_terminal_pending" android:maxLevel="1" />
+  <item android:drawable="@drawable/ic_terminal_printer_error" android:maxLevel="2" />
+  <item android:drawable="@drawable/ic_terminal_inactive" android:maxLevel="3" />
+</level-list>
