@@ -34,6 +34,8 @@ public class TerminalInfoFragment extends ListFragment
   public static final String EXTRA_TERMINAL = "id";
 
   private TerminalInfoAdapter _mInfo;
+  private long                _mAccount;
+  private long                _mTerminalId;
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState)
@@ -43,9 +45,13 @@ public class TerminalInfoFragment extends ListFragment
     setListAdapter(_mInfo);
   }
 
-  public void loadTerminalInfo(long id)
+  public long getAccount()
   {
-    _mInfo.clear();
+    return _mAccount;
+  }
+
+  public void refresh()
+  {
 //////// Вытащим данные
     final Cursor cursor = getActivity().getContentResolver().query(
        OsmpContentProvider.Terminals.CONTENT_URI,
@@ -66,16 +72,18 @@ public class TerminalInfoFragment extends ListFragment
             OsmpContentProvider.Terminals.COLUMN_BONDS1000,
             OsmpContentProvider.Terminals.COLUMN_BONDS5000,
             OsmpContentProvider.Terminals.COLUMN_PRINTERMODEL,
-            OsmpContentProvider.Terminals.COLUMN_CASHBINMODEL
+            OsmpContentProvider.Terminals.COLUMN_CASHBINMODEL,
+            OsmpContentProvider.Terminals.COLUMN_ACCOUNTID
            },
        OsmpContentProvider.Terminals.COLUMN_ID + "=?",
-       new String[] {Long.toString(id)},
+       new String[] {Long.toString(_mTerminalId)},
        null
     );
     try
     {
       if(cursor.moveToFirst())
       {
+        _mAccount = cursor.getLong(16);
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_cash), TextFormat.formatMoney(cursor.getInt(0), true)));
 
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_last_payment), TextFormat.formatDateSmart(getActivity(), cursor.getLong(1))));
@@ -103,6 +111,13 @@ public class TerminalInfoFragment extends ListFragment
       if(cursor!=null)
         cursor.close();
     }
+  }
+
+  public void loadTerminalInfo(long id)
+  {
+    _mInfo.clear();
+    _mTerminalId = id;
+    refresh();
   }
 
   private static class TerminalInfo

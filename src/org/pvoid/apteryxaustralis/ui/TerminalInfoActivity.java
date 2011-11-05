@@ -17,18 +17,33 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActionBar;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.RefreshableActivity;
+import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalInfoFragment;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsCursorAdapter;
 
-public class TerminalInfoActivity extends FragmentActivity implements ActionBar.OnNavigationListener
+public class TerminalInfoActivity extends RefreshableActivity implements ActionBar.OnNavigationListener
 {
+  TerminalsCursorAdapter     _mTerminals;
+  private final Handler      _mUiHandler = new Handler();
   final TerminalInfoFragment _mFragment = new TerminalInfoFragment();
+  final TerminalsObserver    _mObserver = new TerminalsObserver(_mUiHandler);
+  private final Runnable _mStopRefreshRunnable = new Runnable()
+  {
+    @Override
+    public void run()
+    {
+      showRefreshProgress(false);
+    }
+  };
 
   public void onCreate(Bundle savedInstanceState)
   {
@@ -49,11 +64,11 @@ public class TerminalInfoActivity extends FragmentActivity implements ActionBar.
 /////////
     final ActionBar bar = getSupportActionBar();
     bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-    TerminalsCursorAdapter terminals = new TerminalsCursorAdapter(this, null, R.layout.terminal_list);
-    bar.setListNavigationCallbacks(terminals,this);
+    _mTerminals = new TerminalsCursorAdapter(this, null, R.layout.terminal_list);
+    bar.setListNavigationCallbacks(_mTerminals,this);
 //////// Ищем выбранный терминал
-    for(int index=0;index< terminals.getCount();++index)
-      if(terminals.getItemId(index) == id)
+    for(int index=0;index< _mTerminals.getCount();++index)
+      if(_mTerminals.getItemId(index) == id)
       {
         bar.setSelectedNavigationItem(index);
         break;
@@ -61,9 +76,61 @@ public class TerminalInfoActivity extends FragmentActivity implements ActionBar.
   }
 
   @Override
+  protected void onPause()
+  {
+    super.onPause();
+    getContentResolver().unregisterContentObserver(_mObserver);
+  }
+
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,true,_mObserver);
+  }
+
+  @Override
   public boolean onNavigationItemSelected(int itemPosition, long itemId)
   {
     _mFragment.loadTerminalInfo(itemId);
     return true;
+  }
+
+  @Override
+  protected void refreshInfo()
+  {
+    (new RefreshTask()).start();
+  }
+
+  private class RefreshTask extends Thread
+  {
+    @Override
+    public void run()
+    {
+      final Bundle bundle = new Bundle();
+      if(!getAccountData(_mFragment.getAccount(),bundle))
+      {
+        _mUiHandler.post(_mStopRefreshRunnable);
+        return;
+      }
+      Request.refresh(TerminalInfoActivity.this, bundle);
+      _mUiHandler.post(_mStopRefreshRunnable);
+    }
+  }
+
+  private class TerminalsObserver extends ContentObserver
+  {
+    public TerminalsObserver(Handler handler)
+    {
+      super(handler);
+    }
+
+    @Override
+    public void onChange(boolean selfChange)
+    {
+      super.onChange(selfChange);
+      _mTerminals.refresh();
+      _mFragment.refresh();
+    }
   }
 }
