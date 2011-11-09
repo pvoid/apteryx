@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryxaustralis.ui.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.Bundle;
@@ -27,12 +28,14 @@ import android.widget.ListView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.TerminalInfoActivity;
+import org.pvoid.apteryxaustralis.ui.widgets.AgentHeader;
 
 public class TerminalsFragment extends ListFragment
 {
   public static final String ARGUMENT_AGENT = "agent";
 
   private final TerminalsObserver _mTerminalsObserver = new TerminalsObserver(new Handler());
+  private AgentHeader _mHeader;
 
   private long getGroupId()
   {
@@ -55,8 +58,13 @@ public class TerminalsFragment extends ListFragment
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
-    setListAdapter(new TerminalsCursorAdapter(getActivity(),getWhereClause(), R.layout.terminal));
-    getActivity().getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,true,_mTerminalsObserver);
+    final Activity activity = getActivity();
+    final ListView list = getListView();
+    _mHeader = new AgentHeader(activity);
+    _mHeader.loadAgentData(getGroupId());
+    list.addHeaderView(_mHeader,null,false);
+    setListAdapter(new TerminalsCursorAdapter(activity,getWhereClause(), R.layout.record_terminal));
+    activity.getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,true,_mTerminalsObserver);
   }
 
   @Override
@@ -86,6 +94,7 @@ public class TerminalsFragment extends ListFragment
     {
       super.onChange(selfChange);
       ((TerminalsCursorAdapter)getListAdapter()).refresh();
+      _mHeader.loadAgentData(getGroupId());
     }
   }
 }

@@ -57,6 +57,15 @@ public class TerminalsCursorAdapter extends CursorAdapter
     }
 
     @Override
+    public View newDropDownView(Context context, Cursor cursor, ViewGroup parent)
+    {
+      final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      final View view = inflater.inflate(R.layout.record_terminal_dropdown,parent,false);
+      bindView(view,context,cursor);
+      return view;
+    }
+
+    @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent)
     {
       final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

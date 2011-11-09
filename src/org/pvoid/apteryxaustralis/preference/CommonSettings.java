@@ -38,7 +38,6 @@ import android.widget.Toast;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
 import org.pvoid.apteryxaustralis.net.Request;
-import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
 public class CommonSettings extends PreferenceActivity implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener, DialogInterface.OnClickListener

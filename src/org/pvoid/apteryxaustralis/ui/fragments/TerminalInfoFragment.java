@@ -28,6 +28,7 @@ import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.TextFormat;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
+import org.pvoid.apteryxaustralis.ui.widgets.TerminalHeader;
 
 public class TerminalInfoFragment extends ListFragment
 {
@@ -36,12 +37,18 @@ public class TerminalInfoFragment extends ListFragment
   private TerminalInfoAdapter _mInfo;
   private long                _mAccount;
   private long                _mTerminalId;
+  private TerminalHeader      _mHeader;
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
-    _mInfo = new TerminalInfoAdapter(getActivity());
+    final Context context = getActivity();
+    _mInfo = new TerminalInfoAdapter(context);
+    _mHeader = new TerminalHeader(context);
+    getListView().setHeaderDividersEnabled(false);
+    _mHeader.setEnabled(false);
+    getListView().addHeaderView(_mHeader,null,true);
     setListAdapter(_mInfo);
   }
 
@@ -73,7 +80,10 @@ public class TerminalInfoFragment extends ListFragment
             OsmpContentProvider.Terminals.COLUMN_BONDS5000,
             OsmpContentProvider.Terminals.COLUMN_PRINTERMODEL,
             OsmpContentProvider.Terminals.COLUMN_CASHBINMODEL,
-            OsmpContentProvider.Terminals.COLUMN_ACCOUNTID
+            OsmpContentProvider.Terminals.COLUMN_ACCOUNTID,
+            OsmpContentProvider.Terminals.COLUMN_CASHBINSTATE,
+            OsmpContentProvider.Terminals.COLUMN_PRINTERSTATE,
+            OsmpContentProvider.Terminals.COLUMN_MS
            },
        OsmpContentProvider.Terminals.COLUMN_ID + "=?",
        new String[] {Long.toString(_mTerminalId)},
@@ -104,6 +114,8 @@ public class TerminalInfoFragment extends ListFragment
 
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_printer),cursor.getString(14)));
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_cashbin),cursor.getString(15)));
+
+        _mHeader.setData(cursor.getString(17),cursor.getString(18),cursor.getInt(19));
       }
     }
     finally
@@ -156,6 +168,12 @@ public class TerminalInfoFragment extends ListFragment
           text.setText(getItem(position).value);
       }
       return convertView;
+    }
+
+    @Override
+    public boolean areAllItemsEnabled()
+    {
+      return true;
     }
 
     @Override

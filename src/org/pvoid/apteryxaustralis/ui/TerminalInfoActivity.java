@@ -64,8 +64,8 @@ public class TerminalInfoActivity extends RefreshableActivity implements ActionB
 /////////
     final ActionBar bar = getSupportActionBar();
     bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-    _mTerminals = new TerminalsCursorAdapter(this, null, R.layout.terminal_list);
-    bar.setListNavigationCallbacks(_mTerminals,this);
+    _mTerminals = new TerminalsCursorAdapter(this, null, R.layout.record_terminal_actionbar);
+    bar.setListNavigationCallbacks(_mTerminals, this);
 //////// Ищем выбранный терминал
     for(int index=0;index< _mTerminals.getCount();++index)
       if(_mTerminals.getItemId(index) == id)

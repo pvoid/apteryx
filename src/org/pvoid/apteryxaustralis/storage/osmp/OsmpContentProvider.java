@@ -17,13 +17,19 @@
 
 package org.pvoid.apteryxaustralis.storage.osmp;
 
-import android.content.*;
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.TextFormat;
+import org.pvoid.apteryxaustralis.types.StatusLine;
+
+import java.util.List;
 
 public class OsmpContentProvider extends ContentProvider
 {
@@ -45,17 +51,18 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_LAST_UPDATE = "last_update";
     static final String COLUMN_STATE = "state";
     static final String COLUMN_SEEN = "seen";
+    static final String COLUMN_CASH = "cash";
   }
 
   public static interface Terminals
   {
     static final String MIMETYPE    = "vnd.org.pvoid.osmp.terminal";
     static final Uri    CONTENT_URI = Uri.parse("content://"+AUTHORITY+"/terminals");
-    static final String TABLE_NAME = "terminals";
-    static final String COLUMN_ID = "_id";
-    static final String COLUMN_ADDRESS = "address";
-    static final String COLUMN_STATE = "state";
-    static final String COLUMN_MS = "ms";
+    static final String TABLE_NAME          = "terminals";
+    static final String COLUMN_ID           = "_id";
+    static final String COLUMN_ADDRESS      = "address";
+    static final String COLUMN_STATE        = "state";
+    static final String COLUMN_MS           = "ms";
     static final String COLUMN_PRINTERSTATE = "printer_state";
     static final String COLUMN_CASHBINSTATE = "cashbin_state";
     static final String COLUMN_CASH         = "cash";
@@ -67,18 +74,18 @@ public class OsmpContentProvider extends ContentProvider
     static final String COLUMN_SOFTVERSION  = "soft_version";
     static final String COLUMN_PRINTERMODEL = "printer_model";
     static final String COLUMN_CASHBINMODEL = "cashbin_model";
-    static final String COLUMN_BONDS10 = "bonds_10";
-    static final String COLUMN_BONDS50 = "bonds_50";
-    static final String COLUMN_BONDS100 = "bonds_100";
-    static final String COLUMN_BONDS500 = "bonds_500";
-    static final String COLUMN_BONDS1000 = "bonds_1000";
-    static final String COLUMN_BONDS5000 = "bonds_5000";
-    static final String COLUMN_BONDS10000 = "bonds_10000";
-    static final String COLUMN_PAYSPERHOUR = "pays_per_hour";
-    static final String COLUMN_AGENTID = "agent_id";
-    static final String COLUMN_AGENTNAME = "agent_name";
-    static final String COLUMN_ACCOUNTID = "account_id";
-    static final String COLUMN_FINAL_STATE = "final_state";
+    static final String COLUMN_BONDS10      = "bonds_10";
+    static final String COLUMN_BONDS50      = "bonds_50";
+    static final String COLUMN_BONDS100     = "bonds_100";
+    static final String COLUMN_BONDS500     = "bonds_500";
+    static final String COLUMN_BONDS1000    = "bonds_1000";
+    static final String COLUMN_BONDS5000    = "bonds_5000";
+    static final String COLUMN_BONDS10000   = "bonds_10000";
+    static final String COLUMN_PAYSPERHOUR  = "pays_per_hour";
+    static final String COLUMN_AGENTID      = "agent_id";
+    static final String COLUMN_AGENTNAME    = "agent_name";
+    static final String COLUMN_ACCOUNTID    = "account_id";
+    static final String COLUMN_FINAL_STATE  = "final_state";
   }
 
   protected final static int OSMP_STATE_OK = 0;
@@ -142,7 +149,38 @@ public class OsmpContentProvider extends ContentProvider
       case AGENTS_REQUEST:
       {
         final SQLiteDatabase db = _mStorage.getReadableDatabase();
-        return db.query(Agents.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+
+        final StringBuilder sql = new StringBuilder("select ");
+        boolean first = true;
+        boolean appendTerminalsTable = false;
+////////////
+        for(String column : projection)
+        {
+          if(!first)
+            sql.append(",");
+          else
+            first = false;
+          if(Agents.COLUMN_CASH.equals(column))
+          {
+            appendTerminalsTable = true;
+            sql.append("sum(t.").append(Terminals.COLUMN_CASH).append(")");
+          }
+          else
+            sql.append("a.").append(column);
+        }
+        sql.append(", a.").append(Agents.COLUMN_AGENT).append(" as ").append(Agents.COLUMN_AGENT);
+        sql.append(" from ").append(Agents.TABLE_NAME).append(" a");
+        if(appendTerminalsTable)
+        {
+          sql.append(" left join ").append(Terminals.TABLE_NAME).append(" t on a.")
+                                   .append(Agents.COLUMN_AGENT).append("=t.").append(Terminals.COLUMN_AGENTID);
+        }
+        if(selection!=null)
+          sql.append(" where ").append(selection.replace(Agents.COLUMN_AGENT,"a."+Agents.COLUMN_AGENT));
+        if(sortOrder!=null)
+          sql.append(" order by ").append(sortOrder);
+
+        return db.rawQuery(sql.toString(),selectionArgs);
       }
       case TERMINALS_REQUEST:
       {
@@ -312,5 +350,86 @@ public class OsmpContentProvider extends ContentProvider
             return STATE_ERROR_CRITICAL;
           return STATE_ERROR;
       }
+    }
+
+  public static void getStatuses(Context context, String cashbinState, String printerState, int ms, List<StatusLine> statuses)
+    {
+      if(!"OK".equals(printerState))
+        statuses.add(new StatusLine(printerState,StatusLine.STATE_ERROR));
+
+      if(!"OK".equals(cashbinState))
+        statuses.add(new StatusLine(cashbinState,StatusLine.STATE_ERROR));
+
+      /*if(ms & STATE_PRINTER_STACKER_ERROR != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_PRINTER_STACKER_ERROR)));*/
+
+      if((ms & STATE_INTERFACE_ERROR) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_INTERFACE_ERROR),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_UPLOADING_UPDATES) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPLOADING_UPDATES),StatusLine.STATE_OK));
+
+      if((ms & STATE_DEVICES_ABSENT) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_DEVICES_ABSENT),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_WATCHDOG_TIMER) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_WATCHDOG_TIMER),StatusLine.STATE_OK));
+
+      if((ms & STATE_PAPER_COMING_TO_END) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_PAPER_COMING_TO_END),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_STACKER_REMOVED) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_STACKER_REMOVED),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_ESSENTIAL_ELEMENTS_ERROR) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_ESSENTIAL_ELEMENTS_ERROR),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_HARDDRIVE_PROBLEMS) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_HARDDRIVE_PROBLEMS),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_STOPPED_DUE_BALANCE) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_STOPPED_DUE_BALANCE),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_HARDWARE_OR_SOFTWARE_PROBLEM) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_HARDWARE_OR_SOFTWARE_PROBLEM),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_HAS_SECOND_MONITOR) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_HAS_SECOND_MONITOR),StatusLine.STATE_OK));
+
+      if((ms & STATE_ALTERNATE_NETWORK_USED) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_ALTERNATE_NETWORK_USED),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_UNAUTHORIZED_SOFTWARE) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UNAUTHORIZED_SOFTWARE),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_PROXY_SERVER) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_PROXY_SERVER),StatusLine.STATE_OK));
+
+      if((ms & STATE_UPDATING_CONFIGURATION) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_CONFIGURATION),StatusLine.STATE_OK));
+
+      if((ms & STATE_UPDATING_NUMBERS) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_NUMBERS),StatusLine.STATE_OK));
+
+      if((ms & STATE_UPDATING_PROVIDERS) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_PROVIDERS),StatusLine.STATE_OK));
+
+      if((ms & STATE_UPDATING_ADVERT) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_ADVERT),StatusLine.STATE_OK));
+
+      if((ms & STATE_UPDATING_FILES) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_UPDATING_FILES),StatusLine.STATE_OK));
+
+      if((ms & STATE_FAIR_FTP_IP) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_FAIR_FTP_IP),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_ASO_MODIFIED) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_ASO_MODIFIED),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_INTERFACE_MODIFIED) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_INTERFACE_MODIFIED),StatusLine.STATE_ERROR));
+
+      if((ms & STATE_ASO_ENABLED) != 0)
+        statuses.add(new StatusLine(context.getString(R.string.STATE_ASO_ENABLED),StatusLine.STATE_ERROR));
     }
 }

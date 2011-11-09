@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Copyright (C) 2010-2011  Dmitry Petuhov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="fill_parent"
+             android:layout_height="wrap_content"
+             android:background="@drawable/list_header">
+  <TableRow>
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginRight="5dp"
+              android:textColor="#ffffffff"
+              android:textStyle="bold"
+              android:gravity="right"
+              android:text="@string/fullinfo_cash"/>
+    <TextView android:id="@+id/agent_cash"
+              android:textColor="#ffffffff"
+              android:layout_width="0px"
+              android:layout_weight="1"
+              android:layout_height="wrap_content"/>
+  </TableRow>
+  <TableRow>
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginRight="5dp"
+              android:textColor="#ffffffff"
+              android:textStyle="bold"
+              android:gravity="right"
+              android:text="@string/balance_title"/>
+    <TextView android:id="@+id/agent_balance"
+              android:textColor="#ffffffff"
+              android:layout_width="0px"
+              android:layout_weight="1"
+              android:layout_height="wrap_content"/>
+  </TableRow>
+  <TableRow>
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginRight="5dp"
+              android:textColor="#ffffffff"
+              android:textStyle="bold"
+              android:gravity="right"
+              android:text="@string/overdraft_title"/>
+    <TextView android:id="@+id/agent_overdraft"
+              android:textColor="#ffffffff"
+              android:layout_marginLeft="2dp"
+              android:layout_width="0px"
+              android:layout_weight="1"
+              android:layout_height="wrap_content"/>
+  </TableRow>
+</TableLayout>

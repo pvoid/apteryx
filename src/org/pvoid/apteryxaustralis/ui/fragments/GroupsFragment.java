@@ -35,7 +35,7 @@ public class GroupsFragment extends ListFragment
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
-    setListAdapter(new GroupsAdapter(getActivity(),R.layout.record_group));
+    setListAdapter(new GroupsAdapter(getActivity(), R.layout.record_group));
     getActivity().getContentResolver().registerContentObserver(OsmpContentProvider.Agents.CONTENT_URI,true,_mObserver);
     super.onViewCreated(view, savedInstanceState);
   }

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
   ~ Copyright (C) 2010-2011  Dmitry Petuhov
   ~
@@ -15,11 +16,10 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
-    android:minHeight="?android:attr/listPreferredItemHeight"    
+    android:minHeight="?android:attr/listPreferredItemHeight"
     android:orientation="horizontal">
 
   <ImageView android:id="@+id/icon"
@@ -44,13 +44,14 @@
 		            android:textAppearance="?android:attr/textAppearanceMedium"
 		            android:singleLine="true"
 		            android:ellipsize="end" />
-		  
+
 		  <TextView android:id="@+id/status"
 		            android:layout_width="fill_parent"
 		            android:textColor="?android:attr/textColorPrimary"
 		            android:textAppearance="?android:attr/textAppearanceSmall"
-		            android:layout_height="wrap_content" 
+		            android:layout_height="wrap_content"
 		            android:singleLine="true"
+		            android:text="Test"
 		            android:ellipsize="end"/>
   </LinearLayout>
 </RelativeLayout>
