@@ -299,6 +299,7 @@ public class OsmpRequest implements IRequest
     final List<ResponseParser.Terminal> terminals = parser.getTerminals();
     final ContentValues values = new ContentValues();
     final ContentResolver resolver = context.getContentResolver();
+///////
     boolean notifyObserver = false;
     for(ResponseParser.Terminal terminal : terminals)
     {

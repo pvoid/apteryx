@@ -25,7 +25,7 @@ import android.support.v4.app.ActionBar;
 import android.support.v4.app.FragmentManager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
-import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalInfoFragment;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsCursorAdapter;
@@ -113,7 +113,7 @@ public class TerminalInfoActivity extends RefreshableActivity implements ActionB
         _mUiHandler.post(_mStopRefreshRunnable);
         return;
       }
-      Request.refresh(TerminalInfoActivity.this, bundle);
+      ContentLoader.refresh(TerminalInfoActivity.this, bundle);
       _mUiHandler.post(_mStopRefreshRunnable);
     }
   }

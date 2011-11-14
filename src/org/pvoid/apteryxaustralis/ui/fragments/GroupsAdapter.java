@@ -93,7 +93,7 @@ public class GroupsAdapter extends CursorAdapter
         text.setVisibility(View.GONE);
     ////////
     ImageView image = (ImageView) view.findViewById(R.id.agent_state);
-    if(image!=null)
+    if(image!=null && cursor.getInt(3)==0)
       image.getDrawable().setLevel(cursor.getInt(2));
   }
 

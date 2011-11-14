@@ -21,6 +21,7 @@ import android.graphics.PixelFormat;
 import android.os.Bundle;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 
 public class MainActivity extends RefreshableActivity
 {
@@ -549,9 +550,5 @@ public class MainActivity extends RefreshableActivity
       android.os.Process.killProcess(android.os.Process.myPid());
     }
   }*/
-  @Override
-  protected void refreshInfo()
-  {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
+
 }

@@ -18,10 +18,12 @@
 package org.pvoid.apteryxaustralis.net;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
+import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,7 +34,6 @@ import java.net.URL;
 
 public class Request
 {
-  private static OsmpRequest _mOsmpRequest;
 
   public static final int STATE_OK = 0;
   public static final int STATE_WARNING = 1;
@@ -92,44 +93,6 @@ public class Request
       e.printStackTrace();
     }
     return null;
-  }
-  /**
-   * Добавляет новый аккаунт
-   * @param context     контекст исполнения
-   * @param accountData данные по аккаунту
-   * @return код результата
-   */
-  public static int addAccount(Context context, Bundle accountData)
-  {
-    final OsmpRequest request = getOsmpRequest();
-    ////////
-    int result = request.checkAccount(context,accountData);
-    if(result==0)
-      result = request.getBalances(context,accountData);
-    if(result==0)
-      result = request.getTerminals(context,accountData);
-    ////////
-    return result;
-  }
-
-  public static int refresh(Context context, Bundle accountData)
-  {
-    final OsmpRequest request = getOsmpRequest();
-    ////////
-    int result = request.getBalances(context,accountData);
-    if(result==0)
-      result = request.getTerminals(context,accountData);
-    return result;
-  }
-
-  private static OsmpRequest getOsmpRequest()
-  {
-    synchronized(OsmpRequest.class)
-    {
-      if(_mOsmpRequest==null)
-        _mOsmpRequest = new OsmpRequest();
-    }
-    return _mOsmpRequest;
   }
 
   public static class Response

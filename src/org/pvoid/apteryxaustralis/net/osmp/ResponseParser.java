@@ -18,15 +18,8 @@
 package org.pvoid.apteryxaustralis.net.osmp;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Log;
 import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.TextFormat;
-import org.pvoid.apteryxaustralis.storage.ICommandResult;
-import org.pvoid.apteryxaustralis.storage.osmp.OsmpStorage;
-import org.pvoid.apteryxaustralis.types.InfoLine;
-import org.pvoid.apteryxaustralis.types.StatusLine;
 import org.pvoid.apteryxaustralis.types.TerminalAction;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -134,7 +127,6 @@ public class ResponseParser extends DefaultHandler
 //////// статус
       terminal.State(getInt(attributes, "rs", 0));
       terminal.ms = getInt(attributes,"ms",0);
-      Log.v(ResponseParser.class.getSimpleName(),"ms value: " + attributes.getValue("ms") + " parsed "+terminal.ms);
 //////// состояние принтера
       terminal.printer_state = getString(attributes, "rp", "none");
 //////// состояние купироприемника
@@ -186,6 +178,8 @@ public class ResponseParser extends DefaultHandler
       terminal.agentId         = getLong(attributes, "aid",0);
       terminal.agentName       = getString(attributes, "an");
 //////// и добавим
+      //terminal.ms = 0;
+      //terminal._mState = 0;
       _mTerminals.add(terminal);
     }
   }
@@ -427,31 +421,6 @@ public class ResponseParser extends DefaultHandler
       return address;
     }
 
-
-
-    public void getInfo(Context context, List<InfoLine> statuses)
-    {
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_cash),TextFormat.formatMoney(cash,true)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_payment), TextFormat.formatDateSmart(context, lastPayment)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_last_activity), TextFormat.formatDateSmart(context, lastActivity)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_pays_per_hour),paysPerHour));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_balance),balance));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_signal_level),Integer.toString(signalLevel)));
-
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_soft_version),softVersion));
-
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds),Integer.toString(bondsCount)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds10),Integer.toString(bonds10count)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds50),Integer.toString(bonds50count)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds100),Integer.toString(bonds100count)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds500),Integer.toString(bonds500count)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds1000),Integer.toString(bonds1000count)));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_bonds5000),Integer.toString(bonds5000count)));
-
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_printer),printerModel));
-      statuses.add(new InfoLine(context.getString(R.string.fullinfo_cashbin),cashbinModel));
-    }
-
     public void getActions(Context context, List<TerminalAction> actions)
     {
       actions.add(new TerminalAction(ACTION_REBOOT,context.getString(R.string.reboot)));
@@ -484,7 +453,7 @@ public class ResponseParser extends DefaultHandler
       }
     }*/
 
-    private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
+    /*private static class RebootTerminalTask extends AsyncTask<Long,Void,Integer>
     {
       private final String _mName;
       private final ICommandResult _mHandler;
@@ -509,8 +478,8 @@ public class ResponseParser extends DefaultHandler
         /*if(result == IStorage.RES_OK)
           _mHandler.onCommandResult(true,R.string.reboot_command_sended,_mName);
         else
-          _mHandler.onCommandResult(false,R.string.network_error,_mName);*/
+          _mHandler.onCommandResult(false,R.string.network_error,_mName);
       }
-    }
+    }*/
   }
 }

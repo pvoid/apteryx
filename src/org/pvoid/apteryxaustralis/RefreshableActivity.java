@@ -17,7 +17,10 @@
 
 package org.pvoid.apteryxaustralis;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.drawable.LevelListDrawable;
 import android.os.Bundle;
@@ -25,11 +28,12 @@ import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.Menu;
 import android.support.v4.view.MenuItem;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
-public abstract class RefreshableActivity extends FragmentActivity
+public class RefreshableActivity extends FragmentActivity
 {
   private final static int MENU_REFRESH  = 0;
   private final static int MENU_SETTINGS = 1;
@@ -51,6 +55,41 @@ public abstract class RefreshableActivity extends FragmentActivity
     }
   };
 
+  private final BroadcastReceiver _mLoadingStateReceiver = new BroadcastReceiver()
+  {
+    @Override
+    public void onReceive(Context context, Intent intent)
+    {
+      final String action = intent.getAction();
+      if(ContentLoader.LOADING_STARTED.equals(action))
+      {
+        showRefreshProgress(true);
+      }
+      else if(ContentLoader.LOADING_FINISHED.equals(action))
+      {
+        showRefreshProgress(false);
+      }
+    }
+  };
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+////////
+    IntentFilter filter = new IntentFilter(ContentLoader.LOADING_STARTED);
+    filter.addAction(ContentLoader.LOADING_FINISHED);
+    registerReceiver(_mLoadingStateReceiver,filter);
+
+  }
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    unregisterReceiver(_mLoadingStateReceiver);
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
@@ -60,18 +99,22 @@ public abstract class RefreshableActivity extends FragmentActivity
     item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
     item = menu.add(Menu.NONE, MENU_SETTINGS, Menu.FIRST, R.string.settings);
     item.setIcon(android.R.drawable.ic_menu_preferences);
+////////
+    showRefreshProgress(ContentLoader.isLoading());
+////////
     return super.onCreateOptionsMenu(menu);
   }
 
   protected void showRefreshProgress(boolean inProgress)
   {
+    if(_mProgressDrawable==null)
+      return;
+////////
+    _mHandler.removeCallbacks(_mProgressRunnable);
+    _mProgressDrawable.setLevel(0);
+////////
     if(inProgress)
       _mHandler.postDelayed(_mProgressRunnable,ANIMATION_INTERVAL);
-    else
-    {
-      _mHandler.removeCallbacks(_mProgressRunnable);
-      _mProgressDrawable.setLevel(0);
-    }
   }
 
   @Override
@@ -80,7 +123,6 @@ public abstract class RefreshableActivity extends FragmentActivity
     switch(item.getItemId())
     {
       case MENU_REFRESH:
-        showRefreshProgress(_mProgressDrawable.getLevel()==0);
         refreshInfo();
         return true;
       case MENU_SETTINGS:
@@ -116,5 +158,8 @@ public abstract class RefreshableActivity extends FragmentActivity
     return false;
   }
 
-  protected abstract void refreshInfo();
+  protected void refreshInfo()
+  {
+    ContentLoader.refresh(this);
+  }
 }

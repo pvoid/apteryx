@@ -218,6 +218,24 @@ public class OsmpContentProvider extends ContentProvider
       case TERMINALS_REQUEST:
       {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
+//////////////
+        int oldState = 0;
+        final Cursor cursor = db.query(Terminals.TABLE_NAME,
+                                       new String[] {Terminals.COLUMN_FINAL_STATE},
+                                       Terminals.COLUMN_ID+"=?",
+                                       new String[] {contentValues.getAsString(Terminals.COLUMN_ID)},
+                                       null,null,null);
+        try
+        {
+          if(cursor.moveToFirst())
+            oldState = cursor.getInt(0);
+        }
+        finally
+        {
+          if(cursor!=null)
+            cursor.close();
+        }
+//////////////
         final int state = getState(contentValues.getAsInteger(Terminals.COLUMN_STATE),
                                                               contentValues.getAsString(Terminals.COLUMN_PRINTERSTATE),
                                                               contentValues.getAsLong(Terminals.COLUMN_LASTACTIVITY));
@@ -227,11 +245,11 @@ public class OsmpContentProvider extends ContentProvider
         if(!result)
           result = db.insert(Terminals.TABLE_NAME,null,contentValues)!=-1;
 //////////////
-        if(result)
-        {
+        if(!result)
+          break;
+        if(state>oldState)
           updateGroup(db,agentId,state);
-          return uri;
-        }
+        return uri;
       }
     }
     return null;
@@ -267,7 +285,10 @@ public class OsmpContentProvider extends ContentProvider
       case AGENTS_REQUEST:
       {
         final SQLiteDatabase db = _mStorage.getWritableDatabase();
-        return db.update(Agents.TABLE_NAME,contentValues,whereClause,selectionArgs);
+        final int result = db.update(Agents.TABLE_NAME,contentValues,whereClause,selectionArgs);
+        if(result>0)
+          getContext().getContentResolver().notifyChange(Agents.CONTENT_URI,null);
+        return result;
       }
       case TERMINALS_REQUEST:
       {

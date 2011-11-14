@@ -37,6 +37,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
@@ -413,7 +414,7 @@ public class CommonSettings extends PreferenceActivity implements Preference.OnP
       if(bundles.length!=1)
         return null;
       //---
-      return Request.addAccount(CommonSettings.this,bundles[0]);
+      return ContentLoader.addAccount(CommonSettings.this, bundles[0]);
     }
 
     @Override

@@ -26,6 +26,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.Preferences;
@@ -56,7 +57,7 @@ public class StatesReceiver extends BroadcastReceiver
         accountData.putString(OsmpRequest.LOGIN,cursor.getString(1));
         accountData.putString(OsmpRequest.PASSWORD,cursor.getString(2));
         accountData.putString(OsmpRequest.TERMINAL,cursor.getString(3));
-        Request.refresh(context,accountData);
+        ContentLoader.refresh(context, accountData);
       }
     }
     finally

@@ -18,6 +18,8 @@
 package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.Bundle;
@@ -64,7 +66,15 @@ public class TerminalsFragment extends ListFragment
     _mHeader.loadAgentData(getGroupId());
     list.addHeaderView(_mHeader,null,false);
     setListAdapter(new TerminalsCursorAdapter(activity,getWhereClause(), R.layout.record_terminal));
-    activity.getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,true,_mTerminalsObserver);
+    final ContentResolver resolver = activity.getContentResolver();
+    resolver.registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI, true, _mTerminalsObserver);
+//////////
+    final ContentValues values = new ContentValues();
+    values.put(OsmpContentProvider.Agents.COLUMN_SEEN,1);
+    resolver.update(OsmpContentProvider.Agents.CONTENT_URI,
+                    values,
+                    OsmpContentProvider.Agents.COLUMN_AGENT+"=?",
+                    new String[] {Long.toString(getGroupId())});
   }
 
   @Override

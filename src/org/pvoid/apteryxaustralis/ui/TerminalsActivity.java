@@ -25,7 +25,7 @@ import android.support.v4.app.ActionBar;
 import android.support.v4.app.FragmentManager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
-import org.pvoid.apteryxaustralis.net.Request;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.GroupsAdapter;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsFragment;
@@ -91,10 +91,14 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
   @Override
   protected void refreshInfo()
   {
-    (new RefreshTask()).start();
+    final Bundle bundle = new Bundle();
+    long id = getIntent().getLongExtra(TerminalsFragment.ARGUMENT_AGENT,0);
+    if(!getAccountData(id,bundle))
+      return;
+    ContentLoader.refresh(this, bundle);
   }
 
-  private class RefreshTask extends Thread
+  /*private class RefreshTask extends Thread
   {
     @Override
     public void run()
@@ -106,10 +110,10 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
         _mUiHandler.post(_mStopRefreshRunnable);
         return;
       }
-      Request.refresh(TerminalsActivity.this, bundle);
+      ContentLoader.refresh(TerminalsActivity.this, bundle);
       _mUiHandler.post(_mStopRefreshRunnable);
     }
-  }
+  }*/
 
   private class GroupsObserver extends ContentObserver
   {
