@@ -132,7 +132,7 @@ public class ResponseParser extends DefaultHandler
 //////// состояние купироприемника
       terminal.cashbin_state = getString(attributes, "rc", "none");
 //////// сумма
-      terminal.cash = getInt(attributes, "cs");
+      terminal.cash = getFloat(attributes, "cs");
 //////// последняя активность
       try
       {
@@ -212,6 +212,26 @@ public class ResponseParser extends DefaultHandler
     {
       return def;
     }
+  }
+
+  static private float getFloat(Attributes attributes, String name, float def)
+  {
+    String value = attributes.getValue(name);
+    if(TextUtils.isEmpty(value))
+      return def;
+    try
+    {
+      return Float.parseFloat(value);
+    }
+    catch(NumberFormatException e)
+    {
+      return def;
+    }
+  }
+
+  static private float getFloat(Attributes attributes, String name)
+  {
+    return getFloat(attributes,name,0);
   }
 
   static private int getInt(Attributes attributes, String name)
@@ -334,38 +354,11 @@ public class ResponseParser extends DefaultHandler
 
     private final static int ACTION_REBOOT = 0;
     private final static int ACTION_POWER_OFF = 1;
-    final static int STATE_PRINTER_STACKER_ERROR = 1;// Автомат остановлен из-за ошибок купюроприемника или принтера
-    final static int STATE_INTERFACE_ERROR = 2; //Автомат остановлен из-за ошибки в конфигурации интерфейса.
-    // Новый интерфейс загружается с сервера
-    final static int STATE_UPLOADING_UPDATES = 4; // Автомат загружает с сервера обновление приложения
-    final static int STATE_DEVICES_ABSENT = 8; // Автомат остановлен из-за того, что при старте не обнаружено
-    // оборудование (купюроприемник или принтер)
-    final static int STATE_WATCHDOG_TIMER = 0x10; // Работает сторожевой таймер
-    final static int STATE_PAPER_COMING_TO_END = 0x20; // В принтере скоро закончится бумага
-    final static int STATE_STACKER_REMOVED = 0x40; // C автомата был снят купюроприемник
-    final static int STATE_ESSENTIAL_ELEMENTS_ERROR = 0x80; // Отсутствуют или неверно заполнены один или
-    // несколько реквизитов для терминала
-    final static int STATE_HARDDRIVE_PROBLEMS = 0x100; //256 Проблемы с жестким диском
-    final static int STATE_STOPPED_DUE_BALANCE = 0x200; // Остановлен по сигналу сервера или из-за отсутствия денег на счету агента
-    final static int STATE_HARDWARE_OR_SOFTWARE_PROBLEM  = 0x400; // Остановлен из-за проблем с железом или интерфейса
-    final static int STATE_HAS_SECOND_MONITOR  = 0x800; // Автомат оснащен вторым монитором.
-    final static int STATE_ALTERNATE_NETWORK_USED  = 0x1000; // Автомат использует альтернативную сеть
-    final static int STATE_UNAUTHORIZED_SOFTWARE  = 0x2000; // Используется ПО, вызывающее сбои в работе автомата
-    final static int STATE_PROXY_SERVER  = 0x4000; // Автомат работает через прокси
-    final static int STATE_UPDATING_CONFIGURATION = 0x10000; // Терминал обновляет конфигурацию
-    final static int STATE_UPDATING_NUMBERS = 0x20000; // Терминал обновляет номерные емкости.
-    final static int STATE_UPDATING_PROVIDERS  = 0x40000; // Терминал обновляет список провайдеров.
-    final static int STATE_UPDATING_ADVERT     = 0x80000; // Терминал проверяет и обновляет рекламный плэйлист.
-    final static int STATE_UPDATING_FILES = 0x100000; // Терминал проверяет и обновляет файлы.
-    final static int STATE_FAIR_FTP_IP = 0x200000; // Подменен IP-адрес FTP сервера
-    final static int STATE_ASO_MODIFIED = 0x400000; // Модифицировано приложение АСО.
-    final static int STATE_INTERFACE_MODIFIED = 0x800000; // Модифицирован интерфейс
-    final static int STATE_ASO_ENABLED = 0x1000000; // Монитор АСО выключен.
 
     private int _mState;
     public String printer_state;
     public String cashbin_state;
-    public int cash;
+    public float cash;
     public long lastActivity;
     public long lastPayment;
     public int bondsCount;

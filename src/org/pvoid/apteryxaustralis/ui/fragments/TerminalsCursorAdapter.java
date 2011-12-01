@@ -86,7 +86,7 @@ public class TerminalsCursorAdapter extends CursorAdapter
                                                                cursor.getString(2),
                                                                cursor.getInt(5),
                                                                cursor.getInt(4),
-                                                               cursor.getInt(6),
+                                                               cursor.getFloat(6),
                                                                cursor.getLong(7),
                                                                cursor.getLong(8)
                                                               ));

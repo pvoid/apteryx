@@ -301,7 +301,7 @@ public class OsmpContentProvider extends ContentProvider
     return -1;
   }
 
-  public static String getTerminalStatus(Context context, String cashbinState, String printerState, int ms, int state, int cash, long lastPayment, long lastActivity)
+  public static String getTerminalStatus(Context context, String cashbinState, String printerState, int ms, int state, float cash, long lastPayment, long lastActivity)
     {
   ////////// Ошибки принтера или купюроприемника вперед
       if(!"OK".equals(cashbinState))

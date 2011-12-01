@@ -63,7 +63,7 @@ public class TextFormat
 
   public static String formatMoney(double money, boolean uint)
   {
-    if(!uint)
+    if(!uint || (int)money!=money)
     {
       _sNumberFormat.setMaximumFractionDigits(2);
       _sNumberFormat.setMinimumFractionDigits(2);

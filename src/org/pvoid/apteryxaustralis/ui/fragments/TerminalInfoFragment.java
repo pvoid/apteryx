@@ -94,7 +94,7 @@ public class TerminalInfoFragment extends ListFragment
       if(cursor.moveToFirst())
       {
         _mAccount = cursor.getLong(16);
-        _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_cash), TextFormat.formatMoney(cursor.getInt(0), true)));
+        _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_cash), TextFormat.formatMoney(cursor.getFloat(0), true)));
 
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_last_payment), TextFormat.formatDateSmart(getActivity(), cursor.getLong(1))));
         _mInfo.add(new TerminalInfo(getString(R.string.fullinfo_last_activity), TextFormat.formatDateSmart(getActivity(), cursor.getLong(2))));

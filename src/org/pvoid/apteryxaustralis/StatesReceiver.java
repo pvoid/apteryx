@@ -23,66 +23,81 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.net.Request;
-import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.Preferences;
-import org.pvoid.apteryxaustralis.storage.AccountsProvider;
+import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
+
+import java.util.HashMap;
 
 public class StatesReceiver extends BroadcastReceiver
 {
   private static final String[] PROJECTION = new String[]
                                                  {
-                                                  AccountsProvider.Accounts.COLUMN_ID,
-                                                  AccountsProvider.Accounts.COLUMN_LOGIN,
-                                                  AccountsProvider.Accounts.COLUMN_PASSWORD,
-                                                  AccountsProvider.Accounts.COLUMN_CUSTOM1
+                                                  OsmpContentProvider.Agents.COLUMN_AGENT,
+                                                  OsmpContentProvider.Agents.COLUMN_STATE
                                                  };
 
   public static int refreshData(Context context)
   {
-    int result = -1;
-    final Cursor cursor = context.getContentResolver().query(AccountsProvider.Accounts.CONTENT_URI,
-                                                             PROJECTION,
-                                                             null,null,null);
-    final Bundle accountData = new Bundle();
+    int result = 0;
+    final HashMap<Long, Integer> statuses = new HashMap<Long, Integer>();
+    Cursor cursor = getAgentsStatuses(context);
     try
     {
-      while(cursor.moveToNext())
-      {
-        accountData.putString(OsmpRequest.ACCOUNT_ID,cursor.getString(0));
-        accountData.putString(OsmpRequest.LOGIN,cursor.getString(1));
-        accountData.putString(OsmpRequest.PASSWORD,cursor.getString(2));
-        accountData.putString(OsmpRequest.TERMINAL,cursor.getString(3));
-        ContentLoader.refresh(context, accountData);
-      }
+      if(cursor!=null)
+        while(cursor.moveToNext())
+        {
+          int state = cursor.getInt(1);
+          if(state>result)
+            result = state;
+          //////
+          statuses.put(cursor.getLong(0),state);
+        }
     }
     finally
     {
       if(cursor!=null)
         cursor.close();
     }
-    /*ArrayList<Account> accounts = new ArrayList<Account>();
-    //---
-    storage.getAccounts(accounts);
-    if(accounts.size()>0)
+/////////
+    ContentLoader.checkStates(context);
+/////////
+    cursor = getAgentsStatuses(context);
+    try
     {
-      Hashtable<Long,Integer> states = new Hashtable<Long,Integer>();
-      for(Account account : accounts)
-      {
-        int state = storage.updateAccount(account,states);
-        if(state>result)
-          result = state;
-      }
-
-      States statesStorage = new States(context);
-      statesStorage.updateGroupsStates(states);
-    }*/
-
+      if(cursor!=null)
+        while(cursor.moveToNext())
+        {
+          long agentId = cursor.getLong(0);
+          int state = cursor.getInt(1);
+          if(!statuses.containsKey(agentId))
+          {
+            result = state;
+            continue;
+          }
+          //////
+          if(state>result)
+            result = state;
+        }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    //////
     return result;
+  }
+
+  private static Cursor getAgentsStatuses(Context context)
+  {
+    return context.getContentResolver().query(OsmpContentProvider.Agents.CONTENT_URI,
+                                              PROJECTION,
+                                              OsmpContentProvider.Agents.COLUMN_STATE+"<>0 AND "+ OsmpContentProvider.Agents.COLUMN_SEEN+"=0",
+                                              null,null);
   }
 
   private static class ReceiveThread extends Thread

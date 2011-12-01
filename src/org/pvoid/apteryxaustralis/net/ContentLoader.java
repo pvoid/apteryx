@@ -36,6 +36,8 @@ public class ContentLoader
   private static final Vector<Bundle> _sTasks = new Vector<Bundle>(2);
   private static Context              _sContext;
   private static final RequestThread  _sThread = new RequestThread();
+  private static final Intent         _sLoadingIntent = new Intent(LOADING_STARTED);
+  private static final Intent         _sLoadedIntent = new Intent(LOADING_FINISHED);
   static
   {
     _sThread.start();
@@ -75,6 +77,21 @@ public class ContentLoader
   public static void refresh(Context context)
   {
     refresh(context, null);
+  }
+
+  public static void checkStates(Context context)
+  {
+    if(_sContext ==null)
+      _sContext = context.getApplicationContext();
+    //---
+    synchronized(_sTasks)
+    {
+      _sContext.sendBroadcast(_sLoadingIntent);
+      _sLoading = true;
+      internalRefresh();
+      _sLoading = false;
+      _sContext.sendBroadcast(_sLoadedIntent);
+    }
   }
 
   private static int internalRefresh(Bundle accountData)
@@ -132,15 +149,13 @@ public class ContentLoader
     @Override
     public void run()
     {
-      final Intent loadingIntent = new Intent(LOADING_STARTED);
-      final Intent loadedIntent = new Intent(LOADING_FINISHED);
       while(true)
       {
         synchronized(_sTasks)
         {
           if(_sTasks.size()>0)
           {
-            _sContext.sendBroadcast(loadingIntent);
+            _sContext.sendBroadcast(_sLoadingIntent);
             _sLoading = true;
             do
             {
@@ -152,7 +167,7 @@ public class ContentLoader
             }
             while(_sTasks.size()>0);
             _sLoading = false;
-            _sContext.sendBroadcast(loadedIntent);
+            _sContext.sendBroadcast(_sLoadedIntent);
           }
           try
           {

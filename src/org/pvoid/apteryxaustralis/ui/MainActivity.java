@@ -17,11 +17,13 @@
 
 package org.pvoid.apteryxaustralis.ui;
 
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
-import org.pvoid.apteryxaustralis.net.ContentLoader;
+import org.pvoid.apteryxaustralis.UpdateStatusService;
+import org.pvoid.apteryxaustralis.preference.Preferences;
 
 public class MainActivity extends RefreshableActivity
 {
@@ -42,6 +44,12 @@ public class MainActivity extends RefreshableActivity
     }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_groups);
+////////
+    if(Preferences.getAutoUpdate(this))
+    {
+      Intent serviceIntent = new Intent(this,UpdateStatusService.class);
+      startService(serviceIntent);
+    }
   }
 
   /**
