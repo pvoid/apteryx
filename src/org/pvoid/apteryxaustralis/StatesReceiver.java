@@ -25,8 +25,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.util.Log;
 import org.pvoid.apteryxaustralis.net.ContentLoader;
-import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 
@@ -40,9 +40,11 @@ public class StatesReceiver extends BroadcastReceiver
                                                   OsmpContentProvider.Agents.COLUMN_STATE
                                                  };
 
-  public static int refreshData(Context context)
+  public static StateResult refreshData(Context context)
   {
-    int result = 0;
+    StateResult  result = new StateResult();
+    result.result = 0;
+    result.notify = false;
     final HashMap<Long, Integer> statuses = new HashMap<Long, Integer>();
     Cursor cursor = getAgentsStatuses(context);
     try
@@ -51,8 +53,8 @@ public class StatesReceiver extends BroadcastReceiver
         while(cursor.moveToNext())
         {
           int state = cursor.getInt(1);
-          if(state>result)
-            result = state;
+          if(state==OsmpContentProvider.STATE_OK)
+            continue;
           //////
           statuses.put(cursor.getLong(0),state);
         }
@@ -75,18 +77,29 @@ public class StatesReceiver extends BroadcastReceiver
           int state = cursor.getInt(1);
           if(!statuses.containsKey(agentId))
           {
-            result = state;
-            continue;
+            if(state==OsmpContentProvider.STATE_OK)
+              continue;
+            statuses.put(agentId,state);
+            result.notify = true;
           }
           //////
-          if(state>result)
-            result = state;
+          int prev_state = statuses.get(agentId);
+          if(prev_state!=state)
+            result.notify = true;
+          statuses.put(agentId,state);
         }
     }
     finally
     {
       if(cursor!=null)
         cursor.close();
+    }
+    ////// а теперь узнаем статус
+    for(long agentId : statuses.keySet())
+    {
+      int state = statuses.get(agentId);
+      if(state>result.result)
+        result.result = state;
     }
     //////
     return result;
@@ -118,16 +131,16 @@ public class StatesReceiver extends BroadcastReceiver
     {
       try
       {
-        int warn = refreshData(_mContext);
+        StateResult state = refreshData(_mContext);
         /*Intent broadcastIntent = new Intent(REFRESH_BROADCAST_MESSAGE);
         _mContext.sendBroadcast(broadcastIntent);*/
 
-        if(warn>0 && warn>=Preferences.getWarnLevel(_mContext))
-        {
-          Notifier.showNotification(_mContext,warn);
-        }
-        else if(warn== Request.STATE_OK)
+        Log.d("APTERYX","State " + state.result + " notify: " + state.notify);
+        
+        if(state.result == OsmpContentProvider.STATE_OK)
           Notifier.hideNotification(_mContext,false);
+        if(state.result>OsmpContentProvider.STATE_OK && state.result>=Preferences.getWarnLevel(_mContext) && state.notify)
+          Notifier.showNotification(_mContext,state.result);
 
         long interval = Preferences.getUpdateInterval(_mContext);
         if(interval==0)
@@ -150,4 +163,9 @@ public class StatesReceiver extends BroadcastReceiver
     (new ReceiveThread(context)).start();
   }
 
+  private final static class StateResult
+  {
+    int     result;
+    boolean notify;
+  }
 }
