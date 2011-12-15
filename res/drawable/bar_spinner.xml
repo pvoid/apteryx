@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
   ~ Copyright (C) 2010-2011  Dmitry Petuhov
   ~
@@ -15,23 +16,9 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-  <item>
-    <shape android:shape="rectangle">
-      <solid android:color="#ff9ba0a3"/>
-    </shape>
-  </item>
-  <item android:top="1dp" android:bottom="1dp">
-    <shape android:shape="rectangle">
-      <solid android:color="#ff5e6165"/>
-    </shape>
-  </item>
-  <item android:top="2dp" android:bottom="2dp">
-    <shape android:shape="rectangle">
-      <gradient android:angle="270"
-                  android:type="linear"
-                  android:startColor="#ff808489"
-                  android:endColor="#ff454a52"/>
-    </shape>
-  </item>
-</layer-list>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+          android:dither="true">
+  <item android:drawable="@drawable/bar_spinner_pressed" android:state_pressed="true"/>
+  <item android:drawable="@drawable/bar_spinner_normal"/>
+</selector>

@@ -24,6 +24,7 @@ import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.TextFormat;
@@ -46,15 +47,15 @@ public class TerminalInfoFragment extends ListFragment
     final Context context = getActivity();
     _mInfo = new TerminalInfoAdapter(context);
     _mHeader = new TerminalHeader(context);
-    getListView().setHeaderDividersEnabled(false);
     _mHeader.setEnabled(false);
-    getListView().addHeaderView(_mHeader,null,true);
+    final ListView list = getListView();
+    setListAdapter(null);
+    list.setHeaderDividersEnabled(false);
+    list.addHeaderView(_mHeader,null,true);
     setListAdapter(_mInfo);
-  }
-
-  public long getAccount()
-  {
-    return _mAccount;
+    _mAccount = getArguments().getLong(EXTRA_TERMINAL,0);
+    if(_mAccount!=0)
+      loadTerminalInfo(_mAccount);
   }
 
   public void refresh()

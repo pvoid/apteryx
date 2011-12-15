@@ -19,10 +19,10 @@ package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
@@ -93,8 +93,8 @@ public class GroupsAdapter extends CursorAdapter
         text.setVisibility(View.GONE);
     ////////
     ImageView image = (ImageView) view.findViewById(R.id.agent_state);
-    if(image!=null && cursor.getInt(3)==0)
-      image.getDrawable().setLevel(cursor.getInt(2));
+    if(image!=null)
+      image.getDrawable().setLevel(cursor.getInt(3)==0 ? cursor.getInt(2) : 0);
   }
 
   @Override

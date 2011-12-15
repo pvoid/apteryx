@@ -18,11 +18,12 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.database.ContentObserver;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActionBar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
 import org.pvoid.apteryxaustralis.net.ContentLoader;
@@ -30,7 +31,7 @@ import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.GroupsAdapter;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsFragment;
 
-public class TerminalsActivity extends RefreshableActivity implements ActionBar.OnNavigationListener
+public class TerminalsActivity extends RefreshableActivity
 {
   private final Handler  _mUiHandler = new Handler();
   private final Runnable _mStopRefreshRunnable = new Runnable()
@@ -46,25 +47,32 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
 
   public void onCreate(Bundle savedInstanceState)
   {
-    try
-    {
-      getWindow().setFormat(PixelFormat.RGBA_8888);
-    }
-    catch(Exception e)
-    {
-      // nope
-    }
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_terminals);
+    _mGroups = new GroupsAdapter(this, R.layout.record_group_actionbar);
+    final ViewPager pager = (ViewPager) findViewById(R.id.pages);
+    pager.setAdapter(new TerminalsPagerAdapter(getSupportFragmentManager()));
 
-    final FragmentManager man = getSupportFragmentManager();
+    long id = getIntent().getLongExtra(TerminalsFragment.ARGUMENT_AGENT,0);
+    if(id==0)
+      return;
+    for(int index=0;index<_mGroups.getCount();++index)
+      if(id==_mGroups.getItemId(index))
+      {
+        pager.setCurrentItem(index);
+        setListNavigationMode(_mGroups,index);
+        break;
+      }
+
+    /*final FragmentManager man = getSupportFragmentManager();
     TerminalsFragment fragment = new TerminalsFragment();
     fragment.setArguments(getIntent().getExtras());
-    man.beginTransaction().add(android.R.id.content,fragment).commit();
+    man.beginTransaction().add(android.R.id.content,fragment).commit();*/
 
-    final ActionBar bar = getSupportActionBar();
+    /*final ActionBar bar = getSupportActionBar();
     bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-    _mGroups = new GroupsAdapter(this, R.layout.record_group_actionbar);
-    bar.setListNavigationCallbacks(_mGroups,this);
+
+    bar.setListNavigationCallbacks(_mGroups,this);*/
   }
 
   @Override
@@ -98,23 +106,6 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
     ContentLoader.refresh(this, bundle);
   }
 
-  /*private class RefreshTask extends Thread
-  {
-    @Override
-    public void run()
-    {
-      final Bundle bundle = new Bundle();
-      long id = getIntent().getLongExtra(TerminalsFragment.ARGUMENT_AGENT,0);
-      if(!getAccountData(id,bundle))
-      {
-        _mUiHandler.post(_mStopRefreshRunnable);
-        return;
-      }
-      ContentLoader.refresh(TerminalsActivity.this, bundle);
-      _mUiHandler.post(_mStopRefreshRunnable);
-    }
-  }*/
-
   private class GroupsObserver extends ContentObserver
   {
     public GroupsObserver(Handler handler)
@@ -127,6 +118,30 @@ public class TerminalsActivity extends RefreshableActivity implements ActionBar.
     {
       super.onChange(selfChange);
       _mGroups.refresh();
+    }
+  }
+
+  private class TerminalsPagerAdapter extends FragmentPagerAdapter
+  {
+    public TerminalsPagerAdapter(FragmentManager fm)
+    {
+      super(fm);
+    }
+
+    @Override
+    public Fragment getItem(int index)
+    {
+      final Bundle arguments = new Bundle();
+      arguments.putLong(TerminalsFragment.ARGUMENT_AGENT,_mGroups.getItemId(index));
+      TerminalsFragment fragment = new TerminalsFragment();
+      fragment.setArguments(arguments);
+      return fragment;
+    }
+
+    @Override
+    public int getCount()
+    {
+      return _mGroups.getCount();
     }
   }
 }

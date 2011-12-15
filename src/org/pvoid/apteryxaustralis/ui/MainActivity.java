@@ -18,7 +18,6 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
@@ -34,14 +33,6 @@ public class MainActivity extends RefreshableActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
-    try
-    {
-      getWindow().setFormat(PixelFormat.RGBA_8888);
-    }
-    catch(Exception e)
-    {
-      // nope
-    }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_groups);
 ////////

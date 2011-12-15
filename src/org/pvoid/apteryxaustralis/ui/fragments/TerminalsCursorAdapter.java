@@ -19,10 +19,10 @@ package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
@@ -78,6 +78,12 @@ public class TerminalsCursorAdapter extends CursorAdapter
       TextView textView = (TextView) view.findViewById(R.id.list_title);
       if(textView!=null)
         textView.setText(cursor.getString(1));
+//////////
+      textView = (TextView) view.findViewById(R.id.list_id);
+      if(textView!=null)
+      {
+        textView.setText("#"+cursor.getString(0));
+      }
 //////////
       textView = (TextView) view.findViewById(R.id.status);
       if(textView!=null)

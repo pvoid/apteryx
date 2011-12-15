@@ -17,30 +17,41 @@
 
 package org.pvoid.apteryxaustralis;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.*;
 import android.database.Cursor;
+import android.database.DataSetObserver;
+import android.graphics.PixelFormat;
 import android.graphics.drawable.LevelListDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.Menu;
-import android.support.v4.view.MenuItem;
+import android.support.v4.view.MenuCompat;
+import android.view.*;
+import android.widget.CursorAdapter;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.WrapperListAdapter;
 import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
-public class RefreshableActivity extends FragmentActivity
+public class RefreshableActivity extends FragmentActivity implements View.OnClickListener,
+                                                                     DialogInterface.OnClickListener
 {
   private final static int MENU_REFRESH  = 0;
   private final static int MENU_SETTINGS = 1;
   private final static int ANIMATION_INTERVAL = 100;
 
+  private final boolean     _mIsEmulated       = Build.VERSION.SDK_INT<=Build.VERSION_CODES.HONEYCOMB;
   private LevelListDrawable _mProgressDrawable = null;
-  private final Handler _mHandler = new Handler();
+  private CursorAdapter     _mNavigatorAdapter = null;
+  private SpinnerDialog     _mDialog           = null;
+  private final Handler     _mHandler          = new Handler();
   private final Runnable    _mProgressRunnable = new Runnable()
   {
     @Override
@@ -75,12 +86,46 @@ public class RefreshableActivity extends FragmentActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    try
+    {
+      getWindow().setFormat(PixelFormat.RGBA_8888);
+    }
+    catch(Exception e)
+    {
+      // nope
+    }
+    if(_mIsEmulated)
+    {
+      setTheme(R.style.EmulatedActionBar);
+      requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+    }
     super.onCreate(savedInstanceState);
-////////
+    ////////
     IntentFilter filter = new IntentFilter(ContentLoader.LOADING_STARTED);
     filter.addAction(ContentLoader.LOADING_FINISHED);
     registerReceiver(_mLoadingStateReceiver,filter);
+  }
 
+  @Override
+  public void setContentView(int layoutResID)
+  {
+    super.setContentView(layoutResID);
+    if(_mIsEmulated)
+    {
+      final Window window = getWindow();
+      window.setFeatureInt(Window.FEATURE_CUSTOM_TITLE,R.layout.emulated_actionbar);
+////// Установим обработчик нажатия на кнопку обновить
+      final ImageView button = (ImageView) window.findViewById(R.id.refresh_button);
+      if(button!=null)
+      {
+        button.setOnClickListener(this);
+        _mProgressDrawable = (LevelListDrawable)button.getDrawable();
+      }
+////// Установим обработчик нажатия на селектор
+      final View spinner = window.findViewById(R.id.selector);
+      if(spinner!=null)
+        spinner.setOnClickListener(this);
+    }
   }
 
   @Override
@@ -93,10 +138,14 @@ public class RefreshableActivity extends FragmentActivity
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
-    MenuItem item = menu.add(Menu.NONE, MENU_REFRESH, Menu.FIRST, R.string.refresh);
-    _mProgressDrawable = (LevelListDrawable) getResources().getDrawable(R.drawable.ic_menu_refresh);
-    item.setIcon(_mProgressDrawable);
-    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+    MenuItem item;
+    if(!_mIsEmulated)
+    {
+      item = menu.add(Menu.NONE, MENU_REFRESH, Menu.FIRST, R.string.refresh);
+      _mProgressDrawable = (LevelListDrawable) getResources().getDrawable(R.drawable.ic_menu_refresh);
+      item.setIcon(_mProgressDrawable);
+      MenuCompat.setShowAsAction(item,MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+    }
     item = menu.add(Menu.NONE, MENU_SETTINGS, Menu.FIRST, R.string.settings);
     item.setIcon(android.R.drawable.ic_menu_preferences);
 ////////
@@ -161,5 +210,185 @@ public class RefreshableActivity extends FragmentActivity
   protected void refreshInfo()
   {
     ContentLoader.refresh(this);
+  }
+
+  @Override
+  public void onClick(View view)
+  {
+    switch(view.getId())
+    {
+      case R.id.refresh_button:
+        refreshInfo();
+        break;
+      case R.id.selector:
+        showSelectorList();
+        break;
+    }
+  }
+
+  private void showSelectorList()
+  {
+    if(_mDialog==null)
+      _mDialog = new SpinnerDialog(this, _mNavigatorAdapter, this);
+    _mDialog.show(getSupportFragmentManager(),null);
+  }
+
+  protected void setListNavigationMode(CursorAdapter adapter, int selectedIndex)
+  {
+    if(_mIsEmulated)
+    {
+      _mNavigatorAdapter = adapter;
+      _mDialog = null;
+      final ViewGroup spinner = (ViewGroup) getWindow().findViewById(R.id.selector);
+      if(spinner!=null)
+      {
+        View child = adapter.getView(selectedIndex,null,spinner);
+        spinner.removeAllViews();
+        if(child!=null)
+          spinner.addView(child);
+        spinner.setVisibility(View.VISIBLE);
+      }
+    }
+  }
+
+  @Override
+  public void onClick(DialogInterface dialogInterface, int index)
+  {
+    long id = _mNavigatorAdapter.getItemId(index);
+    dialogInterface.dismiss();
+    if(onNavigationItemSelected(index,id))
+      setSelectedNavigationItem(index);
+  }
+
+  protected void setSelectedNavigationItem(int index)
+  {
+    if(_mNavigatorAdapter==null)
+      return;
+/////////
+    final ViewGroup spinner = (ViewGroup) getWindow().findViewById(R.id.selector);
+    if(spinner!=null)
+    {
+      View child = _mNavigatorAdapter.getView(index,null,spinner);
+      spinner.removeAllViews();
+      if(child!=null)
+        spinner.addView(child);
+    }
+  }
+  
+  protected boolean onNavigationItemSelected(int itemPosition, long itemId)
+  {
+    return false;
+  }
+
+  private static class SpinnerDialog extends DialogFragment
+  {
+    private final Context                         _mContext;
+    private final NavigationAdapter               _mAdapter;
+    private final DialogInterface.OnClickListener _mListener;
+
+    private SpinnerDialog(Context context, CursorAdapter listAdapter, DialogInterface.OnClickListener listener)
+    {
+      _mContext = new ContextThemeWrapper(context,android.R.style.Theme_Light);
+      _mAdapter = new NavigationAdapter(listAdapter);
+      _mListener = listener;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(_mContext);
+      builder.setAdapter(_mAdapter, _mListener);
+      builder.setCancelable(true);
+      final Dialog dialog = builder.create();
+      dialog.setCanceledOnTouchOutside(true);
+      return dialog;
+    }
+  }
+
+  private static class NavigationAdapter implements WrapperListAdapter
+  {
+    private final CursorAdapter _mAdapter;
+    public NavigationAdapter(CursorAdapter adapter)
+    {
+      _mAdapter = adapter;
+    }
+
+    @Override
+    public ListAdapter getWrappedAdapter()
+    {
+      return _mAdapter;
+    }
+
+    @Override
+    public boolean areAllItemsEnabled()
+    {
+      return _mAdapter.areAllItemsEnabled();
+    }
+
+    @Override
+    public boolean isEnabled(int index)
+    {
+      return _mAdapter.isEnabled(index);
+    }
+
+    @Override
+    public void registerDataSetObserver(DataSetObserver dataSetObserver)
+    {
+      _mAdapter.registerDataSetObserver(dataSetObserver);
+    }
+
+    @Override
+    public void unregisterDataSetObserver(DataSetObserver dataSetObserver)
+    {
+      _mAdapter.unregisterDataSetObserver(dataSetObserver);
+    }
+
+    @Override
+    public int getCount()
+    {
+      return _mAdapter.getCount();
+    }
+
+    @Override
+    public Object getItem(int index)
+    {
+      return _mAdapter.getItem(index);
+    }
+
+    @Override
+    public long getItemId(int index)
+    {
+      return _mAdapter.getItemId(index);
+    }
+
+    @Override
+    public boolean hasStableIds()
+    {
+      return _mAdapter.hasStableIds();
+    }
+
+    @Override
+    public View getView(int index, View view, ViewGroup viewGroup)
+    {
+      return _mAdapter.getDropDownView(index,view,viewGroup);
+    }
+
+    @Override
+    public int getItemViewType(int index)
+    {
+      return _mAdapter.getItemViewType(index);
+    }
+
+    @Override
+    public int getViewTypeCount()
+    {
+      return _mAdapter.getViewTypeCount();
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+      return _mAdapter.isEmpty();
+    }
   }
 }

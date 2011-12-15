@@ -18,61 +18,48 @@
 package org.pvoid.apteryxaustralis.ui;
 
 import android.database.ContentObserver;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActionBar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
-import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalInfoFragment;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsCursorAdapter;
 
-public class TerminalInfoActivity extends RefreshableActivity implements ActionBar.OnNavigationListener
+public class TerminalInfoActivity extends RefreshableActivity implements ViewPager.OnPageChangeListener
 {
   TerminalsCursorAdapter     _mTerminals;
   private final Handler      _mUiHandler = new Handler();
-  final TerminalInfoFragment _mFragment = new TerminalInfoFragment();
+  protected ViewPager        _mPager;
   final TerminalsObserver    _mObserver = new TerminalsObserver(_mUiHandler);
-  private final Runnable _mStopRefreshRunnable = new Runnable()
-  {
-    @Override
-    public void run()
-    {
-      showRefreshProgress(false);
-    }
-  };
 
   public void onCreate(Bundle savedInstanceState)
   {
-    try
-    {
-      getWindow().setFormat(PixelFormat.RGBA_8888);
-    }
-    catch(Exception e)
-    {
-      // nope
-    }
-//////////
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_terminal_info);
 //////////
-    final long id = getIntent().getLongExtra(TerminalInfoFragment.EXTRA_TERMINAL,0);
-    final FragmentManager man = getSupportFragmentManager();
-    man.beginTransaction().add(android.R.id.content, _mFragment).commit();
-/////////
-    final ActionBar bar = getSupportActionBar();
-    bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
     _mTerminals = new TerminalsCursorAdapter(this, null, R.layout.record_terminal_actionbar);
-    bar.setListNavigationCallbacks(_mTerminals, this);
-//////// Ищем выбранный терминал
-    for(int index=0;index< _mTerminals.getCount();++index)
-      if(_mTerminals.getItemId(index) == id)
+    _mPager = (ViewPager) findViewById(R.id.pages);
+    if(_mPager==null)
+    {
+      throw new Error("Cant' find pager view with ID #pages");
+    }
+    _mPager.setAdapter(new InfoAdapter(getSupportFragmentManager()));
+    _mPager.setOnPageChangeListener(this);
+///////// Установим переключалку терминалов
+    final long id = getIntent().getLongExtra(TerminalInfoFragment.EXTRA_TERMINAL,0);
+    for(int index=0, count = _mTerminals.getCount();index<count;++index)
+    {
+      if(id==_mTerminals.getItemId(index))
       {
-        bar.setSelectedNavigationItem(index);
-        break;
+        _mPager.setCurrentItem(index);
+        setListNavigationMode(_mTerminals,index);
       }
+    }
   }
 
   @Override
@@ -92,17 +79,57 @@ public class TerminalInfoActivity extends RefreshableActivity implements ActionB
   @Override
   public boolean onNavigationItemSelected(int itemPosition, long itemId)
   {
-    _mFragment.loadTerminalInfo(itemId);
+    _mPager.setCurrentItem(itemPosition,true);
     return true;
   }
 
   @Override
   protected void refreshInfo()
   {
-    (new RefreshTask()).start();
+    //(new RefreshTask()).start();
   }
 
-  private class RefreshTask extends Thread
+  @Override
+  public void onPageScrolled(int index, float v, int i1)
+  {
+  }
+
+  @Override
+  public void onPageSelected(int index)
+  {
+    setSelectedNavigationItem(index);
+  }
+
+  @Override
+  public void onPageScrollStateChanged(int i)
+  {
+  }
+
+  private class InfoAdapter extends FragmentPagerAdapter
+  {
+    public InfoAdapter(FragmentManager fm)
+    {
+      super(fm);
+    }
+
+    @Override
+    public Fragment getItem(int index)
+    {
+      Bundle arguments = new Bundle();
+      arguments.putLong(TerminalInfoFragment.EXTRA_TERMINAL,_mTerminals.getItemId(index));
+      Fragment fragment = new TerminalInfoFragment();
+      fragment.setArguments(arguments);
+      return fragment;
+    }
+
+    @Override
+    public int getCount()
+    {
+      return _mTerminals.getCount();
+    }
+  }
+
+  /*private class RefreshTask extends Thread
   {
     @Override
     public void run()
@@ -116,7 +143,7 @@ public class TerminalInfoActivity extends RefreshableActivity implements ActionB
       ContentLoader.refresh(TerminalInfoActivity.this, bundle);
       _mUiHandler.post(_mStopRefreshRunnable);
     }
-  }
+  }*/
 
   private class TerminalsObserver extends ContentObserver
   {
@@ -130,7 +157,7 @@ public class TerminalInfoActivity extends RefreshableActivity implements ActionB
     {
       super.onChange(selfChange);
       _mTerminals.refresh();
-      _mFragment.refresh();
+      _mPager.getAdapter().notifyDataSetChanged();
     }
   }
 }

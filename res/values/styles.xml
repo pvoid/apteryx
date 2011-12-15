@@ -23,14 +23,13 @@
     <attr name="android:textColorPrimary"/>
   </declare-styleable>
 
-  <style name="Theme.ApteryxTitle" parent="TextAppearance.Widget.Title">
-    <item name="android:textColor">#ffffffff</item>
+  <style name="EmulatedActionBar" parent="@android:style/Theme.Light">
+    <item name="android:windowTitleSize">52dp</item>
+    <item name="android:windowTitleBackgroundStyle">@style/EmulatedActionBar.Background</item>
   </style>
 
-  <style name="Theme.ApteryxThemeLight" parent="Theme.Sherlock.Light">
-    <item name="abHeight">52dp</item>
-    <item name="abBackground">@drawable/top_bar</item>
-    <item name="abDisplayOptions">showTitle</item>
-    <item name="abTitleTextStyle">@style/Theme.ApteryxTitle</item>
+  <style name="EmulatedActionBar.Background">
+    <item name="android:background">@drawable/top_bar</item>
+    <item name="android:paddingRight">1dp</item>
   </style>
 </resources>

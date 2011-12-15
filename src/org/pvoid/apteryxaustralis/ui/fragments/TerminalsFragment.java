@@ -63,6 +63,7 @@ public class TerminalsFragment extends ListFragment
     final Activity activity = getActivity();
     final ListView list = getListView();
     _mHeader = new AgentHeader(activity);
+    setListAdapter(null);
     _mHeader.loadAgentData(getGroupId());
     list.addHeaderView(_mHeader,null,false);
     setListAdapter(new TerminalsCursorAdapter(activity,getWhereClause(), R.layout.record_terminal));
