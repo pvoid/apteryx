@@ -90,6 +90,7 @@ public class TerminalsFragment extends ListFragment
   {
     Intent intent = new Intent(getActivity(), TerminalInfoActivity.class);
     intent.putExtra(TerminalInfoFragment.EXTRA_TERMINAL,id);
+    intent.putExtra(TerminalInfoActivity.EXTRA_AGENT,getGroupId());
     startActivity(intent);
   }
 

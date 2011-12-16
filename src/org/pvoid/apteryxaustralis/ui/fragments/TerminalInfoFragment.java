@@ -18,8 +18,10 @@
 package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,10 +37,11 @@ public class TerminalInfoFragment extends ListFragment
 {
   public static final String EXTRA_TERMINAL = "id";
 
-  private TerminalInfoAdapter _mInfo;
-  private long                _mAccount;
-  private long                _mTerminalId;
-  private TerminalHeader      _mHeader;
+  private TerminalInfoAdapter     _mInfo;
+  private long                    _mAccount;
+  private long                    _mTerminalId;
+  private TerminalHeader          _mHeader;
+  private final TerminalsObserver _mObserver = new TerminalsObserver(new Handler());
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState)
@@ -56,6 +59,16 @@ public class TerminalInfoFragment extends ListFragment
     _mAccount = getArguments().getLong(EXTRA_TERMINAL,0);
     if(_mAccount!=0)
       loadTerminalInfo(_mAccount);
+    getActivity().getContentResolver().registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI,
+                                                               true,
+                                                               _mObserver);
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    getActivity().getContentResolver().unregisterContentObserver(_mObserver);
   }
 
   public void refresh()
@@ -181,6 +194,21 @@ public class TerminalInfoFragment extends ListFragment
     public boolean isEnabled(int position)
     {
       return false;
+    }
+  }
+
+  private class TerminalsObserver extends ContentObserver
+  {
+    public TerminalsObserver(Handler handler)
+    {
+      super(handler);
+    }
+
+    @Override
+    public void onChange(boolean selfChange)
+    {
+      super.onChange(selfChange);
+      loadTerminalInfo(_mTerminalId);
     }
   }
 }

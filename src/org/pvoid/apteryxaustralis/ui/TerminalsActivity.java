@@ -31,17 +31,9 @@ import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.GroupsAdapter;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsFragment;
 
-public class TerminalsActivity extends RefreshableActivity
+public class TerminalsActivity extends RefreshableActivity implements ViewPager.OnPageChangeListener
 {
-  private final Handler  _mUiHandler = new Handler();
-  private final Runnable _mStopRefreshRunnable = new Runnable()
-  {
-    @Override
-    public void run()
-    {
-      showRefreshProgress(false);
-    }
-  };
+  ViewPager _mPager;
   private GroupsAdapter  _mGroups;
   private final GroupsObserver _mObserver = new GroupsObserver(new Handler());
 
@@ -50,16 +42,16 @@ public class TerminalsActivity extends RefreshableActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_terminals);
     _mGroups = new GroupsAdapter(this, R.layout.record_group_actionbar);
-    final ViewPager pager = (ViewPager) findViewById(R.id.pages);
-    pager.setAdapter(new TerminalsPagerAdapter(getSupportFragmentManager()));
-
+    _mPager = (ViewPager) findViewById(R.id.pages);
+    _mPager.setAdapter(new TerminalsPagerAdapter(getSupportFragmentManager()));
+    _mPager.setOnPageChangeListener(this);
     long id = getIntent().getLongExtra(TerminalsFragment.ARGUMENT_AGENT,0);
     if(id==0)
       return;
     for(int index=0;index<_mGroups.getCount();++index)
       if(id==_mGroups.getItemId(index))
       {
-        pager.setCurrentItem(index);
+        _mPager.setCurrentItem(index);
         setListNavigationMode(_mGroups,index);
         break;
       }
@@ -93,7 +85,8 @@ public class TerminalsActivity extends RefreshableActivity
   @Override
   public boolean onNavigationItemSelected(int itemPosition, long itemId)
   {
-    return false;
+    _mPager.setCurrentItem(itemPosition);
+    return true;
   }
 
   @Override
@@ -104,6 +97,22 @@ public class TerminalsActivity extends RefreshableActivity
     if(!getAccountData(id,bundle))
       return;
     ContentLoader.refresh(this, bundle);
+  }
+
+  @Override
+  public void onPageScrolled(int i, float v, int i1)
+  {
+  }
+
+  @Override
+  public void onPageSelected(int index)
+  {
+    setSelectedNavigationItem(index);
+  }
+
+  @Override
+  public void onPageScrollStateChanged(int i)
+  {
   }
 
   private class GroupsObserver extends ContentObserver

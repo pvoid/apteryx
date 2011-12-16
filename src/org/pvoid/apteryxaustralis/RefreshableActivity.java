@@ -51,6 +51,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
   private LevelListDrawable _mProgressDrawable = null;
   private CursorAdapter     _mNavigatorAdapter = null;
   private SpinnerDialog     _mDialog           = null;
+  private int               _mSelectedNavigatorItem = 0;
   private final Handler     _mHandler          = new Handler();
   private final Runnable    _mProgressRunnable = new Runnable()
   {
@@ -63,6 +64,20 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
       int level = (_mProgressDrawable.getLevel() + 1) % 6;
       _mProgressDrawable.setLevel(level);
       _mHandler.postDelayed(this,ANIMATION_INTERVAL);
+    }
+  };
+  private final DataSetObserver _mObserver = new DataSetObserver()
+  {
+    @Override
+    public void onChanged()
+    {
+      setSelectedNavigationItem(_mSelectedNavigatorItem);
+    }
+
+    @Override
+    public void onInvalidated()
+    {
+      setSelectedNavigationItem(_mSelectedNavigatorItem);
     }
   };
 
@@ -133,6 +148,8 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
   {
     super.onDestroy();
     unregisterReceiver(_mLoadingStateReceiver);
+    if(_mIsEmulated && _mNavigatorAdapter!=null)
+      _mNavigatorAdapter.unregisterDataSetObserver(_mObserver);
   }
 
   @Override
@@ -237,8 +254,11 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
   {
     if(_mIsEmulated)
     {
+      if(_mNavigatorAdapter!=null)
+        _mNavigatorAdapter.unregisterDataSetObserver(_mObserver);
       _mNavigatorAdapter = adapter;
       _mDialog = null;
+      adapter.registerDataSetObserver(_mObserver);
       final ViewGroup spinner = (ViewGroup) getWindow().findViewById(R.id.selector);
       if(spinner!=null)
       {
@@ -247,6 +267,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
         if(child!=null)
           spinner.addView(child);
         spinner.setVisibility(View.VISIBLE);
+        _mSelectedNavigatorItem = selectedIndex;
       }
     }
   }
@@ -272,6 +293,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
       spinner.removeAllViews();
       if(child!=null)
         spinner.addView(child);
+      _mSelectedNavigatorItem = index;
     }
   }
   

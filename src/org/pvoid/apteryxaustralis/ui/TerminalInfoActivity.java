@@ -26,12 +26,15 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalInfoFragment;
 import org.pvoid.apteryxaustralis.ui.fragments.TerminalsCursorAdapter;
 
 public class TerminalInfoActivity extends RefreshableActivity implements ViewPager.OnPageChangeListener
 {
+  public final static String EXTRA_AGENT = "agent";
+          
   TerminalsCursorAdapter     _mTerminals;
   private final Handler      _mUiHandler = new Handler();
   protected ViewPager        _mPager;
@@ -86,7 +89,11 @@ public class TerminalInfoActivity extends RefreshableActivity implements ViewPag
   @Override
   protected void refreshInfo()
   {
-    //(new RefreshTask()).start();
+    final Bundle bundle = new Bundle();
+    long id = getIntent().getLongExtra(EXTRA_AGENT,0);
+    if(!getAccountData(id,bundle))
+      return;
+    ContentLoader.refresh(this, bundle);
   }
 
   @Override
