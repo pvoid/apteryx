@@ -43,7 +43,8 @@ public class GroupsAdapter extends CursorAdapter
                                                         OsmpContentProvider.Agents.COLUMN_STATE,
                                                         OsmpContentProvider.Agents.COLUMN_SEEN,
                                                         OsmpContentProvider.Agents.COLUMN_BALANCE,
-                                                        OsmpContentProvider.Agents.COLUMN_OVERDRAFT
+                                                        OsmpContentProvider.Agents.COLUMN_OVERDRAFT,
+                                                        OsmpContentProvider.Agents.COLUMN_CASH
                                                       },
                                                       null,
                                                       null,
@@ -79,18 +80,15 @@ public class GroupsAdapter extends CursorAdapter
     text = (TextView) view.findViewById(R.id.agent_overdraft);
     if(text!=null)
       if(overdraft!=0)
-      {
         text.setText(TextFormat.formatMoney(overdraft,false));
-        text.setVisibility(View.VISIBLE);
-      }
       else
-        text.setVisibility(View.GONE);
+        text.setText(TextFormat.formatMoney(cursor.getDouble(6),false));
     text = (TextView) view.findViewById(R.id.agent_overdraft_title);
     if(text!=null)
       if(overdraft!=0)
-        text.setVisibility(View.VISIBLE);
+        text.setText(R.string.overdraft_title);
       else
-        text.setVisibility(View.GONE);
+        text.setText(R.string.cash_title);
     ////////
     ImageView image = (ImageView) view.findViewById(R.id.agent_state);
     if(image!=null)

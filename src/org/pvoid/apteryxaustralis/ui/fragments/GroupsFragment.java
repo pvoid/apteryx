@@ -17,7 +17,6 @@
 
 package org.pvoid.apteryxaustralis.ui.fragments;
 
-import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,7 +25,6 @@ import android.view.View;
 import android.widget.ListView;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
-import org.pvoid.apteryxaustralis.ui.TerminalsActivity;
 
 public class GroupsFragment extends ListFragment
 {
@@ -50,9 +48,7 @@ public class GroupsFragment extends ListFragment
   @Override
   public void onListItemClick(ListView l, View v, int position, long id)
   {
-    Intent intent = new Intent(getActivity(), TerminalsActivity.class);
-    intent.putExtra(TerminalsFragment.ARGUMENT_AGENT,id);
-    startActivity(intent);
+
   }
 
   private class GroupsObserver extends ContentObserver

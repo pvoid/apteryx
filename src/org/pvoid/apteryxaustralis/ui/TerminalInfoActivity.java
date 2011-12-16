@@ -89,11 +89,7 @@ public class TerminalInfoActivity extends RefreshableActivity implements ViewPag
   @Override
   protected void refreshInfo()
   {
-    final Bundle bundle = new Bundle();
-    long id = getIntent().getLongExtra(EXTRA_AGENT,0);
-    if(!getAccountData(id,bundle))
-      return;
-    ContentLoader.refresh(this, bundle);
+    ContentLoader.refresh(this);
   }
 
   @Override

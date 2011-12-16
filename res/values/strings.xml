@@ -24,6 +24,7 @@
   <string name="balance_title">Баланс:</string>
   <string name="overdraft">Овердрафт</string>
   <string name="overdraft_title">Овердрафт:</string>
+  <string name="cash_title">Кэш:</string>
   <string name="error">Ошибка</string>
   <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
   <string name="agents_list">Список агентов</string>

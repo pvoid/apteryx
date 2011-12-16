@@ -40,8 +40,6 @@ public class ResponseParser extends DefaultHandler
   private static final byte STATE_BALANCE_VALUE = 4;
   private static final byte STATE_BALANCE_OVERDRAFT = 5;
 
-  public static boolean _sFlag = false;
-
   private final Account _mAccount = new Account();
   private final List<Group> _mGroups = new ArrayList<Group>();
   private int _mGroupIndex;
@@ -180,12 +178,6 @@ public class ResponseParser extends DefaultHandler
       terminal.agentId         = getLong(attributes, "aid",0);
       terminal.agentName       = getString(attributes, "an");
 //////// и добавим
-
-      if(!_sFlag)
-      {
-        terminal.ms = 0;
-        terminal._mState = 0;
-      }
       _mTerminals.add(terminal);
     }
   }

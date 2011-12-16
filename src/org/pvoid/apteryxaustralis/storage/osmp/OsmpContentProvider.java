@@ -152,7 +152,6 @@ public class OsmpContentProvider extends ContentProvider
 
         final StringBuilder sql = new StringBuilder("select ");
         boolean first = true;
-        boolean appendTerminalsTable = false;
 ////////////
         for(String column : projection)
         {
@@ -161,24 +160,19 @@ public class OsmpContentProvider extends ContentProvider
           else
             first = false;
           if(Agents.COLUMN_CASH.equals(column))
-          {
-            appendTerminalsTable = true;
             sql.append("sum(t.").append(Terminals.COLUMN_CASH).append(")");
-          }
           else
             sql.append("a.").append(column);
         }
         sql.append(", a.").append(Agents.COLUMN_AGENT).append(" as ").append(Agents.COLUMN_AGENT);
         sql.append(" from ").append(Agents.TABLE_NAME).append(" a");
-        if(appendTerminalsTable)
-        {
-          sql.append(" left join ").append(Terminals.TABLE_NAME).append(" t on a.")
-                                   .append(Agents.COLUMN_AGENT).append("=t.").append(Terminals.COLUMN_AGENTID);
-        }
+        sql.append(" inner join ").append(Terminals.TABLE_NAME).append(" t on a.")
+                                    .append(Agents.COLUMN_AGENT).append("=t.").append(Terminals.COLUMN_AGENTID);
         if(selection!=null)
           sql.append(" where ").append(selection.replace(Agents.COLUMN_AGENT,"a."+Agents.COLUMN_AGENT));
+        sql.append(" group by a.").append(Agents.COLUMN_AGENT);
         if(sortOrder!=null)
-          sql.append(" order by ").append(sortOrder);
+          sql.append(" order by a.").append(sortOrder);
 
         return db.rawQuery(sql.toString(),selectionArgs);
       }

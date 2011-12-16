@@ -32,12 +32,10 @@
       </activity>
       <activity android:name=".preference.CommonSettings"
                 android:label="@string/settings"
-                android:configChanges="orientation|keyboardHidden"/>
-      <activity android:name=".ui.TerminalsActivity"
+                android:theme="@android:style/Theme.Light"
                 android:configChanges="orientation|keyboardHidden"/>
       <activity android:name=".ui.TerminalInfoActivity"
                 android:configChanges="orientation|keyboardHidden"/>
-
       <service android:name=".UpdateStatusService" android:label="@string/update_service" />
       <receiver android:name=".StatesReceiver" android:process=":remote"/>
       <receiver android:name=".OnBootReceiver" android:enabled="true" android:exported="false">

@@ -22,7 +22,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import org.pvoid.apteryxaustralis.net.IRequest;
 import org.pvoid.apteryxaustralis.net.Request;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
@@ -159,6 +158,14 @@ public class OsmpRequest implements IRequest
       values.put(AccountsProvider.Accounts.COLUMN_CUSTOM1,accountData.getString(TERMINAL));
       if(resolver.insert(AccountsProvider.Accounts.CONTENT_URI, values)!=null)
         resolver.notifyChange(AccountsProvider.Accounts.CONTENT_URI,null);
+/////////// Если нет ни одной группы, добавим сам аккаунт
+      if(groups.size()==0)
+      {
+        final ResponseParser.Group group = new ResponseParser.Group();
+        group.id = account.id;
+        group.name = account.title;
+        groups.add(group);
+      }
 /////////// Добавляем группы
       final long lastUpdateTime = System.currentTimeMillis();
       boolean groupsUpdated = false;
@@ -301,10 +308,6 @@ public class OsmpRequest implements IRequest
     final ContentValues values = new ContentValues();
     final ContentResolver resolver = context.getContentResolver();
 ///////
-
-    ResponseParser._sFlag = !ResponseParser._sFlag;
-    Log.d("APTERYX","Flag value: " + ResponseParser._sFlag);
-
     boolean notifyObserver = false;
     for(ResponseParser.Terminal terminal : terminals)
     {
