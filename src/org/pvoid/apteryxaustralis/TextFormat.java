@@ -27,7 +27,7 @@ import java.util.Calendar;
 
 public class TextFormat
 {
-  private static DecimalFormat _sNumberFormat = (DecimalFormat) NumberFormat.getNumberInstance();
+  private static final DecimalFormat _sNumberFormat = (DecimalFormat) NumberFormat.getNumberInstance();
   static
   {
     DecimalFormatSymbols symbols = _sNumberFormat.getDecimalFormatSymbols();

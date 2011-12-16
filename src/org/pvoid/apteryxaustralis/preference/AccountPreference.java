@@ -22,17 +22,17 @@ import android.preference.Preference;
 
 public class AccountPreference extends Preference
 {
-  private long _Id;
+  private final long _mId;
   
   public AccountPreference(Context context, long agentId, String agentName)
   {
     super(context);
     setTitle(agentName);
-    _Id = agentId;
+    _mId = agentId;
   }
   
   public long getId()
   {
-    return(_Id);
+    return(_mId);
   }
 }

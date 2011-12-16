@@ -115,8 +115,8 @@ public class StatesReceiver extends BroadcastReceiver
 
   private static class ReceiveThread extends Thread
   {
-    private Context _mContext;
-    PowerManager.WakeLock _mWakeLock;
+    private final Context _mContext;
+    private final PowerManager.WakeLock _mWakeLock;
 
     public ReceiveThread(Context context)
     {

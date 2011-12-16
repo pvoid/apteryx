@@ -23,13 +23,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import org.pvoid.apteryxaustralis.net.osmp.ResponseParser;
-import org.pvoid.apteryxaustralis.types.Group;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.TimeZone;
 
 class Storage
@@ -168,7 +165,7 @@ class Storage
                                                    " where a."+Agents.COLUMN_AGENT+"=?";
 
   private DatabaseHelper _mDatabase;
-  private Context _Context;
+  private final Context _Context;
   private final Object _mLock = new Object();
   
   private static class DatabaseHelper extends SQLiteOpenHelper
@@ -433,7 +430,7 @@ class Storage
     }
   } */
 
-  public void saveTerminals(long accountId, final List<ResponseParser.Terminal> terminals)
+  /*public void saveTerminals(long accountId, final List<ResponseParser.Terminal> terminals)
   {
     synchronized(_mLock)
     {
@@ -476,7 +473,7 @@ class Storage
   ///////
       db.close();
     }
-  }
+  }*/
   
   public boolean hasAccounts()
   {
@@ -509,7 +506,7 @@ class Storage
     }
   }
   
-  public void getTerminals(final long agentId, final List<ResponseParser.Terminal> terminals)
+  /*public void getTerminals(final long agentId, final List<ResponseParser.Terminal> terminals)
   {
     synchronized(_mLock)
     {
@@ -733,7 +730,7 @@ class Storage
     }
   }
 
-  public ResponseParser.Terminal getTerminal(long id)
+  /*public ResponseParser.Terminal getTerminal(long id)
   {
     synchronized(_mLock)
     {
@@ -809,5 +806,5 @@ class Storage
       }
       return terminal;
     }
-  }
+  }*/
 }

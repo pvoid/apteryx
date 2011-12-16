@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryxaustralis;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.*;
@@ -41,7 +42,8 @@ import org.pvoid.apteryxaustralis.preference.CommonSettings;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
 public class RefreshableActivity extends FragmentActivity implements View.OnClickListener,
-                                                                     DialogInterface.OnClickListener
+                                                                     DialogInterface.OnClickListener,
+                                                                     WrappedActionBar.OnNavigationListener
 {
   private final static int MENU_REFRESH  = 0;
   private final static int MENU_SETTINGS = 1;
@@ -114,6 +116,11 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
       setTheme(R.style.EmulatedActionBar);
       requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
     }
+    else
+    {
+      setTheme(android.R.style.Theme_Holo);
+      requestWindowFeature(Window.FEATURE_ACTION_BAR);
+    }
     super.onCreate(savedInstanceState);
     ////////
     IntentFilter filter = new IntentFilter(ContentLoader.LOADING_STARTED);
@@ -140,6 +147,16 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
       final View spinner = window.findViewById(R.id.selector);
       if(spinner!=null)
         spinner.setOnClickListener(this);
+    }
+    else
+    {
+      WrappedActionBar bar = new WrappedActionBar(this);
+      bar.setBackgroundDrawable(getResources().getDrawable(R.drawable.top_bar));
+      /*
+      if(bar!=null)
+      {
+        bar.setDisplayUseLogoEnabled(false);
+      }*/
     }
   }
 
@@ -270,6 +287,18 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
         _mSelectedNavigatorItem = selectedIndex;
       }
     }
+    else
+    {
+      WrappedActionBar bar = new WrappedActionBar(this);
+      bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+      bar.setListNavigationCallbacks(adapter, this);
+      /*ActionBar bar = getActionBar();
+      if(bar==null)
+        return;
+      bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+      bar.setListNavigationCallbacks(adapter,this);
+      bar.setSelectedNavigationItem(selectedIndex);*/
+    }
   }
 
   @Override
@@ -283,6 +312,13 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
 
   protected void setSelectedNavigationItem(int index)
   {
+    if(!_mIsEmulated)
+    {
+      /*ActionBar bar = getActionBar();
+      bar.setSelectedNavigationItem(index);
+      return;*/
+    }
+/////////
     if(_mNavigatorAdapter==null)
       return;
 /////////
@@ -297,7 +333,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
     }
   }
   
-  protected boolean onNavigationItemSelected(int itemPosition, long itemId)
+  public boolean onNavigationItemSelected(int itemPosition, long itemId)
   {
     return false;
   }

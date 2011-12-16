@@ -49,7 +49,7 @@ public class ResponseParser extends DefaultHandler
   private int _mState = STATE_NONE;
   SimpleDateFormat _mDateFormat;
 
-  private StringBuilder _mText = new StringBuilder();
+  private final StringBuilder _mText = new StringBuilder();
 
   private int _mAccountResult;
 
@@ -385,8 +385,8 @@ public class ResponseParser extends DefaultHandler
     public String agentName;
     public int ms;
 
-    protected String address;
-    protected long tid;
+    protected final String address;
+    protected final long tid;
 
     public Terminal(long id, String address)
     {

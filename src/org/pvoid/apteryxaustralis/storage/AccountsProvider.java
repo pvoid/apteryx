@@ -107,13 +107,15 @@ public class AccountsProvider extends ContentProvider
   @Override
   public int delete(Uri uri, String s, String[] strings)
   {
-    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    // TODO: Удалить данные аккаунта
+    return 0;
   }
 
   @Override
   public int update(Uri uri, ContentValues contentValues, String s, String[] strings)
   {
-    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    // TODO: Изменить данные аккаунта
+    return 0;
   }
 
   private static class AccountStorage extends SQLiteOpenHelper
