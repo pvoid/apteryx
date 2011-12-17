@@ -28,7 +28,6 @@ import android.support.v4.view.ViewPager;
 import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.RefreshableActivity;
 import org.pvoid.apteryxaustralis.UpdateStatusService;
-import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.preference.Preferences;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.fragments.GroupsAdapter;
@@ -77,12 +76,6 @@ public class MainActivity extends RefreshableActivity implements ViewPager.OnPag
   {
     _mPager.setCurrentItem(itemPosition);
     return true;
-  }
-
-  @Override
-  protected void refreshInfo()
-  {
-    ContentLoader.refresh(this);
   }
 
   @Override

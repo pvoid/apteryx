@@ -125,6 +125,9 @@ public class OsmpContentProvider extends ContentProvider
   final static int STATE_INTERFACE_MODIFIED = 0x800000; // Модифицирован интерфейс
   final static int STATE_ASO_ENABLED = 0x1000000; // Монитор АСО выключен.
 
+  private final static int ACTION_REBOOT = 0;
+  //private final static int ACTION_POWER_OFF = 1;
+
   private static final UriMatcher _sUriMather;
   static
   {
@@ -448,4 +451,29 @@ public class OsmpContentProvider extends ContentProvider
       if((ms & STATE_ASO_ENABLED) != 0)
         statuses.add(new StatusLine(context.getString(R.string.STATE_ASO_ENABLED),StatusLine.STATE_ERROR));
     }
+
+  public static void getActions(Context context, List<TerminalAction> actions)
+  {
+    actions.add(new TerminalAction(ACTION_REBOOT,context.getString(R.string.reboot),context.getString(R.string.reboot_question)));
+    //actions.add(new TerminalAction(ACTION_POWER_OFF,context.getString(R.string.switchoff)));
+  }
+
+  public static class TerminalAction
+  {
+    public final int id;
+    public final String title;
+    public final String question;
+
+    public TerminalAction(int id, String title, String question)
+    {
+      this.id = id;
+      this.title = title;
+      this.question = question;
+    }
+
+    public String toString()
+    {
+      return title;
+    }
+  }
 }

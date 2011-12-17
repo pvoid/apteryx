@@ -18,26 +18,40 @@
 package org.pvoid.apteryxaustralis.ui.fragments;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Intent;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.*;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
+import android.text.TextUtils;
+import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import org.pvoid.apteryxaustralis.R;
+import org.pvoid.apteryxaustralis.net.ContentLoader;
 import org.pvoid.apteryxaustralis.storage.osmp.OsmpContentProvider;
 import org.pvoid.apteryxaustralis.ui.TerminalInfoActivity;
 import org.pvoid.apteryxaustralis.ui.widgets.AgentHeader;
 
-public class TerminalsFragment extends ListFragment
+import java.util.ArrayList;
+import java.util.List;
+
+public class TerminalsFragment extends ListFragment implements AdapterView.OnItemLongClickListener,
+                                                               DialogInterface.OnClickListener
 {
   public static final String ARGUMENT_AGENT = "agent";
 
   private final TerminalsObserver _mTerminalsObserver = new TerminalsObserver(new Handler());
   private AgentHeader _mHeader;
+  private ArrayList<OsmpContentProvider.TerminalAction> _mActions = new ArrayList<OsmpContentProvider.TerminalAction>();
+  private long _mSelectedTerminalId;
+  private CharSequence _mSelectedTerminalName;
 
   private long getGroupId()
   {
@@ -76,6 +90,9 @@ public class TerminalsFragment extends ListFragment
                     values,
                     OsmpContentProvider.Agents.COLUMN_AGENT+"=?",
                     new String[] {Long.toString(getGroupId())});
+/////////
+    OsmpContentProvider.getActions(getActivity(),_mActions);
+    list.setOnItemLongClickListener(this);
   }
 
   @Override
@@ -94,6 +111,36 @@ public class TerminalsFragment extends ListFragment
     startActivity(intent);
   }
 
+  @Override
+  public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id)
+  {
+    _mSelectedTerminalName = "";
+    _mSelectedTerminalId = id;
+////////
+    TextView text = (TextView) view.findViewById(R.id.list_title);
+    if(text!=null)
+      _mSelectedTerminalName = text.getText();
+    ActionsDialog dialog = new ActionsDialog(getActivity(),_mSelectedTerminalName,_mActions,this);
+    dialog.show(getFragmentManager(),null);
+    return true;
+  }
+
+  @Override
+  public void onClick(DialogInterface dialogInterface, int index)
+  {
+    OsmpContentProvider.TerminalAction action = _mActions.get(index);
+    if(TextUtils.isEmpty(action.question))
+    {
+      return;
+    }
+    ConfirmDialog dialog = new ConfirmDialog(getActivity(),
+                                             String.format(action.question,_mSelectedTerminalName),
+                                             getGroupId(),
+                                             action.id,
+                                             _mSelectedTerminalId);
+    dialog.show(getFragmentManager(),null);
+  }
+
   private class TerminalsObserver extends ContentObserver
   {
     public TerminalsObserver(Handler handler)
@@ -107,6 +154,78 @@ public class TerminalsFragment extends ListFragment
       super.onChange(selfChange);
       ((TerminalsCursorAdapter)getListAdapter()).refresh();
       _mHeader.loadAgentData(getGroupId());
+    }
+  }
+
+  private static class ActionsDialog extends DialogFragment
+  {
+    private final ContextThemeWrapper _mContext;
+    private final ArrayAdapter<String> _mActions;
+    private final DialogInterface.OnClickListener _mListener;
+    private final CharSequence _mTitle;
+
+    public ActionsDialog(Context context, CharSequence title, List<OsmpContentProvider.TerminalAction> actions, DialogInterface.OnClickListener listener)
+    {
+      super();
+      _mContext = new ContextThemeWrapper(context,android.R.style.Theme_Black);
+      _mActions = new ArrayAdapter<String>(_mContext,android.R.layout.simple_dropdown_item_1line);
+      for(OsmpContentProvider.TerminalAction action : actions)
+        _mActions.add(action.title);
+      _mTitle = title;
+      _mListener = listener;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+      final AlertDialog.Builder builder = new AlertDialog.Builder(_mContext);
+      builder.setAdapter(_mActions,_mListener);
+      builder.setTitle(_mTitle);
+      builder.setCancelable(true);
+      final Dialog dialog = builder.create();
+      dialog.setCanceledOnTouchOutside(true);
+      return dialog;
+    }
+  }
+
+  private static class ConfirmDialog extends DialogFragment implements DialogInterface.OnClickListener
+  {
+    private final ContextThemeWrapper _mContext;
+    private final String _mMessage;
+    private final int _mAction;
+    private final long _mTerminalId;
+    private final long _mGroupId;
+    
+    public ConfirmDialog(Context context, String question, long agentId, int action, long terminalId)
+    {
+      super();
+      _mContext = new ContextThemeWrapper(context,android.R.style.Theme_Black);
+      _mMessage = question;
+      _mAction = action;
+      _mTerminalId = terminalId;
+      _mGroupId = agentId;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+      final AlertDialog.Builder builder = new AlertDialog.Builder(_mContext);
+      builder.setMessage(_mMessage);
+      builder.setCancelable(true);
+      builder.setPositiveButton("Ok",this).setNegativeButton(R.string.cancel,this);
+      return builder.create();
+    }
+
+    @Override
+    public void onClick(DialogInterface dialogInterface, int index)
+    {
+      if(index==DialogInterface.BUTTON_POSITIVE)
+      {
+        Bundle accountData = new Bundle();
+        if(!ContentLoader.getAccountData(_mContext,_mGroupId,accountData))
+          return;
+        ContentLoader.rebootTerminal(_mContext,accountData,_mTerminalId);
+      }
     }
   }
 }

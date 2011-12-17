@@ -17,10 +17,7 @@
 
 package org.pvoid.apteryxaustralis.net.osmp;
 
-import android.content.Context;
 import android.text.TextUtils;
-import org.pvoid.apteryxaustralis.R;
-import org.pvoid.apteryxaustralis.types.TerminalAction;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -349,10 +346,6 @@ public class ResponseParser extends DefaultHandler
   public static class Terminal
   {
 
-
-    private final static int ACTION_REBOOT = 0;
-    private final static int ACTION_POWER_OFF = 1;
-
     private int _mState;
     public String printer_state;
     public String cashbin_state;
@@ -410,12 +403,6 @@ public class ResponseParser extends DefaultHandler
     public String toString()
     {
       return address;
-    }
-
-    public void getActions(Context context, List<TerminalAction> actions)
-    {
-      actions.add(new TerminalAction(ACTION_REBOOT,context.getString(R.string.reboot)));
-      //actions.add(new TerminalAction(ACTION_POWER_OFF,context.getString(R.string.switchoff)));
     }
 
     /*public void runAction(IStorage storage, int action, ICommandResult resultHandler)

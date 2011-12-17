@@ -251,27 +251,23 @@ public class OsmpRequest implements IRequest
     return 0;
   }
 
-  /*static protected int rebootTerminal(Account account, long terminalId)
+  public static int rebootTerminal(Bundle accountData, long terminalId)
   {
-    if(account==null)
-      return IStorage.RES_ERR_INVALID_ACCOUNT;
-///////
     StringBuilder data = new StringBuilder();
-    startRequestNew(data,account);
+    startRequestNew(data,accountData);
     data.append("<terminals><rebootTerminal><target-terminal>")
         .append(terminalId)
         .append("</target-terminal></rebootTerminal></terminals></request>");
-    Log.v(OsmpRequest.class.getSimpleName(),data.toString());
     Request.Response response = Request.Send(_sNewApiURL,data.toString(),"utf-8");
     if(response==null)
-      return IStorage.RES_ERR_NETWORK_ERROR;
+      return Request.RES_ERR_NETWORK_ERROR;
 ///////
     if(response.code!=200)
       return -response.code;
-    return IStorage.RES_OK;
+    return Request.STATE_OK;
   }
 
-  static protected int switchOffTerminal(Account account, long terminalId)
+  /*static protected int switchOffTerminal(Account account, long terminalId)
   {
     StringBuilder data = new StringBuilder();
     startRequestNew(data,account);

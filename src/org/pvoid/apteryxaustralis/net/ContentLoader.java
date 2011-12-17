@@ -31,6 +31,11 @@ public class ContentLoader
   public static final String LOADING_STARTED  = "org.pvoid.apteryxaustralis.ContentLoadingBroadcast";
   public static final String LOADING_FINISHED = "org.pvoid.apteryxaustralis.ContentLoadedBroadcast";
 
+  private static final String KEY_ACTION = "key_action";
+  private static final String KEY_TERMINAL = "key_terminal";
+  private static final int ACTION_NONE   = 0;
+  private static final int ACTION_REBOOT = 1;
+
   private static final OsmpRequest    _sOsmpRequest = new OsmpRequest();
   private static volatile boolean     _sLoading = false;
   private static final Vector<Bundle> _sTasks = new Vector<Bundle>(2);
@@ -74,9 +79,50 @@ public class ContentLoader
     }
   }
 
+  public static void rebootTerminal(Context context, Bundle accountData, long terminalId)
+  {
+    accountData.putLong(KEY_TERMINAL,terminalId);
+    accountData.putInt(KEY_ACTION,ACTION_REBOOT);
+    if(_sContext ==null)
+      _sContext = context.getApplicationContext();
+//////////
+    synchronized(_sTasks)
+    {
+      _sTasks.add(accountData);
+      _sTasks.notify();
+    }
+  }
+
   public static void refresh(Context context)
   {
     refresh(context, null);
+  }
+
+  public static boolean getAccountData(Context context, long accountId, Bundle bundle)
+  {
+    Cursor cursor = context.getContentResolver().query(AccountsProvider.Accounts.CONTENT_URI,
+                                                       new String[] {AccountsProvider.Accounts.COLUMN_LOGIN,
+                                                                     AccountsProvider.Accounts.COLUMN_PASSWORD,
+                                                                     AccountsProvider.Accounts.COLUMN_CUSTOM1},
+                                                       AccountsProvider.Accounts.COLUMN_ID+"=?",new String[] {Long.toString(accountId)},
+                                                       null);
+    try
+    {
+      if(cursor.moveToFirst())
+      {
+        bundle.putString(OsmpRequest.ACCOUNT_ID,Long.toString(accountId));
+        bundle.putString(OsmpRequest.LOGIN,cursor.getString(0));
+        bundle.putString(OsmpRequest.PASSWORD,cursor.getString(1));
+        bundle.putString(OsmpRequest.TERMINAL,cursor.getString(2));
+        return true;
+      }
+    }
+    finally
+    {
+      if(cursor!=null)
+        cursor.close();
+    }
+    return false;
   }
 
   public static void checkStates(Context context)
@@ -163,7 +209,12 @@ public class ContentLoader
               if(data==null)
                 internalRefresh();
               else
-                internalRefresh(data);
+              {
+                if(data.getInt(KEY_ACTION,ACTION_NONE)==ACTION_REBOOT)
+                  OsmpRequest.rebootTerminal(data,data.getLong(KEY_TERMINAL,0));
+                else
+                  internalRefresh(data);
+              }
             }
             while(_sTasks.size()>0);
             _sLoading = false;

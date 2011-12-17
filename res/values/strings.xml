@@ -126,6 +126,7 @@
   <string name="tomorrow">завтра</string>
 
   <string name="reboot">Перезагрузить</string>
+  <string name="reboot_question">Перезагрузить терминал \'%s\'?</string>
   <string name="switchoff">Выключить</string>
   <string name="warn_level">Уровень предупреждения</string>
 

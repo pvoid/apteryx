@@ -21,7 +21,6 @@ import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.*;
-import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.LevelListDrawable;
@@ -37,9 +36,7 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.WrapperListAdapter;
 import org.pvoid.apteryxaustralis.net.ContentLoader;
-import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.preference.CommonSettings;
-import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
 public class RefreshableActivity extends FragmentActivity implements View.OnClickListener,
                                                                      DialogInterface.OnClickListener,
@@ -214,7 +211,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
     return super.onOptionsItemSelected(item);
   }
 
-  protected boolean getAccountData(long accountId, Bundle bundle)
+  /*protected boolean getAccountData(long accountId, Bundle bundle)
   {
     Cursor cursor = managedQuery(AccountsProvider.Accounts.CONTENT_URI,
                                  new String[] {AccountsProvider.Accounts.COLUMN_LOGIN,
@@ -239,9 +236,9 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
         cursor.close();
     }
     return false;
-  }
+  }*/
 
-  protected void refreshInfo()
+  private void refreshInfo()
   {
     ContentLoader.refresh(this);
   }
@@ -292,11 +289,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
       WrappedActionBar bar = new WrappedActionBar(this);
       bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
       bar.setListNavigationCallbacks(adapter, this);
-      /*ActionBar bar = getActionBar();
-      if(bar==null)
-        return;
-      bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-      bar.setListNavigationCallbacks(adapter,this);
+      /*
       bar.setSelectedNavigationItem(selectedIndex);*/
     }
   }
