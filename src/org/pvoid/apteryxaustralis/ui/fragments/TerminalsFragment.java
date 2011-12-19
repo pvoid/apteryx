@@ -17,11 +17,11 @@
 
 package org.pvoid.apteryxaustralis.ui.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.*;
 import android.database.ContentObserver;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
@@ -74,14 +74,15 @@ public class TerminalsFragment extends ListFragment implements AdapterView.OnIte
   public void onViewCreated(View view, Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
-    final Activity activity = getActivity();
+    final Context context = new ContextThemeWrapper(getActivity(), android.R.style.Theme_Light);
     final ListView list = getListView();
-    _mHeader = new AgentHeader(activity);
+    list.setBackgroundColor(Color.WHITE);
+    _mHeader = new AgentHeader(context);
     setListAdapter(null);
     _mHeader.loadAgentData(getGroupId());
-    list.addHeaderView(_mHeader,null,false);
-    setListAdapter(new TerminalsCursorAdapter(activity,getWhereClause(), R.layout.record_terminal));
-    final ContentResolver resolver = activity.getContentResolver();
+    list.addHeaderView(_mHeader, null, false);
+    setListAdapter(new TerminalsCursorAdapter(context, getWhereClause(), R.layout.record_terminal));
+    final ContentResolver resolver = context.getContentResolver();
     resolver.registerContentObserver(OsmpContentProvider.Terminals.CONTENT_URI, true, _mTerminalsObserver);
 //////////
     final ContentValues values = new ContentValues();
@@ -192,7 +193,8 @@ public class TerminalsFragment extends ListFragment implements AdapterView.OnIte
   {
     private final ContextThemeWrapper _mContext;
     private final String _mMessage;
-    private final int _mAction;
+    @SuppressWarnings("unused")
+    private final int _mAction; // Это на будущее
     private final long _mTerminalId;
     private final long _mGroupId;
     

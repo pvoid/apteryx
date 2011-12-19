@@ -115,7 +115,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
     }
     else
     {
-      setTheme(android.R.style.Theme_Holo);
+      setTheme(android.R.style.Theme_Holo_Light);
       requestWindowFeature(Window.FEATURE_ACTION_BAR);
     }
     super.onCreate(savedInstanceState);
@@ -149,6 +149,7 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
     {
       WrappedActionBar bar = new WrappedActionBar(this);
       bar.setBackgroundDrawable(getResources().getDrawable(R.drawable.top_bar));
+      bar.setDisplayOptions(0,ActionBar.DISPLAY_USE_LOGO | ActionBar.DISPLAY_SHOW_HOME);
       /*
       if(bar!=null)
       {
@@ -210,33 +211,6 @@ public class RefreshableActivity extends FragmentActivity implements View.OnClic
     }
     return super.onOptionsItemSelected(item);
   }
-
-  /*protected boolean getAccountData(long accountId, Bundle bundle)
-  {
-    Cursor cursor = managedQuery(AccountsProvider.Accounts.CONTENT_URI,
-                                 new String[] {AccountsProvider.Accounts.COLUMN_LOGIN,
-                                               AccountsProvider.Accounts.COLUMN_PASSWORD,
-                                               AccountsProvider.Accounts.COLUMN_CUSTOM1},
-                                 AccountsProvider.Accounts.COLUMN_ID+"=?",new String[] {Long.toString(accountId)},
-                                 null);
-    try
-    {
-      if(cursor.moveToFirst())
-      {
-        bundle.putString(OsmpRequest.ACCOUNT_ID,Long.toString(accountId));
-        bundle.putString(OsmpRequest.LOGIN,cursor.getString(0));
-        bundle.putString(OsmpRequest.PASSWORD,cursor.getString(1));
-        bundle.putString(OsmpRequest.TERMINAL,cursor.getString(2));
-        return true;
-      }
-    }
-    finally
-    {
-      if(cursor!=null)
-        cursor.close();
-    }
-    return false;
-  }*/
 
   private void refreshInfo()
   {

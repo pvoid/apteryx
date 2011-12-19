@@ -35,10 +35,12 @@ public class WrappedActionBar
   private static final Class[] _sSetDrawableParams = new Class[]       {Drawable.class};
   private static final Class[] _sSetNavigationModeParams = new Class[] {Integer.TYPE};
   private static final Class[] _sSetListNavigationCallbackParams = new Class[] {SpinnerAdapter.class, ActionBar.OnNavigationListener.class};
+  private static final Class[] _sSetDisplayOptionsParams = new Class[] {Integer.TYPE, Integer.TYPE};
   private final Object _mActionBar;
   private final Method _mSetDrawableMethod;
   private final Method _mSetNavigationMode;
   private final Method _mSetListNavigationCallback;
+  private final Method _mSetDisplayOptions;
   
   public WrappedActionBar(Activity activity) throws IllegalArgumentException
   {
@@ -54,12 +56,14 @@ public class WrappedActionBar
         _mSetDrawableMethod = cls.getMethod("setBackgroundDrawable", _sSetDrawableParams);
         _mSetNavigationMode = cls.getMethod("setNavigationMode", _sSetNavigationModeParams);
         _mSetListNavigationCallback = cls.getMethod("setListNavigationCallbacks", _sSetListNavigationCallbackParams);
+        _mSetDisplayOptions = cls.getMethod("setDisplayOptions",_sSetDisplayOptionsParams);
       }
       else
       {
         _mSetDrawableMethod = null;
         _mSetNavigationMode = null;
         _mSetListNavigationCallback = null;
+        _mSetDisplayOptions = null;
       }
     }
     catch (NoSuchMethodException e)
@@ -125,6 +129,25 @@ public class WrappedActionBar
     try
     {
       _mSetListNavigationCallback.invoke(_mActionBar,adapter,new FakeOnNavigationListener(listener));
+    }
+    catch (IllegalAccessException e)
+    {
+      e.printStackTrace();
+    }
+    catch (InvocationTargetException e)
+    {
+      e.printStackTrace();
+    }
+  }
+
+  public void setDisplayOptions(int option, int mask)
+  {
+    if(_mSetDisplayOptions==null || _mActionBar==null)
+      return;
+///////
+    try
+    {
+      _mSetDisplayOptions.invoke(_mActionBar,option,mask);
     }
     catch (IllegalAccessException e)
     {

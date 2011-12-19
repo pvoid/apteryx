@@ -39,12 +39,22 @@ public class TerminalInfoActivity extends RefreshableActivity implements ViewPag
   protected ViewPager        _mPager;
   final TerminalsObserver    _mObserver = new TerminalsObserver(_mUiHandler);
 
+  private long getGroupId()
+  {
+    final Bundle arguments = getIntent().getExtras();
+    if(arguments==null)
+      return 0;
+    return arguments.getLong(EXTRA_AGENT);
+  }
+
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_terminal_info);
 //////////
-    _mTerminals = new TerminalsCursorAdapter(this, null, R.layout.record_terminal_actionbar);
+    final long agentId = getGroupId();
+    final long terminalId = getIntent().getLongExtra(TerminalInfoFragment.EXTRA_TERMINAL,0);
+    _mTerminals = new TerminalsCursorAdapter(this, OsmpContentProvider.Terminals.COLUMN_AGENTID + "=" + Long.toString(agentId), R.layout.record_terminal_actionbar);
     _mPager = (ViewPager) findViewById(R.id.pages);
     if(_mPager==null)
     {
@@ -53,10 +63,10 @@ public class TerminalInfoActivity extends RefreshableActivity implements ViewPag
     _mPager.setAdapter(new InfoAdapter(getSupportFragmentManager()));
     _mPager.setOnPageChangeListener(this);
 ///////// Установим переключалку терминалов
-    final long id = getIntent().getLongExtra(TerminalInfoFragment.EXTRA_TERMINAL,0);
+
     for(int index=0, count = _mTerminals.getCount();index<count;++index)
     {
-      if(id==_mTerminals.getItemId(index))
+      if(terminalId==_mTerminals.getItemId(index))
       {
         _mPager.setCurrentItem(index);
         setListNavigationMode(_mTerminals,index);

@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.widget.Toast;
+import org.pvoid.apteryxaustralis.R;
 import org.pvoid.apteryxaustralis.net.osmp.OsmpRequest;
 import org.pvoid.apteryxaustralis.storage.AccountsProvider;
 
@@ -81,7 +83,7 @@ public class ContentLoader
 
   public static void rebootTerminal(Context context, Bundle accountData, long terminalId)
   {
-    accountData.putLong(KEY_TERMINAL,terminalId);
+    accountData.putLong(KEY_TERMINAL, terminalId);
     accountData.putInt(KEY_ACTION,ACTION_REBOOT);
     if(_sContext ==null)
       _sContext = context.getApplicationContext();
@@ -211,7 +213,10 @@ public class ContentLoader
               else
               {
                 if(data.getInt(KEY_ACTION,ACTION_NONE)==ACTION_REBOOT)
+                {
                   OsmpRequest.rebootTerminal(data,data.getLong(KEY_TERMINAL,0));
+                  Toast.makeText(_sContext,_sContext.getString(R.string.reboot_command_sended),Toast.LENGTH_SHORT).show();
+                }
                 else
                   internalRefresh(data);
               }

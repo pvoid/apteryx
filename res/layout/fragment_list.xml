@@ -14,13 +14,11 @@
   ~ GNU General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu1c.org/licenses/>.
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             style="@android:style/Theme.Light"
-             android:layout_width="fill_parent"
-             android:layout_height="fill_parent">
-  <android.support.v4.view.ViewPager android:id="@+id/pages"
-                                     android:layout_width="fill_parent"
-                                     android:layout_height="fill_parent"/>
-</FrameLayout>
+
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/list"
+          style="@android:style/Theme.Holo.Light"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent"/>

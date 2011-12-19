@@ -172,7 +172,8 @@ public class OsmpContentProvider extends ContentProvider
         sql.append(" inner join ").append(Terminals.TABLE_NAME).append(" t on a.")
                                     .append(Agents.COLUMN_AGENT).append("=t.").append(Terminals.COLUMN_AGENTID);
         if(selection!=null)
-          sql.append(" where ").append(selection.replace(Agents.COLUMN_AGENT,"a."+Agents.COLUMN_AGENT));
+          sql.append(" where ").append(selection.replace(Agents.COLUMN_AGENT,"a."+Agents.COLUMN_AGENT)
+                                                .replace(Agents.COLUMN_STATE,"a."+Agents.COLUMN_STATE));
         sql.append(" group by a.").append(Agents.COLUMN_AGENT);
         if(sortOrder!=null)
           sql.append(" order by a.").append(sortOrder);
