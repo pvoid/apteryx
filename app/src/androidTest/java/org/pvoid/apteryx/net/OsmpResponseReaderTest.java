@@ -147,4 +147,30 @@ public class OsmpResponseReaderTest {
         Assert.assertNotNull(nextChild);
         Assert.assertEquals("client", nextChild.name);
     }
+
+    @Test
+    public void tagTextReadCheck() throws Exception {
+        final String XML =
+                "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n" +
+                "<terminals>\n" +
+                    "<kkm-reg-num>123456789012</kkm-reg-num>\n" +
+                    "<taxpayer-reg-num>1234567#12345</taxpayer-reg-num>\n" +
+                "</terminals>";
+        XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+        parser.setInput(new ByteArrayInputStream(XML.getBytes()), "UTF-8");
+        OsmpResponseReader reader = new OsmpResponseReader(parser);
+        OsmpResponseReader.Tag tag = reader.next();
+        Assert.assertNotNull(tag);
+        Assert.assertEquals("terminals", tag.name);
+        Assert.assertNull(tag.text);
+
+        OsmpResponseReader.Tag child = tag.nextChild();
+        Assert.assertNotNull(child);
+        Assert.assertEquals("kkm-reg-num", child.name);
+        Assert.assertEquals("123456789012", child.text);
+        child = tag.nextChild();
+        Assert.assertNotNull(child);
+        Assert.assertEquals("taxpayer-reg-num", child.name);
+        Assert.assertEquals("1234567#12345", child.text);
+    }
 }

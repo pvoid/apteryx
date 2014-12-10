@@ -19,6 +19,7 @@ package org.pvoid.apteryx.net;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -71,6 +72,8 @@ import java.util.Map;
         @NonNull
         public final String name;
         @Nullable
+        public final String text;
+        @Nullable
         private final Map<String, String> mAttributes;
         private final int mTagLevel;
         private boolean mIsClosed = false;
@@ -89,6 +92,13 @@ import java.util.Map;
                 mAttributes = null;
             }
             mEvent = mParser.next();
+            if (mEvent == XmlPullParser.TEXT) {
+                String tagText = mParser.getText().trim();
+                text = TextUtils.isEmpty(tagText) ? null : tagText;
+                mEvent = mParser.next();
+            } else {
+                text = null;
+            }
         }
 
         @Nullable
