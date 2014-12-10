@@ -1,13 +1,20 @@
 apply plugin: 'com.android.application'
+apply plugin: 'robolectric'
+apply plugin: 'jacoco'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion '21.1.1'
 
     defaultConfig {
-        applicationId "org.pvoid.apteryx.next"
-        minSdkVersion 4
-        targetSdkVersion 4
+        applicationId 'org.pvoid.apteryx.next'
+        versionCode 1
+        versionName "0.9"
+        minSdkVersion 14
+        targetSdkVersion 21
+
+        buildConfigField 'String', 'SERVER_URL', "\"${project.properties['osmp.server_url']}\""
+        buildConfigField 'String', 'USER_AGENT', '"Dealer v0"'
     }
 
     buildTypes {
@@ -16,4 +23,49 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+jacoco {
+    toolVersion = "0.7.1.201405082137"
+}
+
+def coverageSourceDirs = [
+        '../app/src/main/java'
+]
+
+task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
+    group = "Reporting"
+
+    description = "Generate Jacoco coverage reports"
+
+    classDirectories = fileTree(
+            dir: '../app/build/intermediates/classes/debug',
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/*$ViewInjector*.*',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*']
+    )
+
+    additionalSourceDirs = files(coverageSourceDirs)
+    sourceDirectories = files(coverageSourceDirs)
+    executionData = files('../app/build/jacoco/testDebug.exec')
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:21.0.2'
+    compile 'com.squareup.okhttp:okhttp:2.1.0'
+    compile 'com.squareup.dagger:dagger:1.2.2'
+    compile 'com.squareup.dagger:dagger-compiler:1.2.2'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'org.robolectric:robolectric:2.4'
 }
