@@ -47,6 +47,8 @@ import java.util.Map;
         while (mTagInStack > level) {
             if (mEvent == XmlPullParser.END_TAG) {
                 --mTagInStack;
+            } else if (mEvent == XmlPullParser.START_TAG) {
+                ++mTagInStack;
             } else if (mEvent == XmlPullParser.END_DOCUMENT) {
                 return null;
             }
