@@ -20,6 +20,7 @@ package org.pvoid.apteryx.net;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.pvoid.apteryx.net.results.ResponseTag;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.xmlpull.v1.XmlPullParser;
@@ -44,18 +45,18 @@ public class OsmpResponseReaderTest {
         parser.setInput(new ByteArrayInputStream(XML_CLOSED.getBytes()), "UTF-8");
 
         OsmpResponseReader reader = new OsmpResponseReader(parser);
-        OsmpResponseReader.Tag tag = reader.next();
+        ResponseTag tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("client", tag.name);
-        Assert.assertEquals("111", tag.attribute("terminal"));
-        Assert.assertEquals("Dealer v0", tag.attribute("software"));
-        Assert.assertEquals("", tag.attribute("serial"));
-        Assert.assertNull(tag.attribute("unknown"));
+        Assert.assertEquals("client", tag.getName());
+        Assert.assertEquals("111", tag.getAttribute("terminal"));
+        Assert.assertEquals("Dealer v0", tag.getAttribute("software"));
+        Assert.assertEquals("", tag.getAttribute("serial"));
+        Assert.assertNull(tag.getAttribute("unknown"));
 
         tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("providers", tag.name);
-        Assert.assertNull(tag.attribute("any"));
+        Assert.assertEquals("providers", tag.getName());
+        Assert.assertNull(tag.getAttribute("any"));
 
         Assert.assertNull(reader.next());
         // check non closed document
@@ -68,10 +69,10 @@ public class OsmpResponseReaderTest {
         reader = new OsmpResponseReader(parser);
         tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("providers", tag.name);
+        Assert.assertEquals("providers", tag.getName());
         tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("auth", tag.name);
+        Assert.assertEquals("auth", tag.getName());
         Assert.assertNull(reader.next());
     }
 
@@ -83,39 +84,39 @@ public class OsmpResponseReaderTest {
                 "<auth login=\"login\" sign=\"sign\" signAlg=\"MD5\"/>\n" +
                 "<client terminal=\"111\" software=\"Dealer v0\" serial=\"\"/>\n" +
                 "<terminals>\n" +
-                    "<setFiscalMode>\n" +
-                        "<kkm-reg-num>123456789012</kkm-reg-num>\n" +
-                        "<taxpayer-reg-num>1234567#12345</taxpayer-reg-num>\n" +
-                    "</setFiscalMode>\n" +
+                    "<setFiscalMode />\n" +
+                    "<getMessages />" +
                 "</terminals>\n" +
+                "<agents/>" +
             "</request>";
         XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
         parser.setInput(new ByteArrayInputStream(XML.getBytes()), "UTF-8");
 
         OsmpResponseReader reader = new OsmpResponseReader(parser);
-        OsmpResponseReader.Tag tag = reader.next();
+        ResponseTag tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("request", tag.name);
-        OsmpResponseReader.Tag child = tag.nextChild();
+        Assert.assertEquals("request", tag.getName());
+        ResponseTag child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("auth", child.name);
+        Assert.assertEquals("auth", child.getName());
         Assert.assertNull(child.nextChild());
         child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("client", child.name);
+        Assert.assertEquals("client", child.getName());
         Assert.assertNull(child.nextChild());
         child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("terminals", child.name);
-        child = child.nextChild();
-        Assert.assertNotNull(child);
-        Assert.assertEquals("setFiscalMode", child.name);
-        OsmpResponseReader.Tag subChild = child.nextChild();
+        Assert.assertEquals("terminals", child.getName());
+        ResponseTag subChild = child.nextChild();
         Assert.assertNotNull(subChild);
-        Assert.assertEquals("kkm-reg-num", subChild.name);
+        Assert.assertEquals("setFiscalMode", subChild.getName());
         subChild = child.nextChild();
         Assert.assertNotNull(subChild);
-        Assert.assertEquals("taxpayer-reg-num", subChild.name);
+        Assert.assertEquals("getMessages", subChild.getName());
+        Assert.assertNull(child.nextChild());
+        child = tag.nextChild();
+        Assert.assertNotNull(child);
+        Assert.assertEquals("agents", child.getName());
         Assert.assertNull(child.nextChild());
         Assert.assertNull(tag.nextChild());
         Assert.assertNull(reader.next());
@@ -136,16 +137,16 @@ public class OsmpResponseReaderTest {
         parser.setInput(new ByteArrayInputStream(XML.getBytes()), "UTF-8");
 
         OsmpResponseReader reader = new OsmpResponseReader(parser);
-        OsmpResponseReader.Tag tag = reader.next();
+        ResponseTag tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("request", tag.name);
-        OsmpResponseReader.Tag child = tag.nextChild();
+        Assert.assertEquals("request", tag.getName());
+        ResponseTag child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("terminals", child.name);
+        Assert.assertEquals("terminals", child.getName());
         Assert.assertNotNull(child.nextChild());
-        OsmpResponseReader.Tag nextChild = tag.nextChild();
+        ResponseTag nextChild = tag.nextChild();
         Assert.assertNotNull(nextChild);
-        Assert.assertEquals("client", nextChild.name);
+        Assert.assertEquals("client", nextChild.getName());
     }
 
     @Test
@@ -159,18 +160,18 @@ public class OsmpResponseReaderTest {
         XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
         parser.setInput(new ByteArrayInputStream(XML.getBytes()), "UTF-8");
         OsmpResponseReader reader = new OsmpResponseReader(parser);
-        OsmpResponseReader.Tag tag = reader.next();
+        ResponseTag tag = reader.next();
         Assert.assertNotNull(tag);
-        Assert.assertEquals("terminals", tag.name);
-        Assert.assertNull(tag.text);
+        Assert.assertEquals("terminals", tag.getName());
+        Assert.assertNull(tag.getText());
 
-        OsmpResponseReader.Tag child = tag.nextChild();
+        ResponseTag child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("kkm-reg-num", child.name);
-        Assert.assertEquals("123456789012", child.text);
+        Assert.assertEquals("kkm-reg-num", child.getName());
+        Assert.assertEquals("123456789012", child.getText());
         child = tag.nextChild();
         Assert.assertNotNull(child);
-        Assert.assertEquals("taxpayer-reg-num", child.name);
-        Assert.assertEquals("1234567#12345", child.text);
+        Assert.assertEquals("taxpayer-reg-num", child.getName());
+        Assert.assertEquals("1234567#12345", child.getText());
     }
 }

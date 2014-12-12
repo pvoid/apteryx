@@ -68,4 +68,5 @@ dependencies {
     compile 'com.squareup.dagger:dagger-compiler:1.2.2'
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile 'org.robolectric:robolectric:2.4'
+    androidTestCompile 'org.mockito:mockito-all:1.9.5'
 }

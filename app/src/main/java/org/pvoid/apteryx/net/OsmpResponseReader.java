@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import org.pvoid.apteryx.net.results.ResponseTag;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -33,13 +34,13 @@ import java.util.Map;
     private int mEvent;
     private int mTagInStack = 0;
 
-    /* package */OsmpResponseReader(XmlPullParser parser) throws XmlPullParserException {
+    /* package */ OsmpResponseReader(XmlPullParser parser) throws XmlPullParserException {
         mParser = parser;
         mEvent = parser.getEventType();
     }
 
     @Nullable
-    public Tag next() throws XmlPullParserException, IOException {
+    public ResponseTag next() throws XmlPullParserException, IOException {
         return nextTagForLevel(0);
     }
 
@@ -61,6 +62,7 @@ import java.util.Map;
                 return new Tag();
             } else if (mEvent == XmlPullParser.END_TAG) {
                 --mTagInStack;
+                mEvent = mParser.next();
                 return null;
             }
             mEvent = mParser.next();
@@ -68,11 +70,11 @@ import java.util.Map;
         return null;
     }
 
-    public class Tag {
+    private class Tag implements ResponseTag {
         @NonNull
-        public final String name;
+        private final String mName;
         @Nullable
-        public final String text;
+        private final String mText;
         @Nullable
         private final Map<String, String> mAttributes;
         private final int mTagLevel;
@@ -80,7 +82,7 @@ import java.util.Map;
 
         private Tag() throws XmlPullParserException, IOException {
             mTagLevel = ++mTagInStack;
-            name = mParser.getName();
+            mName = mParser.getName();
             mIsClosed = mParser.isEmptyElementTag();
             final int attrCount = mParser.getAttributeCount();
             if (attrCount != 0) {
@@ -94,31 +96,49 @@ import java.util.Map;
             mEvent = mParser.next();
             if (mEvent == XmlPullParser.TEXT) {
                 String tagText = mParser.getText().trim();
-                text = TextUtils.isEmpty(tagText) ? null : tagText;
+                mText = TextUtils.isEmpty(tagText) ? null : tagText;
                 mEvent = mParser.next();
             } else {
-                text = null;
+                mText = null;
             }
         }
 
+        @Override
         @Nullable
-        public String attribute(String name) {
+        public String getAttribute(@NonNull String name) {
             if (mAttributes == null) {
                 return null;
             }
             return mAttributes.get(name);
         }
 
+        @NonNull
+        @Override
+        public String getName() {
+            return mName;
+        }
+
         @Nullable
-        public Tag nextChild() throws IOException, XmlPullParserException {
+        @Override
+        public String getText() {
+            return mText;
+        }
+
+        @Nullable
+        @Override
+        public ResponseTag nextChild() throws TagReadExceptin {
             if (mIsClosed) {
                 return null;
             }
-            Tag result = nextTagForLevel(mTagLevel);
-            if (result == null) {
-                mIsClosed = true;
+            try {
+                Tag result = nextTagForLevel(mTagLevel);
+                if (result == null) {
+                    mIsClosed = true;
+                }
+                return result;
+            } catch (IOException | XmlPullParserException e) {
+                throw new TagReadExceptin(e);
             }
-            return result;
         }
     }
 }
