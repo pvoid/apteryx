@@ -39,10 +39,10 @@ public class OsmpResponse {
     @NonNull private final Map<OsmpInterface, List<Result>> mInterfaces = new HashMap<>();
 
     /* package */ OsmpResponse(@NonNull ResponseTag tag,
-                               @NonNull ResultFactories factory) throws ResponseTag.TagReadExceptin {
+                               @NonNull ResultFactories factory) throws ResponseTag.TagReadException {
         int result = 0;
         if (!ROOT_TAG_NAME.equals(tag.getName())) {
-            throw new ResponseTag.TagReadExceptin("Invalid root tag name: " + tag.getName());
+            throw new ResponseTag.TagReadException("Invalid root tag name: " + tag.getName());
         }
         try {
             String val = tag.getAttribute(ATTR_RESULT);
@@ -50,7 +50,7 @@ public class OsmpResponse {
                 result = Integer.parseInt(val);
             }
         } catch (NumberFormatException e) {
-            throw new ResponseTag.TagReadExceptin(e);
+            throw new ResponseTag.TagReadException(e);
         }
         mResult = result;
         mResultDescription = tag.getAttribute(ATTR_RESULT_DESCRIPTION);

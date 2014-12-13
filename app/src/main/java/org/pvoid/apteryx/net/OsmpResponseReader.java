@@ -126,7 +126,7 @@ import java.util.Map;
 
         @Nullable
         @Override
-        public ResponseTag nextChild() throws TagReadExceptin {
+        public ResponseTag nextChild() throws TagReadException {
             if (mIsClosed) {
                 return null;
             }
@@ -137,7 +137,7 @@ import java.util.Map;
                 }
                 return result;
             } catch (IOException | XmlPullParserException e) {
-                throw new TagReadExceptin(e);
+                throw new TagReadException(e);
             }
         }
     }

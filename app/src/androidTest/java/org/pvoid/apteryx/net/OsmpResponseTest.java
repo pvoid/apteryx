@@ -20,11 +20,9 @@ package org.pvoid.apteryx.net;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.net.results.Result;
-import org.pvoid.apteryx.net.results.ResultFactory;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.xmlpull.v1.XmlPullParser;
@@ -75,7 +73,7 @@ public class OsmpResponseTest {
         }
     }
 
-    @Test(expected = ResponseTag.TagReadExceptin.class)
+    @Test(expected = ResponseTag.TagReadException.class)
     public void invalidRootTagCheck() throws Exception {
         final String XML =
                 "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n" +
@@ -88,7 +86,7 @@ public class OsmpResponseTest {
         new OsmpResponse(reader.next(), factories);
     }
 
-    @Test(expected = ResponseTag.TagReadExceptin.class)
+    @Test(expected = ResponseTag.TagReadException.class)
     public void invalidResultCodeCheck() throws Exception {
         final String XML =
                 "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n" +
