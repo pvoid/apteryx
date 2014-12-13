@@ -15,25 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.net.results;
+package org.pvoid.apteryx.annotations;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface ResponseTag {
-    @NonNull String getName();
-    @Nullable String getText();
-    @Nullable String getAttribute(@NonNull String name);
-    @Nullable ResponseTag nextChild() throws TagReadException;
-
-    public class TagReadException extends Exception {
-
-        public TagReadException(String detailMessage) {
-            super(detailMessage);
-        }
-
-        public TagReadException(Throwable throwable) {
-            super(throwable);
-        }
-    }
+@Retention(RetentionPolicy.SOURCE)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface NotOnMainThread {
 }

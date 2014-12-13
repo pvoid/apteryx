@@ -26,7 +26,7 @@ import org.pvoid.apteryx.net.results.ResultFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OsmpResultFactories implements ResultFactories {
+/* package */ class OsmpResultFactories implements ResultFactories {
 
     private final Map<String, ResultFactory> mFactories = new HashMap<>();
 
