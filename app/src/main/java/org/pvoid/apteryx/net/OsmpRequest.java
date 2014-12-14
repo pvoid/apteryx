@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryx.net;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -26,6 +27,7 @@ import com.squareup.okhttp.RequestBody;
 
 import org.pvoid.apteryx.data.Account;
 import org.pvoid.apteryx.net.commands.Command;
+import org.pvoid.apteryxaustralis.BuildConfig;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -41,10 +43,15 @@ public class OsmpRequest {
     private static final String DEFAULT_ENCODING = "windows-1251";
 
     private static final MediaType MEDIA_TYPE = MediaType.parse("application/xml; charset=" + DEFAULT_ENCODING);
+    private static final Uri SERVER_URI = Uri.parse(BuildConfig.SERVER_URL);
     private final byte[] mBody;
 
     private OsmpRequest(byte[] data) {
         mBody = data;
+    }
+
+    /* package */ Uri getUri() {
+        return SERVER_URI;
     }
 
     /* package */ RequestBody createBody() {
