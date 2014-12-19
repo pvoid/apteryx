@@ -46,7 +46,7 @@ public class OsmpRequestTest {
             "<auth login=\"LOGIN\" signAlg=\"MD5\" sign=\"HASH\"/>" +
             "<client terminal=\"TERMINAL\" software=\"Dealer v0\" serial=\"\"/>" +
             "<terminals>" +
-            "<getConfig></getConfig>" +
+            "<getConfig mode=\"async\"></getConfig>" +
             "<requestProcessList>" +
             "<target-terminal>1111111</target-terminal>" +
             "<e-mail>mail@qiwi.ru</e-mail>" +
@@ -62,6 +62,7 @@ public class OsmpRequestTest {
 
         Command getConfig = Mockito.mock(Command.class);
         Mockito.when(getConfig.getName()).thenReturn("getConfig");
+        Mockito.when(getConfig.isAsync()).thenReturn(true);
 
         Command requestProcessList = Mockito.mock(Command.class);
         Mockito.when(requestProcessList.getName()).thenReturn("requestProcessList");

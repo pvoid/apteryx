@@ -21,11 +21,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import org.pvoid.apteryx.net.commands.Command;
 import org.pvoid.apteryx.net.results.Result;
 import org.pvoid.apteryx.net.results.ResponseTag;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +38,7 @@ public class OsmpResponse {
 
     private final int mResult;
     @Nullable private final String mResultDescription;
-    @NonNull private final Map<OsmpInterface, List<Result>> mInterfaces = new HashMap<>();
+    @NonNull private final Map<OsmpInterface, ResultMap> mInterfaces = new HashMap<>();
 
     /* package */ OsmpResponse(@NonNull ResponseTag tag,
                                @NonNull ResultFactories factory) throws ResponseTag.TagReadException {
@@ -62,17 +64,17 @@ public class OsmpResponse {
                 continue;
             }
             ResponseTag commandTag;
-            List<Result> commands = null;
+            ResultMap commands = null;
             while ((commandTag = interfaceTag.nextChild()) != null) {
                 Result command = factory.build(commandTag);
                 if (command == null) {
                     continue;
                 }
                 if (commands == null) {
-                    commands = new ArrayList<>();
+                    commands = new ResultMap();
                     mInterfaces.put(i, commands);
                 }
-                commands.add(command);
+                commands.put(command.getName(), command);
             }
         }
     }
@@ -81,13 +83,90 @@ public class OsmpResponse {
         return mResult;
     }
 
+    /* package */ boolean hasAsyncResponse() {
+        for (ResultMap results : mInterfaces.values()) {
+            for (Result result : results.values()) {
+                if (result.isPending()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /* package */ void fillAsyncRequest(@NonNull OsmpRequest.Builder requestBuilder) {
+        for (Map.Entry<OsmpInterface, ResultMap> results : mInterfaces.entrySet()) {
+            for (Result result : results.getValue()) {
+                if (result.isPending()) {
+                    requestBuilder.getInterface(results.getKey())
+                            .add(new AsyncRequestCommand(result.getName(), result.getQueueId()));
+                }
+            }
+        }
+    }
+
+    /* package */ void update(@NonNull OsmpResponse response) {
+        for (Map.Entry<OsmpInterface, ResultMap> results : response.mInterfaces.entrySet()) {
+            for (Result result : results.getValue()) {
+                if (!result.isPending()) {
+                    mInterfaces.get(results.getKey()).put(result.getName(), result);
+                }
+            }
+        }
+    }
+
     @Nullable
     public String getResultDescription() {
         return mResultDescription;
     }
 
     @Nullable
-    public List<Result> getInterface(@NonNull OsmpInterface iface) {
+    public Results getInterface(@NonNull OsmpInterface iface) {
         return mInterfaces.get(iface);
+    }
+
+    private static class ResultMap extends HashMap<String, Result> implements Results {
+        @Override
+        public Result get(String command) {
+            return super.get(command);
+        }
+
+        @Override
+        public Iterator<Result> iterator() {
+            return values().iterator();
+        }
+    }
+
+    private static class AsyncRequestCommand implements Command {
+
+        private final String mName;
+        private final Map<String, String> mParams;
+
+        private AsyncRequestCommand(String name, final int queId) {
+            mName = name;
+            mParams = new HashMap<String, String>(1) {{
+                put("quid", String.valueOf(queId));
+            }};
+        }
+
+        @Override
+        public String getName() {
+            return mName;
+        }
+
+        @Override
+        public Map<String, String> getParams() {
+            return mParams;
+        }
+
+        @Override
+        public boolean isAsync() {
+            return false;
+        }
+    }
+
+    public interface Results extends Iterable<Result> {
+        Result get(String command);
+        int size();
     }
 }

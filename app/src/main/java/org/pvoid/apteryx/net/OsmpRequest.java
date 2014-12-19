@@ -63,20 +63,20 @@ public class OsmpRequest {
         @NonNull
         private final Account mAccount;
         @Nullable
-        private Map<OsmpInterface, List<Command>> mInterfaces = null;
+        private Map<OsmpInterface, CommandsArrayList> mInterfaces = null;
 
         public Builder(@NonNull Account account) {
             mAccount = account;
         }
 
         @NonNull
-        public List<Command> getInterface(OsmpInterface osmpInterface) {
+        public CommandsList getInterface(OsmpInterface osmpInterface) {
             if (mInterfaces == null) {
                 mInterfaces = new HashMap<>();
             }
-            List<Command> commands = mInterfaces.get(osmpInterface);
+            CommandsArrayList commands = mInterfaces.get(osmpInterface);
             if (commands == null) {
-                commands = new ArrayList<>();
+                commands = new CommandsArrayList();
                 mInterfaces.put(osmpInterface, commands);
             }
             return commands;
@@ -103,10 +103,14 @@ public class OsmpRequest {
                       .append("\" software=\"Dealer v0\" serial=\"\"/>");
 
             if (mInterfaces != null) {
-                for (Map.Entry<OsmpInterface, List<Command>> i : mInterfaces.entrySet()) {
+                for (Map.Entry<OsmpInterface, CommandsArrayList> i : mInterfaces.entrySet()) {
                     resultText.append("<").append(i.getKey().getName()).append(">");
                     for (Command command : i.getValue()) {
-                        resultText.append("<").append(command.getName()).append(">");
+                        resultText.append("<").append(command.getName());
+                        if (command.isAsync()) {
+                            resultText.append(" mode=\"async\"");
+                        }
+                        resultText.append(">");
                         for (Map.Entry<String, String> params : command.getParams().entrySet()) {
                             resultText.append("<").append(params.getKey()).append(">");
                             resultText.append(TextUtils.htmlEncode(params.getValue()));
@@ -139,5 +143,12 @@ public class OsmpRequest {
         public long contentLength() {
             return mBody.length;
         }
+    }
+
+    private static class CommandsArrayList extends ArrayList<Command> implements CommandsList {
+    }
+
+    public interface CommandsList {
+        boolean add(Command command);
     }
 }
