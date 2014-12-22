@@ -18,6 +18,7 @@
 package org.pvoid.apteryx.net;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -38,9 +39,13 @@ import java.io.IOException;
 
     private static final String TAG = "RequestWork";
     private static final XmlPullParserFactory PARSER_FACTORY;
-    @NonNull private final OsmpRequest mOsmpRequest;
+
+    @NonNull private final OsmpRequest mRequest;
     @NonNull private final ResultFactories mFactories;
     @NonNull private final ResultHandler mHandler;
+    @NonNull private final RequestScheduler mScheduler;
+    @Nullable private final OsmpResponse mResponse;
+    private final int mCount;
 
     static {
         XmlPullParserFactory factory = null;
@@ -52,11 +57,24 @@ import java.io.IOException;
         PARSER_FACTORY = factory;
     }
 
-    /* package */ RequestWork(@NonNull OsmpRequest osmpRequest, @NonNull ResultFactories factories,
-                              @NonNull ResultHandler handler) {
-        mOsmpRequest = osmpRequest;
+    /* package */ RequestWork(@NonNull RequestScheduler scheduler, @NonNull OsmpRequest osmpRequest,
+                              @NonNull ResultFactories factories, @NonNull ResultHandler handler) {
+        mRequest = osmpRequest;
         mFactories = factories;
         mHandler = handler;
+        mCount = 0;
+        mResponse = null;
+        mScheduler = scheduler;
+    }
+
+    /* package */ RequestWork(@NonNull RequestWork src, @NonNull OsmpRequest request,
+                        @Nullable OsmpResponse response) {
+        mRequest = request;
+        mFactories = src.mFactories;
+        mHandler = src.mHandler;
+        mResponse = response;
+        mScheduler = src.mScheduler;
+        mCount = src.mCount + 1;
     }
 
     @Override
@@ -82,7 +100,7 @@ import java.io.IOException;
 
         OkHttpClient client = new OkHttpClient();
         Request.Builder builder = new Request.Builder();
-        builder.url(mOsmpRequest.getUri().toString()).post(mOsmpRequest.createBody());
+        builder.url(mRequest.getUri().toString()).post(mRequest.createBody());
         builder.addHeader(HTTP.USER_AGENT, BuildConfig.USER_AGENT);
         try {
             Response resp = client.newCall(builder.build()).execute();
@@ -97,7 +115,23 @@ import java.io.IOException;
             if (tag != null) {
                 OsmpResponse response = new OsmpResponse(tag, mFactories);
                 if (!mHandler.isCanceled()) {
-                    mHandler.onSuccess(response);
+                    if (mResponse != null) {
+                        mResponse.update(response);
+                        response = mResponse;
+                    }
+
+                    if (!response.hasAsyncResponse()) {
+                        mHandler.onSuccess(response);
+                    } else if (mCount < 5) {
+                        mHandler.markPending();
+                        OsmpRequest.Builder request = mRequest.buildUppon();
+                        response.fillAsyncRequest(request);
+                        OsmpRequest req = request.create();
+                        if (req != null) {
+                            mScheduler.schedule(new RequestWork(this, req, response));
+                            return;
+                        }
+                    }
                 }
                 return;
             }

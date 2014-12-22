@@ -25,6 +25,9 @@ import com.squareup.okhttp.mockwebserver.MockWebServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.pvoid.apteryx.data.Account;
+import org.pvoid.apteryx.net.results.ResponseTag;
+import org.pvoid.apteryx.net.results.Result;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -41,7 +44,8 @@ public class RequestWorkTest {
         ResultFactories factories = Mockito.mock(ResultFactories.class);
         ResultHandler handler = Mockito.mock(ResultHandler.class);
         Mockito.when(request.getUri()).thenReturn(Uri.parse(server.getUrl("/").toString()));
-        RequestWork requestWork = new RequestWork(request, factories, handler);
+        RequestWork requestWork = new RequestWork(Mockito.mock(RequestScheduler.class), request,
+                factories, handler);
         requestWork.run();
         server.shutdown();
         Mockito.verify(handler, Mockito.times(1)).onError();
@@ -54,7 +58,8 @@ public class RequestWorkTest {
         ResultHandler handler = Mockito.mock(ResultHandler.class);
         Mockito.when(request.getUri()).thenReturn(Uri.parse("http://localhost/"));
         Mockito.when(handler.isCanceled()).thenReturn(true);
-        RequestWork requestWork = new RequestWork(request, factories, handler);
+        RequestWork requestWork = new RequestWork(Mockito.mock(RequestScheduler.class), request,
+                factories, handler);
         requestWork.run();
         Mockito.verify(handler, Mockito.never()).onError();
         Mockito.verify(handler, Mockito.never()).onSuccess(Mockito.any(OsmpResponse.class));
@@ -74,7 +79,8 @@ public class RequestWorkTest {
         ResultFactories factories = Mockito.mock(ResultFactories.class);
         ResultHandler handler = Mockito.mock(ResultHandler.class);
         Mockito.when(request.getUri()).thenReturn(Uri.parse(server.getUrl("/").toString()));
-        RequestWork requestWork = new RequestWork(request, factories, handler);
+        RequestWork requestWork = new RequestWork(Mockito.mock(RequestScheduler.class), request,
+                factories, handler);
         requestWork.run();
         server.shutdown();
         Mockito.verify(handler, Mockito.times(1)).onError();
@@ -93,7 +99,8 @@ public class RequestWorkTest {
         ResultFactories factories = Mockito.mock(ResultFactories.class);
         ResultHandler handler = Mockito.mock(ResultHandler.class);
         Mockito.when(request.getUri()).thenReturn(Uri.parse(server.getUrl("/").toString()));
-        RequestWork requestWork = new RequestWork(request, factories, handler);
+        RequestWork requestWork = new RequestWork(Mockito.mock(RequestScheduler.class), request,
+                factories, handler);
         requestWork.run();
         server.shutdown();
         Mockito.verify(handler, Mockito.times(1)).onError();
@@ -113,7 +120,6 @@ public class RequestWorkTest {
             "</response>";
 
         MockWebServer server = new MockWebServer();
-
         MockResponse response = new MockResponse();
         response.setBody(XML);
         server.enqueue(response);
@@ -123,11 +129,49 @@ public class RequestWorkTest {
         ResultFactories factories = Mockito.mock(ResultFactories.class);
         ResultHandler handler = Mockito.mock(ResultHandler.class);
         Mockito.when(request.getUri()).thenReturn(Uri.parse(server.getUrl("/").toString()));
-        RequestWork requestWork = new RequestWork(request, factories, handler);
+        RequestWork requestWork = new RequestWork(Mockito.mock(RequestScheduler.class), request,
+                factories, handler);
         requestWork.run();
         server.shutdown();
 
         Mockito.verify(handler, Mockito.never()).onError();
         Mockito.verify(handler, Mockito.times(1)).onSuccess(Mockito.any(OsmpResponse.class));
+    }
+
+    @Test
+    public void scheduleRequestCheck() throws Exception {
+        final String XML =
+                "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n" +
+                "<response result=\"0\">\n" +
+                    "<terminals>\n" +
+                        "<getMessages quid=\"20\" result=\"0\" status=\"1\" />\n" +
+                    "</terminals>\n" +
+                "</response>";
+
+        MockWebServer server = new MockWebServer();
+        MockResponse response = new MockResponse();
+        response.setBody(XML);
+        server.enqueue(response);
+        server.play();
+
+        OsmpRequest request = Mockito.mock(OsmpRequest.class);
+        OsmpRequest.Builder builder = Mockito.mock(OsmpRequest.Builder.class);
+        Mockito.when(request.buildUppon()).thenReturn(builder);
+        Mockito.when(builder.getInterface(Mockito.any(OsmpInterface.class)))
+                .thenReturn(Mockito.mock(OsmpRequest.CommandsList.class));
+        Mockito.when(builder.create()).thenReturn(request);
+
+        ResultFactories factories = Mockito.mock(ResultFactories.class);
+        Result result = Mockito.mock(Result.class);
+        ResultHandler handler = Mockito.mock(ResultHandler.class);
+        RequestScheduler scheduler = Mockito.mock(RequestScheduler.class);
+        Mockito.when(request.getUri()).thenReturn(Uri.parse(server.getUrl("/").toString()));
+
+        Mockito.when(result.isPending()).thenReturn(true);
+        Mockito.when(factories.build(Mockito.any(ResponseTag.class))).thenReturn(result);
+        RequestWork requestWork = new RequestWork(scheduler, request, factories, handler);
+        requestWork.run();
+
+        Mockito.verify(scheduler, Mockito.times(1)).schedule(Mockito.any(RequestWork.class));
     }
 }

@@ -23,25 +23,38 @@ import android.support.annotation.Nullable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/* package */ class OsmpRequestExecutor implements RequestExecutor {
+/* package */ class OsmpRequestExecutor implements RequestExecutor, RequestScheduler {
+
+    private static final int REQUEST_DELAY_SEC = 3;
+
     private final Executor mExecutor;
+    private final ScheduledExecutorService mDelayedExecutor;
     private final ResultFactories mFactories;
 
     /* package */ OsmpRequestExecutor(ResultFactories factories) {
         mFactories = factories;
         mExecutor = new ThreadPoolExecutor(1, 1, 15, TimeUnit.MINUTES,
                 new LinkedBlockingQueue<Runnable>());
+        mDelayedExecutor = new ScheduledThreadPoolExecutor(1);
+
     }
 
     @Nullable
     @Override
     public RequestHandle execute(@NonNull OsmpRequest request, @NonNull ResultReceiver receiver) {
         ResultHandler handler = new ResultHandler(receiver);
-        RequestWork work = new RequestWork(request, mFactories, handler);
+        RequestWork work = new RequestWork(this, request, mFactories, handler);
         mExecutor.execute(work);
         return handler;
+    }
+
+    @Override
+    public void schedule(@NonNull RequestWork work) {
+        mDelayedExecutor.schedule(work, REQUEST_DELAY_SEC, TimeUnit.SECONDS);
     }
 }

@@ -44,10 +44,12 @@ public class OsmpRequest {
 
     private static final MediaType MEDIA_TYPE = MediaType.parse("application/xml; charset=" + DEFAULT_ENCODING);
     private static final Uri SERVER_URI = Uri.parse(BuildConfig.SERVER_URL);
-    private final byte[] mBody;
+    @NonNull private final Account mAccount;
+    @NonNull private final byte[] mBody;
 
-    private OsmpRequest(byte[] data) {
+    private OsmpRequest(@NonNull Account account, @NonNull byte[] data) {
         mBody = data;
+        mAccount = account;
     }
 
     /* package */ Uri getUri() {
@@ -56,6 +58,10 @@ public class OsmpRequest {
 
     /* package */ RequestBody createBody() {
         return new OsmpRequestBody();
+    }
+
+    public Builder buildUppon() {
+        return new Builder(mAccount);
     }
 
     public static class Builder {
@@ -124,7 +130,7 @@ public class OsmpRequest {
 
             resultText.append("</request>");
 
-            return new OsmpRequest(resultText.toString().getBytes(charset));
+            return new OsmpRequest(mAccount, resultText.toString().getBytes(charset));
         }
     }
 
