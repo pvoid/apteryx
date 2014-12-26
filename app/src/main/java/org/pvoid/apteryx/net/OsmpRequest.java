@@ -25,9 +25,9 @@ import android.text.TextUtils;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 
+import org.pvoid.apteryx.BuildConfig;
 import org.pvoid.apteryx.data.Account;
 import org.pvoid.apteryx.net.commands.Command;
-import org.pvoid.apteryxaustralis.BuildConfig;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

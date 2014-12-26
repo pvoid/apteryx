@@ -14,14 +14,35 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="org.pvoid.apteryxaustralis"
-      android:versionCode="7" android:versionName="1.0.1">
-    <application android:icon="@drawable/icon"
-                 android:label="@string/app_name">
-     <!--activity android:name=".ui.MainActivity"
+    package="org.pvoid.apteryx" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <supports-screens android:normalScreens="true" />
+
+    <application
+        android:name=".ApteryxApplication"
+        android:hardwareAccelerated="true"
+        android:allowBackup="false"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name" >
+
+        <activity android:name=".accounts.AddAccountActivity"
+                  android:theme="@style/Theme.Apteryx"
+                  android:label="@string/account_title"
+                  android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <service
+            android:name=".net.NetworkService"
+            android:enabled="true"
+            android:exported="false"/>
+
+        <!--
+      activity android:name=".ui.MainActivity"
                android:configChanges="orientation|keyboardHidden"
                android:theme="@android:style/Theme.Black.NoTitleBar">
         <intent-filter>
@@ -46,13 +67,9 @@
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED"/>
         </intent-filter>
-      </receiver-->
+      </receiver
+        -->
+
     </application>
-    
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    
-    <supports-screens android:normalScreens="true" />
-</manifest> 
+
+</manifest>

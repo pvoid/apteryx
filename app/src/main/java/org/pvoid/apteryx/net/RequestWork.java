@@ -28,7 +28,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.util.LogHelper;
-import org.pvoid.apteryxaustralis.BuildConfig;
+import org.pvoid.apteryx.BuildConfig;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;

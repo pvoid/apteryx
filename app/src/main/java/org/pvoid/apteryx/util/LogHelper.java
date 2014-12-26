@@ -19,7 +19,7 @@ package org.pvoid.apteryx.util;
 
 import android.util.Log;
 
-import org.pvoid.apteryxaustralis.BuildConfig;
+import org.pvoid.apteryx.BuildConfig;
 
 public final class LogHelper {
 

@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:padding="@dimen/window_padding"
+             android:orientation="vertical"
+             tools:context=".accounts.AddAccountActivity">
+
+    <EditText
+        android:id="@+id/account_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textVisiblePassword"
+        android:singleLine="true"
+        android:hint="@string/account_empty_login"/>
+
+    <EditText
+        android:id="@+id/account_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:singleLine="true"
+        android:layout_marginTop="@dimen/account_input_margin"
+        android:hint="@string/account_empty_password"/>
+
+    <EditText
+        android:id="@+id/account_terminal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/account_input_margin"
+        android:inputType="numberDecimal"
+        android:singleLine="true"
+        android:hint="@string/account_empty_terminal"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/account_next"
+        style="@style/Button.Wizard"
+        android:text="@string/button_next"/>
+
+</LinearLayout>
