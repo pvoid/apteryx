@@ -26,11 +26,17 @@
     <string name="account_terminal_id">ID терминала</string>
     <string name="account_empty_terminal">Укажите id терминала</string>
 
-    <string name="account_being_checking">Пожалуйста немного подождите пока мы проверяем ваши учетные данны и инициализируем аккаунт. Это может занять некоторое время.</string>
+    <string name="account_empty_login_error">Для работы нам необходим логин. Пожалуйста, укажите ваш.</string>
+    <string name="account_empty_password_error">Для аккаунта необходим пароль. Пожалуйста, укажите тот что подходит к вашему.</string>
+    <string name="account_empty_terminal_error">Для работы нам нужен идентификатор терминала. Пожалуйста, укажите какой-нибудь из действитеьно существующих.</string>
+
     <string name="one_menute_pleas">Одну минуточку…</string>
+    <string name="account_being_checking">Пожалуйста, подождите пока мы проверяем ваши учетные данные и инициализируем аккаунт. Это не должно занять много времени.</string>
 
     <string name="button_next">Дальше</string>
     <string name="button_stop">Стоп</string>
+    <string name="button_ok">OK</string>
+
     <!--string name="last_update">Последнее обновление</string>
     <string name="balance">Баланс</string>
     <string name="overdraft">Овердрафт</string>
@@ -124,7 +130,6 @@
     <string name="warn_level">Уровень предупреждения</string>
     <string name="cant_obtain_storage">Не могу получить экземпляр хранилища</string>
     <string name="reboot_command_sended">Команда перезагрузки отправлена</string>
-    <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string>
-    <string name="hello_blank_fragment">Hello blank fragment</string-->
+    <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string-->
 
 </resources>

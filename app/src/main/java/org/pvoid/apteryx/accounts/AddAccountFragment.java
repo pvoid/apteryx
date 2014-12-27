@@ -18,16 +18,17 @@
 package org.pvoid.apteryx.accounts;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -88,10 +89,7 @@ public class AddAccountFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (mListener != null) {
-                    mListener.onAddAccount(null, null, null);
-                }
+                onAddAccountClicked();
             }
         });
     }
@@ -114,5 +112,43 @@ public class AddAccountFragment extends Fragment {
 
     public interface AddAccuntListener {
         void onAddAccount(@NonNull String login, @NonNull String password, @NonNull String terminal);
+    }
+
+    private void onAddAccountClicked() {
+
+        View root = getView();
+        if (root == null) {
+            return;
+        }
+
+        EditText loginView = (EditText) root.findViewById(R.id.account_login);
+        if(TextUtils.isEmpty(loginView.getText())) {
+            loginView.requestFocus();
+            showError(loginView.getContext(), R.string.account_empty_login_error);
+            return;
+        }
+        EditText passwordView = (EditText) root.findViewById(R.id.account_password);
+        if(TextUtils.isEmpty(passwordView.getText())) {
+            passwordView.requestFocus();
+            showError(passwordView.getContext(), R.string.account_empty_password_error);
+            return;
+        }
+        EditText terminalView = (EditText) root.findViewById(R.id.account_terminal);
+        if(TextUtils.isEmpty(terminalView.getText())) {
+            terminalView.requestFocus();
+            showError(terminalView.getContext(), R.string.account_empty_terminal_error);
+            return;
+        }
+
+        if (mListener != null) {
+            mListener.onAddAccount(loginView.getText().toString(),
+                    passwordView.getText().toString(), terminalView.getText().toString());
+        }
+    }
+
+    private void showError(@NonNull Context context, @StringRes int message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(message).setPositiveButton(R.string.button_ok, null);
+        builder.create().show();
     }
 }

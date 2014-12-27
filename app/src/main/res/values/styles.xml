@@ -20,6 +20,7 @@
 
     <style name="Text.Header">
         <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/actionbar_primary_dark</item>
     </style>
 
     <style name="Button"/>
