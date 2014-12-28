@@ -41,6 +41,7 @@ public class AddAccountFragment extends Fragment {
     @Nullable private String mLogin;
     @Nullable private String mTerminal;
     @Nullable private AddAccuntListener mListener;
+    @Nullable private AlertDialog mDialog;
 
     public static AddAccountFragment newInstance(@Nullable String login, @Nullable String terminal) {
         AddAccountFragment fragment = new AddAccountFragment();
@@ -107,6 +108,9 @@ public class AddAccountFragment extends Fragment {
     @Override
     public void onDetach() {
         mListener = null;
+        if (mDialog != null) {
+            mDialog.dismiss();
+        }
         super.onDetach();
     }
 
@@ -124,19 +128,22 @@ public class AddAccountFragment extends Fragment {
         EditText loginView = (EditText) root.findViewById(R.id.account_login);
         if(TextUtils.isEmpty(loginView.getText())) {
             loginView.requestFocus();
-            showError(loginView.getContext(), R.string.account_empty_login_error);
+            mDialog = createErrorDialog(loginView.getContext(), R.string.account_empty_login_error);
+            mDialog.show();
             return;
         }
         EditText passwordView = (EditText) root.findViewById(R.id.account_password);
         if(TextUtils.isEmpty(passwordView.getText())) {
             passwordView.requestFocus();
-            showError(passwordView.getContext(), R.string.account_empty_password_error);
+            mDialog = createErrorDialog(passwordView.getContext(), R.string.account_empty_password_error);
+            mDialog.show();
             return;
         }
         EditText terminalView = (EditText) root.findViewById(R.id.account_terminal);
         if(TextUtils.isEmpty(terminalView.getText())) {
             terminalView.requestFocus();
-            showError(terminalView.getContext(), R.string.account_empty_terminal_error);
+            mDialog = createErrorDialog(terminalView.getContext(), R.string.account_empty_terminal_error);
+            mDialog.show();
             return;
         }
 
@@ -146,9 +153,9 @@ public class AddAccountFragment extends Fragment {
         }
     }
 
-    private void showError(@NonNull Context context, @StringRes int message) {
+    private AlertDialog createErrorDialog(@NonNull Context context, @StringRes int message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(message).setPositiveButton(R.string.button_ok, null);
-        builder.create().show();
+        return builder.create();
     }
 }

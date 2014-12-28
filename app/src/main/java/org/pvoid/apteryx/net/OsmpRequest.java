@@ -26,14 +26,13 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 
 import org.pvoid.apteryx.BuildConfig;
-import org.pvoid.apteryx.data.Account;
+import org.pvoid.apteryx.data.accounts.Account;
 import org.pvoid.apteryx.net.commands.Command;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import okio.BufferedSink;

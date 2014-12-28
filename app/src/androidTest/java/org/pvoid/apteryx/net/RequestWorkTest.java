@@ -25,7 +25,6 @@ import com.squareup.okhttp.mockwebserver.MockWebServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.pvoid.apteryx.data.Account;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.net.results.Result;
 import org.robolectric.RobolectricTestRunner;

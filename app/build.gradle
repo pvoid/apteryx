@@ -59,6 +59,17 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
         html.enabled = true
     }
 
+    doFirst {
+        new File('../app/build/intermediates/classes/debug').eachFileRecurse { file ->
+            if (file.name.contains('$$')) {
+                file.renameTo(file.path.replace('$$', '$'))
+            }
+        }
+    }
+    afterEvaluate {
+        // just clean up coveralls dashboard, following reports are not of interest
+        testDebug.reports.junitXml.enabled = false
+    }
 }
 
 dependencies {

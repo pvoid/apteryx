@@ -28,6 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textVisiblePassword"
+        android:imeOptions="flagNoExtractUi|flagNoFullscreen"
         android:singleLine="true"
         android:hint="@string/account_empty_login"/>
 
@@ -36,6 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
+        android:imeOptions="flagNoExtractUi|flagNoFullscreen"
         android:singleLine="true"
         android:layout_marginTop="@dimen/account_input_margin"
         android:hint="@string/account_empty_password"/>
@@ -46,6 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/account_input_margin"
         android:inputType="numberDecimal"
+        android:imeOptions="flagNoExtractUi|flagNoFullscreen"
         android:singleLine="true"
         android:hint="@string/account_empty_terminal"/>
 

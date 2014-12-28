@@ -15,36 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data;
+package org.pvoid.apteryx.data.accounts;
 
 import android.support.annotation.NonNull;
 
-public class Account {
-    @NonNull
-    private final String mLogin;
-    @NonNull
-    private final String mPasswordHash;
-    @NonNull
-    private final String mTerminal;
+import org.pvoid.apteryx.data.Storage;
 
-    @NonNull
-    public String getLogin() {
-        return mLogin;
+import java.util.HashSet;
+import java.util.Set;
+
+/* package */ class OsmpAccountsManager implements AccountsManager {
+
+    @NonNull private final Storage mStorage;
+    private final Set<Account> mAccounts = new HashSet<>();
+
+    /* package */ OsmpAccountsManager(@NonNull Storage storage) {
+        mStorage = storage;
     }
 
-    @NonNull
-    public String getPasswordHash() {
-        return mPasswordHash;
-    }
-
-    @NonNull
-    public String getTerminal() {
-        return mTerminal;
-    }
-
-    public Account(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal) {
-        mLogin = login;
-        mPasswordHash = passwordHash;
-        mTerminal = terminal;
+    @Override
+    public boolean add(@NonNull Account account) {
+        if (!mAccounts.add(account)) {
+            return false;
+        }
+        mStorage.storeAccount(account);
+        return true;
     }
 }
