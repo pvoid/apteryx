@@ -22,8 +22,24 @@ import android.support.annotation.Nullable;
 
 import java.util.Map;
 
-public interface Command {
-    @NonNull String getName();
-    @Nullable Map<String, String> getParams();
-    boolean isAsync();
+public class GetAgentInfoCommand implements Command {
+
+    public static final String NAME = "getAgentInfo";
+
+    @Override
+    @NonNull
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    @Nullable
+    public Map<String, String> getParams() {
+        return null;
+    }
+
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 }

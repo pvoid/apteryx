@@ -17,6 +17,10 @@
 
 package org.pvoid.apteryx.net;
 
+import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
+import org.pvoid.apteryx.net.results.GetAgentInfoResult;
+import org.pvoid.apteryx.net.results.ResultFactory;
+
 import dagger.Module;
 import dagger.Provides;
 
@@ -25,7 +29,11 @@ public class NetworkModule {
 
     @Provides
     public ResultFactories provideFactories() {
-        return new OsmpResultFactories();
+        OsmpResultFactories factories = new OsmpResultFactories();
+        // add all requests here
+        factories.register(GetAgentInfoCommand.NAME, new GetAgentInfoResult.Factory());
+
+        return factories;
     }
 
     @Provides

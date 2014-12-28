@@ -116,10 +116,13 @@ public class OsmpRequest {
                             resultText.append(" mode=\"async\"");
                         }
                         resultText.append(">");
-                        for (Map.Entry<String, String> params : command.getParams().entrySet()) {
-                            resultText.append("<").append(params.getKey()).append(">");
-                            resultText.append(TextUtils.htmlEncode(params.getValue()));
-                            resultText.append("</").append(params.getKey()).append(">");
+                        Map<String, String> paramsMap = command.getParams();
+                        if (paramsMap != null) {
+                            for (Map.Entry<String, String> params :paramsMap.entrySet()){
+                                resultText.append("<").append(params.getKey()).append(">");
+                                resultText.append(TextUtils.htmlEncode(params.getValue()));
+                                resultText.append("</").append(params.getKey()).append(">");
+                            }
                         }
                         resultText.append("</").append(command.getName()).append(">");
                     }

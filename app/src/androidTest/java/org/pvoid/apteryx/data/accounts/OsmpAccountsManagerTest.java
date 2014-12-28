@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.pvoid.apteryx.data.Storage;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -32,7 +33,7 @@ public class OsmpAccountsManagerTest {
     public void addAccountCheck() throws Exception {
         Storage storage = Mockito.mock(Storage.class);
         Account account = new Account("LOGIN", "PASSWORD", "TERMINAL");
-        OsmpAccountsManager manager = new OsmpAccountsManager(storage);
+        OsmpAccountsManager manager = new OsmpAccountsManager(Robolectric.application, storage);
         Assert.assertTrue(manager.add(account));
         Mockito.verify(storage).storeAccount(Mockito.same(account));
         Mockito.reset(storage);
