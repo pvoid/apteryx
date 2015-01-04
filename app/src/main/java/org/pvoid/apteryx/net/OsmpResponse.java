@@ -17,6 +17,8 @@
 
 package org.pvoid.apteryx.net;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -31,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class OsmpResponse {
+public class OsmpResponse implements Parcelable {
     private static final String ROOT_TAG_NAME = "response";
     private static final String ATTR_RESULT = "result";
     private static final String ATTR_RESULT_DESCRIPTION = "result-description";
@@ -75,6 +77,26 @@ public class OsmpResponse {
                     mInterfaces.put(i, commands);
                 }
                 commands.put(command.getName(), command);
+            }
+        }
+    }
+
+    private OsmpResponse(@NonNull Parcel parcel) {
+        mResult = parcel.readInt();
+        mResultDescription = parcel.readString();
+
+        int interfacesCount = parcel.readInt();
+        final ClassLoader classLoader = OsmpResponse.class.getClassLoader();
+        while (interfacesCount-- > 0) {
+            OsmpInterface iface = OsmpInterface.fromName(parcel.readString());
+            int itemsCount = parcel.readInt();
+            ResultMap map = new ResultMap();
+            while (itemsCount-- > 0) {
+                Result result = parcel.readParcelable(classLoader);
+                map.put(result.getName(), result);
+            }
+            if (iface != null && map.size() != 0) {
+                mInterfaces.put(iface, map);
             }
         }
     }
@@ -125,6 +147,26 @@ public class OsmpResponse {
         return mInterfaces.get(iface);
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mResult);
+        dest.writeString(mResultDescription);
+
+        dest.writeInt(mInterfaces.size());
+        for (Map.Entry<OsmpInterface, ResultMap> entry : mInterfaces.entrySet()) {
+            dest.writeString(entry.getKey().getName());
+            dest.writeInt(entry.getValue().size());
+            for (Result result : entry.getValue()) {
+                dest.writeParcelable(result, flags);
+            }
+        }
+    }
+
     private static class ResultMap extends HashMap<String, Result> implements Results {
         @Override
         public Result get(String command) {
@@ -137,19 +179,26 @@ public class OsmpResponse {
         }
     }
 
-    private static class AsyncRequestCommand implements Command {
+    public static class AsyncRequestCommand implements Command {
 
-        private final String mName;
+        @NonNull private final String mName;
         private final Map<String, String> mParams;
 
-        private AsyncRequestCommand(String name, final int queId) {
+        private AsyncRequestCommand(@NonNull String name, final int queId) {
             mName = name;
             mParams = new HashMap<String, String>(1) {{
-                put("quid", String.valueOf(queId));
+                put(Result.ATTR_QUEUQ_ID, String.valueOf(queId));
             }};
         }
 
+        private AsyncRequestCommand(@NonNull Parcel parcel) {
+            mName = parcel.readString();
+            mParams = new HashMap<>();
+            parcel.readMap(mParams, AsyncRequestCommand.class.getClassLoader());
+        }
+
         @Override
+        @NonNull
         public String getName() {
             return mName;
         }
@@ -163,10 +212,45 @@ public class OsmpResponse {
         public boolean isAsync() {
             return false;
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(mName);
+            dest.writeMap(mParams);
+        }
+
+        public static final Creator<AsyncRequestCommand> CREATOR = new Creator<AsyncRequestCommand>() {
+            @Override
+            public AsyncRequestCommand createFromParcel(Parcel source) {
+                return new AsyncRequestCommand(source);
+            }
+
+            @Override
+            public AsyncRequestCommand[] newArray(int size) {
+                return new AsyncRequestCommand[size];
+            }
+        };
     }
 
     public interface Results extends Iterable<Result> {
         Result get(String command);
         int size();
     }
+
+    public static final Creator<OsmpResponse> CREATOR = new Creator<OsmpResponse>() {
+        @Override
+        public OsmpResponse createFromParcel(Parcel source) {
+            return new OsmpResponse(source);
+        }
+
+        @Override
+        public OsmpResponse[] newArray(int size) {
+            return new OsmpResponse[size];
+        }
+    };
 }

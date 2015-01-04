@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryx.net.commands;
 
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -42,4 +43,25 @@ public class GetAgentInfoCommand implements Command {
     public boolean isAsync() {
         return false;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+    }
+
+    public static final Creator<GetAgentInfoCommand> CREATOR = new Creator<GetAgentInfoCommand>() {
+        @Override
+        public GetAgentInfoCommand createFromParcel(Parcel source) {
+            return new GetAgentInfoCommand();
+        }
+
+        @Override
+        public GetAgentInfoCommand[] newArray(int size) {
+            return new GetAgentInfoCommand[size];
+        }
+    };
 }

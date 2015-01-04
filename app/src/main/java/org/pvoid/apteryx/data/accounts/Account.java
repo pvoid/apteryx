@@ -17,10 +17,12 @@
 
 package org.pvoid.apteryx.data.accounts;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class Account {
+public class Account implements Parcelable {
     @NonNull
     private final String mLogin;
     @NonNull
@@ -41,12 +43,20 @@ public class Account {
         mIsVerified = false;
     }
 
-    private Account(@NonNull Account src, @NonNull String title) {
+    private Account(@NonNull Account src, @Nullable String title) {
         mLogin = src.mLogin;
         mPasswordHash = src.mPasswordHash;
         mTerminal = src.mTerminal;
         mTitle = title;
         mIsVerified = true;
+    }
+
+    private Account(@NonNull Parcel source) {
+        mLogin = source.readString();
+        mPasswordHash = source.readString();
+        mTerminal = source.readString();
+        mTitle = source.readString();
+        mIsVerified = source.readByte() != 0;
     }
 
     @NonNull
@@ -93,4 +103,30 @@ public class Account {
     public int hashCode() {
         return mLogin.hashCode();
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mLogin);
+        dest.writeString(mPasswordHash);
+        dest.writeString(mTerminal);
+        dest.writeString(mTitle);
+        dest.writeByte((byte) (mIsVerified ? 1 : 0));
+    }
+
+    public static final Creator<Account> CREATOR = new Creator<Account>() {
+        @Override
+        public Account createFromParcel(Parcel source) {
+            return new Account(source);
+        }
+
+        @Override
+        public Account[] newArray(int size) {
+            return new Account[size];
+        }
+    };
 }

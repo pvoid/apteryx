@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryx.net;
 
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 
 import org.junit.Assert;
@@ -27,7 +28,6 @@ import org.pvoid.apteryx.net.commands.Command;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.net.results.Result;
 import org.pvoid.apteryx.net.results.ResultFactory;
-import org.pvoid.apteryx.net.results.ResultTest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.xmlpull.v1.XmlPullParser;
@@ -149,7 +149,7 @@ public class OsmpResponseTest {
 
             @Override
             public Result build(@NonNull ResponseTag tag) {
-                return new Result(tag);
+                return new Result(tag) {};
             }
         });
         Assert.assertTrue(response.hasAsyncResponse());
@@ -208,5 +208,95 @@ public class OsmpResponseTest {
         Mockito.when(result.isPending()).thenReturn(false);
         response.update(updated);
         Assert.assertFalse(response.hasAsyncResponse());
+    }
+
+    @Test
+    public void restoreCheck() throws Exception {
+        ResponseTag agents = Mockito.mock(ResponseTag.class);
+        Mockito.when(agents.getName()).thenReturn("agents");
+        ResponseTag getAgent = Mockito.mock(ResponseTag.class);
+        Mockito.when(getAgent.getName()).thenReturn("getAgent");
+        Mockito.when(agents.nextChild()).thenReturn(getAgent, (ResponseTag) null);
+
+        ResponseTag terminals = Mockito.mock(ResponseTag.class);
+        Mockito.when(terminals.getName()).thenReturn("terminals");
+        ResponseTag getTerminals = Mockito.mock(ResponseTag.class);
+        Mockito.when(getTerminals.getName()).thenReturn("getTerminals");
+        ResponseTag getTerminalInfo = Mockito.mock(ResponseTag.class);
+        Mockito.when(getTerminalInfo.getName()).thenReturn("getTerminalInfo");
+        Mockito.when(terminals.nextChild()).thenReturn(getTerminals, getTerminalInfo, null);
+
+        ResponseTag responseTag = Mockito.mock(ResponseTag.class);
+        Mockito.when(responseTag.getAttribute("result")).thenReturn("10");
+        Mockito.when(responseTag.getAttribute("result-description")).thenReturn("DESCRIPTION");
+        Mockito.when(responseTag.getName()).thenReturn("response");
+        Mockito.when(responseTag.nextChild()).thenReturn(agents, terminals, null);
+
+        OsmpResponse response = new OsmpResponse(responseTag, new ResultFactories() {
+            @Override
+            public void register(@NonNull String tagName, @NonNull ResultFactory factory) {
+            }
+
+            @Override
+            public Result build(@NonNull ResponseTag tag) {
+                return new MockResult(tag);
+            }
+        });
+
+        Assert.assertEquals(0, response.describeContents());
+        Parcel parcel = Parcel.obtain();
+        response.writeToParcel(parcel, 0);
+        int position = parcel.dataPosition();
+        parcel.setDataPosition(0);
+        OsmpResponse restored = OsmpResponse.CREATOR.createFromParcel(parcel);
+        Assert.assertNotNull(restored);
+        Assert.assertEquals(position, parcel.dataPosition());
+        parcel.recycle();
+
+        Assert.assertNull(restored.getInterface(OsmpInterface.System));
+        Assert.assertNull(restored.getInterface(OsmpInterface.Providers));
+        Assert.assertNull(restored.getInterface(OsmpInterface.Persons));
+        Assert.assertNull(restored.getInterface(OsmpInterface.Reports));
+        Assert.assertNull(restored.getInterface(OsmpInterface.AccountingReports));
+
+        OsmpResponse.Results results = restored.getInterface(OsmpInterface.Agents);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(1, results.size());
+        Assert.assertNotNull(results.get("getAgent"));
+
+        results = restored.getInterface(OsmpInterface.Terminals);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(2, results.size());
+        Assert.assertNotNull(results.get("getTerminals"));
+        Assert.assertNotNull(results.get("getTerminalInfo"));
+
+        Assert.assertEquals(10, restored.getResult());
+        Assert.assertEquals("DESCRIPTION", restored.getResultDescription());
+
+        OsmpResponse responses[] = OsmpResponse.CREATOR.newArray(5);
+        Assert.assertNotNull(responses);
+        Assert.assertEquals(5, responses.length);
+    }
+
+    public static class MockResult extends Result {
+        public MockResult(@NonNull ResponseTag root) {
+            super(root);
+        }
+
+        protected MockResult(@NonNull Parcel source) {
+            super(source);
+        }
+
+        public static final Creator<MockResult> CREATOR = new Creator<MockResult>() {
+            @Override
+            public MockResult createFromParcel(Parcel source) {
+                return new MockResult(source);
+            }
+
+            @Override
+            public MockResult[] newArray(int size) {
+                return new MockResult[size];
+            }
+        };
     }
 }

@@ -29,8 +29,12 @@ public class ApteryxApplication extends Application implements GraphHolder {
 
     @Override
     public void onCreate() {
-        mGraph = ObjectGraph.create(new NetworkModule());
+        createGraph();
         super.onCreate();
+    }
+
+    protected void createGraph() {
+        mGraph = ObjectGraph.create(new NetworkModule());
     }
 
     @Override

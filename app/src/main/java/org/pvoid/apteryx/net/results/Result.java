@@ -17,12 +17,14 @@
 
 package org.pvoid.apteryx.net.results;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.util.LogHelper;
 
-public class Result {
+public abstract class Result implements Parcelable {
 
     private static final String TAG = "Result";
     public static final int INVALID_VALUE = -1;
@@ -34,6 +36,10 @@ public class Result {
     public static final int ASYNC_STATE_TIMEOUT = 5;
     public static final int ASYNC_STATE_DELETED = 6;
 
+    public static final String ATTR_QUEUQ_ID = "quid";
+    public static final String ATTR_RESULT = "result";
+    public static final String ATTR_STATUS = "status";
+
     @NonNull
     private final String mName;
     private final int mQueueId;
@@ -42,9 +48,16 @@ public class Result {
 
     public Result(@NonNull ResponseTag root) {
         mName = root.getName();
-        mQueueId = getIntAttribute(root, "quid");
-        mResult = getIntAttribute(root, "result");
-        mStatus = getIntAttribute(root, "status");
+        mQueueId = getIntAttribute(root, ATTR_QUEUQ_ID);
+        mResult = getIntAttribute(root, ATTR_RESULT);
+        mStatus = getIntAttribute(root, ATTR_STATUS);
+    }
+
+    protected Result(@NonNull Parcel source) {
+        mName = source.readString();
+        mQueueId = source.readInt();
+        mResult = source.readInt();
+        mStatus = source.readInt();
     }
 
     private int getIntAttribute(@NonNull ResponseTag tag, @NonNull String attribute) {
@@ -102,5 +115,18 @@ public class Result {
 
     public int getStatus() {
         return mStatus;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mName);
+        dest.writeInt(mQueueId);
+        dest.writeInt(mResult);
+        dest.writeInt(mStatus);
     }
 }

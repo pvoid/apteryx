@@ -18,6 +18,8 @@
 package org.pvoid.apteryx.net;
 
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -37,7 +39,7 @@ import java.util.Map;
 
 import okio.BufferedSink;
 
-public class OsmpRequest {
+public class OsmpRequest implements Parcelable {
 
     private static final String DEFAULT_ENCODING = "windows-1251";
 
@@ -51,6 +53,11 @@ public class OsmpRequest {
         mAccount = account;
     }
 
+    private OsmpRequest(@NonNull Parcel source) {
+        mAccount = source.readParcelable(Account.class.getClassLoader());
+        mBody = source.createByteArray();
+    }
+
     /* package */ Uri getUri() {
         return SERVER_URI;
     }
@@ -61,6 +68,17 @@ public class OsmpRequest {
 
     public Builder buildUppon() {
         return new Builder(mAccount);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(mAccount, flags);
+        dest.writeByteArray(mBody);
     }
 
     public static class Builder {
@@ -155,6 +173,18 @@ public class OsmpRequest {
 
     private static class CommandsArrayList extends ArrayList<Command> implements CommandsList {
     }
+
+    public static final Creator<OsmpRequest> CREATOR = new Creator<OsmpRequest>() {
+        @Override
+        public OsmpRequest createFromParcel(Parcel source) {
+            return new OsmpRequest(source);
+        }
+
+        @Override
+        public OsmpRequest[] newArray(int size) {
+            return new OsmpRequest[size];
+        }
+    };
 
     public interface CommandsList {
         boolean add(Command command);

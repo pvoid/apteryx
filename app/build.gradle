@@ -46,6 +46,8 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
             excludes: ['**/R.class',
                        '**/R$*.class',
                        '**/*$ViewInjector*.*',
+                       '**/*$ModuleAdapter*.*',
+                       'org/pvoid/apteryx/net/NetworkModule.class',
                        '**/BuildConfig.*',
                        '**/Manifest*.*']
     )
@@ -79,6 +81,7 @@ dependencies {
     compile 'com.squareup.dagger:dagger:1.2.2'
     compile 'com.squareup.dagger:dagger-compiler:1.2.2'
     androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'org.easytesting:fest-reflect:1.4.1'
     androidTestCompile 'org.robolectric:robolectric:2.4'
     androidTestCompile 'org.mockito:mockito-all:1.9.5'
     androidTestCompile 'com.squareup.okhttp:mockwebserver:2.0.0'

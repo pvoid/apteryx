@@ -19,11 +19,8 @@ package org.pvoid.apteryx.net;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
-import android.os.IInterface;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.pvoid.apteryx.GraphHolder;
 
@@ -31,36 +28,58 @@ import dagger.ObjectGraph;
 
 public class NetworkService extends Service {
 
-    private final Communication mBinder;
+    private final static String EXTRA_REQUEST = "request";
+    private final static String EXTRA_RESULT_INTENT = "intent";
+
+    public final static String EXTRA_STATE = "state";
+    public final static String EXTRA_RESULT = "result";
+
+    public final static int STATE_OK = 0;
+    public final static int STATE_ERROR = 1;
+
+    private final RequestExecutor mExecutor;
 
     public NetworkService() {
-        mBinder = new Communication(((GraphHolder)getApplication()).getGraph());
-        mBinder.attachInterface(mBinder, Communication.NAME);
+        ObjectGraph graph = ((GraphHolder)getApplication()).getGraph();
+        mExecutor = graph.get(RequestExecutor.class);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        final OsmpRequest request = intent.getParcelableExtra(EXTRA_REQUEST);
+        final Intent resultIntent = intent.getParcelableExtra(EXTRA_RESULT_INTENT);
+        mExecutor.execute(request, new ResultReceiverWrap(startId, resultIntent));
+        return START_NOT_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return null;
     }
 
-    public static class Communication extends Binder implements NetworkServiceInterface {
+    private class ResultReceiverWrap implements ResultReceiver {
 
-        private final RequestExecutor mExecutor;
+        private final int mStartId;
+        private final Intent mResultIntent;
 
-        Communication(ObjectGraph graph) {
-            mExecutor = graph.get(RequestExecutor.class);
+        private ResultReceiverWrap(int startId, Intent resultIntent) {
+            mStartId = startId;
+            mResultIntent = resultIntent;
         }
 
         @Override
-        public IBinder asBinder() {
-            return this;
+        public void onResponse(OsmpResponse response) {
+            mResultIntent.putExtra(EXTRA_STATE, STATE_OK);
+            mResultIntent.putExtra(EXTRA_RESULT, response);
+            stopSelf(mStartId);
         }
 
-
-        @Nullable
         @Override
-        public RequestHandle executeRequest(@NonNull OsmpRequest request, @NonNull ResultReceiver receiver) {
-            return mExecutor.execute(request, receiver);
+        public void onError() {
+            mResultIntent.removeExtra(EXTRA_RESULT);
+            mResultIntent.putExtra(EXTRA_STATE, STATE_ERROR);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(mResultIntent);
+            stopSelf(mStartId);
         }
     }
 }

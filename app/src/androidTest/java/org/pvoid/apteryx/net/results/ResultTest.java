@@ -17,8 +17,9 @@
 
 package org.pvoid.apteryx.net.results;
 
+import android.support.annotation.NonNull;
+
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -33,7 +34,7 @@ public class ResultTest {
         ResponseTag tag = Mockito.mock(ResponseTag.class);
         Mockito.when(tag.getName()).thenReturn("TAG_NAME");
         // empty attributes
-        Result result = new Result(tag);
+        Result result = new DumbResult(tag);
         Assert.assertEquals("TAG_NAME", result.getName());
         Assert.assertEquals(Result.INVALID_VALUE, result.getQueueId());
         Assert.assertEquals(Result.INVALID_VALUE, result.getResult());
@@ -42,7 +43,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("aaa");
         Mockito.when(tag.getAttribute("result")).thenReturn("cv");
         Mockito.when(tag.getAttribute("status")).thenReturn("as");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertEquals(Result.INVALID_VALUE, result.getQueueId());
         Assert.assertEquals(Result.INVALID_VALUE, result.getResult());
         Assert.assertEquals(Result.INVALID_VALUE, result.getStatus());
@@ -50,7 +51,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("1");
         Mockito.when(tag.getAttribute("status")).thenReturn("4");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertEquals(30, result.getQueueId());
         Assert.assertEquals(1, result.getResult());
         Assert.assertEquals(4, result.getStatus());
@@ -61,21 +62,21 @@ public class ResultTest {
         ResponseTag tag = Mockito.mock(ResponseTag.class);
         Mockito.when(tag.getName()).thenReturn("TAG_NAME");
 
-        Result result = new Result(tag);
+        Result result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertFalse(result.isAsync());
         Assert.assertFalse(result.isReady());
         Assert.assertTrue(result.isFailed());
 
         Mockito.when(tag.getAttribute("result")).thenReturn("1");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertFalse(result.isAsync());
         Assert.assertFalse(result.isReady());
         Assert.assertTrue(result.isFailed());
 
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertFalse(result.isAsync());
         Assert.assertTrue(result.isReady());
@@ -91,7 +92,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("1");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertTrue(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
@@ -100,7 +101,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("2");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertTrue(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
@@ -109,7 +110,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("4");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
@@ -118,7 +119,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("5");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
@@ -127,7 +128,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("6");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
@@ -136,7 +137,7 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("0");
         Mockito.when(tag.getAttribute("status")).thenReturn("3");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertTrue(result.isReady());
@@ -145,10 +146,16 @@ public class ResultTest {
         Mockito.when(tag.getAttribute("quid")).thenReturn("30");
         Mockito.when(tag.getAttribute("result")).thenReturn("1");
         Mockito.when(tag.getAttribute("status")).thenReturn("3");
-        result = new Result(tag);
+        result = new DumbResult(tag);
         Assert.assertFalse(result.isPending());
         Assert.assertTrue(result.isAsync());
         Assert.assertFalse(result.isReady());
         Assert.assertTrue(result.isFailed());
+    }
+
+    private static class DumbResult extends Result {
+        public DumbResult(@NonNull ResponseTag root) {
+            super(root);
+        }
     }
 }

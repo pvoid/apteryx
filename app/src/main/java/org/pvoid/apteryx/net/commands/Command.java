@@ -17,12 +17,13 @@
 
 package org.pvoid.apteryx.net.commands;
 
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.Map;
 
-public interface Command {
+public interface Command extends Parcelable {
     @NonNull String getName();
     @Nullable Map<String, String> getParams();
     boolean isAsync();

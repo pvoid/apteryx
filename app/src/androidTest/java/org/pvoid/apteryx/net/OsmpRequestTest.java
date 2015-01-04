@@ -17,9 +17,12 @@
 
 package org.pvoid.apteryx.net;
 
+import android.os.Parcel;
+
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 
+import org.fest.reflect.core.Reflection;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,5 +95,52 @@ public class OsmpRequestTest {
 
         Assert.assertEquals(expected.length, body.contentLength());
         Assert.assertEquals(MediaType.parse("application/xml; charset=windows-1251"), body.contentType());
+    }
+
+    @Test
+    public void buildUponTest() throws Exception {
+        Account account = Mockito.mock(Account.class);
+        Mockito.when(account.getLogin()).thenReturn("LOGIN");
+        Mockito.when(account.getPasswordHash()).thenReturn("HASH");
+        Mockito.when(account.getTerminal()).thenReturn("TERMINAL");
+
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        builder = builder.create().buildUppon();
+        OsmpRequest request = builder.create();
+        Assert.assertNotNull(request);
+        Assert.assertSame(account, Reflection.field("mAccount").ofType(Account.class).in(request).get());
+    }
+
+    @Test
+    public void storeCheck() throws Exception {
+        Account account = new Account("LOGIN", "HASH", "TERMINAL");
+
+        Command commad = Mockito.mock(Command.class);
+        Mockito.when(commad.getName()).thenReturn("requestProcessList");
+        Map<String, String> params = new HashMap<String, String>() {{
+            put("target-terminal", "1111111");
+            put("e-mail", "mail@qiwi.ru");
+        }};
+        Mockito.when(commad.getParams()).thenReturn(params);
+
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        builder.getInterface(OsmpInterface.Terminals).add(commad);
+        OsmpRequest request = builder.create();
+        Assert.assertNotNull(request);
+        Parcel parcel = Parcel.obtain();
+        Assert.assertEquals(0, request.describeContents());
+        request.writeToParcel(parcel, 0);
+        int position = parcel.dataPosition();
+        parcel.setDataPosition(0);
+        OsmpRequest restored = OsmpRequest.CREATOR.createFromParcel(parcel);
+        Assert.assertNotNull(restored);
+        Assert.assertEquals(position, parcel.dataPosition());
+        parcel.recycle();
+
+        Assert.assertArrayEquals(Reflection.field("mBody").ofType(byte[].class).in(request).get(),
+                Reflection.field("mBody").ofType(byte[].class).in(restored).get());
+        OsmpRequest requests[] = OsmpRequest.CREATOR.newArray(5);
+        Assert.assertNotNull(requests);
+        Assert.assertEquals(5, requests.length);
     }
 }
