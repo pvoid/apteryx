@@ -29,9 +29,10 @@ public class Account implements Parcelable {
     private final String mPasswordHash;
     @NonNull
     private final String mTerminal;
-
     @Nullable
     private final String mTitle;
+    @Nullable
+    private final String mAgentId;
 
     private final boolean mIsVerified;
 
@@ -40,14 +41,16 @@ public class Account implements Parcelable {
         mPasswordHash = passwordHash;
         mTerminal = terminal;
         mTitle = null;
+        mAgentId = null;
         mIsVerified = false;
     }
 
-    private Account(@NonNull Account src, @Nullable String title) {
+    private Account(@NonNull Account src, @Nullable String title, @Nullable String agentId) {
         mLogin = src.mLogin;
         mPasswordHash = src.mPasswordHash;
         mTerminal = src.mTerminal;
         mTitle = title;
+        mAgentId = agentId;
         mIsVerified = true;
     }
 
@@ -56,6 +59,7 @@ public class Account implements Parcelable {
         mPasswordHash = source.readString();
         mTerminal = source.readString();
         mTitle = source.readString();
+        mAgentId = source.readString();
         mIsVerified = source.readByte() != 0;
     }
 
@@ -83,8 +87,13 @@ public class Account implements Parcelable {
         return mIsVerified;
     }
 
-    public Account cloneVerified(@NonNull String title) {
-        return new Account(this, title);
+    @Nullable
+    public String getAgentId() {
+        return mAgentId;
+    }
+
+    public Account cloneVerified(@NonNull String title, @NonNull String agentId) {
+        return new Account(this, title, agentId);
     }
 
     @Override
@@ -115,6 +124,7 @@ public class Account implements Parcelable {
         dest.writeString(mPasswordHash);
         dest.writeString(mTerminal);
         dest.writeString(mTitle);
+        dest.writeString(mAgentId);
         dest.writeByte((byte) (mIsVerified ? 1 : 0));
     }
 

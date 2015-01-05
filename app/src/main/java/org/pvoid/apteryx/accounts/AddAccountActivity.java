@@ -67,10 +67,11 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
     public void onAddAccount(@NonNull String login, @NonNull String password, @NonNull String terminal) {
         final View focus = getCurrentFocus();
         final ShowProgressRunnable runnable = new ShowProgressRunnable();
+        int duration = getResources().getInteger(R.integer.fragment_animation_duration);
         if (focus != null) {
             InputMethodManager im = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             im.hideSoftInputFromWindow(focus.getWindowToken(), 0);
-            getWindow().getDecorView().postDelayed(runnable, 300);
+            getWindow().getDecorView().postDelayed(runnable, duration);
         } else {
             runnable.run();
         }
@@ -85,7 +86,6 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
             LogHelper.error("Account", "Can't create password hash: %1$s", e.getMessage());
             return;
         }
-        int duration = getResources().getInteger(R.integer.fragment_animation_duration);
         mHandler.postDelayed(new AccountVerifyRunnable(login, password, terminal), duration);
     }
 

@@ -18,7 +18,9 @@
 package org.pvoid.apteryx.net;
 
 import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
+import org.pvoid.apteryx.net.commands.GetAgentsCommand;
 import org.pvoid.apteryx.net.results.GetAgentInfoResult;
+import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.net.results.ResultFactory;
 
 import dagger.Module;
@@ -31,6 +33,7 @@ public class NetworkModule {
         OsmpResultFactories factories = new OsmpResultFactories();
         // add all requests here
         factories.register(GetAgentInfoCommand.NAME, new GetAgentInfoResult.Factory());
+        factories.register(GetAgentsCommand.NAME, new GetAgentsResult.Factory());
 
         return factories;
     }

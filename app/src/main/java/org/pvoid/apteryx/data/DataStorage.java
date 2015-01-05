@@ -29,6 +29,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 
 import org.pvoid.apteryx.data.accounts.Account;
+import org.pvoid.apteryx.data.accounts.Agent;
 import org.pvoid.apteryx.util.LogHelper;
 
 /* package */ class DataStorage extends SQLiteOpenHelper implements Storage {
@@ -44,10 +45,25 @@ import org.pvoid.apteryx.util.LogHelper;
     private static final String TABLE_ACCOUNTS_COLUMN_PASSWORD = "password";
     private static final String TABLE_ACCOUNTS_COLUMN_TERMINAL = "terminal";
     private static final String TABLE_ACCOUNTS_COLUMN_TITLE = "title";
+    private static final String TABLE_ACCOUNTS_COLUMN_AGENT_ID = "agent_id";
     private static final String TABLE_ACCOUNTS_COLUMN_VERIFIED = "verified";
+
+    private static final String TABLE_AGENTS_NAME = "agents";
+    private static final String TABLE_AGENTS_COLUMN_ID = "_id";
+    private static final String TABLE_AGENTS_COLUMN_AGENT_ID = "agent_id";
+    private static final String TABLE_AGENTS_COLUMN_PARENT_ID = "parent_id";
+    private static final String TABLE_AGENTS_COLUMN_INN = "inn";
+    private static final String TABLE_AGENTS_COLUMN_JUR_ADDRESS = "jur_address";
+    private static final String TABLE_AGENTS_COLUMN_PHYS_ADDRESS = "phys_address";
+    private static final String TABLE_AGENTS_COLUMN_NAME = "name";
+    private static final String TABLE_AGENTS_COLUMN_CITY = "city";
+    private static final String TABLE_AGENTS_COLUMN_FISCAL_MODE = "fiscal_mode";
+    private static final String TABLE_AGENTS_COLUMN_KMM = "kmm";
+    private static final String TABLE_AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
 
     private static final int MSG_ADD_ACCOUNT = 1;
     private static final int MSG_UPDATE_ACCOUNT = 2;
+    private static final int MSG_ADD_AGENTS = 3;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -71,6 +87,12 @@ import org.pvoid.apteryx.util.LogHelper;
         mHandler.sendMessage(msg);
     }
 
+    @Override
+    public void storeAgents(@NonNull Agent... agents) {
+        Message msg = mHandler.obtainMessage(MSG_ADD_AGENTS, agents);
+        mHandler.sendMessage(msg);
+    }
+
     public void shutdown() {
         mThread.quit();
     }
@@ -83,7 +105,21 @@ import org.pvoid.apteryx.util.LogHelper;
                         TABLE_ACCOUNTS_COLUMN_PASSWORD + " TEXT, " +
                         TABLE_ACCOUNTS_COLUMN_TERMINAL + " TEXT, " +
                         TABLE_ACCOUNTS_COLUMN_TITLE + " TEXT," +
-                        TABLE_ACCOUNTS_COLUMN_VERIFIED + " INTEGER)"
+                        TABLE_ACCOUNTS_COLUMN_AGENT_ID + " TEXT," +
+                        TABLE_ACCOUNTS_COLUMN_VERIFIED + " INTEGER);"
+        );
+        db.execSQL("CREATE TABLE " + TABLE_AGENTS_NAME + "(" +
+                        TABLE_AGENTS_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        TABLE_AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT FAIL, " +
+                        TABLE_AGENTS_COLUMN_PARENT_ID + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_INN + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_JUR_ADDRESS + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_PHYS_ADDRESS + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_NAME + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_CITY + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_FISCAL_MODE + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_KMM + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_TAX_REGNUM + " TEXT);"
         );
     }
 
@@ -101,6 +137,7 @@ import org.pvoid.apteryx.util.LogHelper;
             values.put(TABLE_ACCOUNTS_COLUMN_PASSWORD, account.getPasswordHash());
             values.put(TABLE_ACCOUNTS_COLUMN_TERMINAL, account.getTerminal());
             values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
+            values.put(TABLE_ACCOUNTS_COLUMN_AGENT_ID, account.getAgentId());
             values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
             db.insert(TABLE_ACCOUNTS_NAME, null, values);
         } catch (SQLiteConstraintException e) {
@@ -118,9 +155,36 @@ import org.pvoid.apteryx.util.LogHelper;
             values.put(TABLE_ACCOUNTS_COLUMN_PASSWORD, account.getPasswordHash());
             values.put(TABLE_ACCOUNTS_COLUMN_TERMINAL, account.getTerminal());
             values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
+            values.put(TABLE_ACCOUNTS_COLUMN_AGENT_ID, account.getAgentId());
             values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
             db.update(TABLE_ACCOUNTS_NAME, values, TABLE_ACCOUNTS_COLUMN_LOGIN + "=?",
                     new String[] {account.getLogin()});
+        } finally {
+            db.close();
+        }
+    }
+
+    /* package */ void addAgentsImpl(@NonNull Agent[] agents) {
+        SQLiteDatabase db = getWritableDatabase();
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            ContentValues values = new ContentValues();
+            db.beginTransaction();
+            for (Agent agent : agents) {
+                values.clear();
+                values.put(TABLE_AGENTS_COLUMN_AGENT_ID, agent.getId());
+                values.put(TABLE_AGENTS_COLUMN_PARENT_ID, agent.getParentId());
+                values.put(TABLE_AGENTS_COLUMN_INN, agent.getINN());
+                values.put(TABLE_AGENTS_COLUMN_JUR_ADDRESS, agent.getJurAddress());
+                values.put(TABLE_AGENTS_COLUMN_PHYS_ADDRESS, agent.getPhysAddress());
+                values.put(TABLE_AGENTS_COLUMN_NAME, agent.getName());
+                values.put(TABLE_AGENTS_COLUMN_CITY, agent.getCity());
+                values.put(TABLE_AGENTS_COLUMN_FISCAL_MODE, agent.getFiscalMode());
+                values.put(TABLE_AGENTS_COLUMN_KMM, agent.getKMM());
+                values.put(TABLE_AGENTS_COLUMN_TAX_REGNUM, agent.getTaxRegnum());
+                db.insert(TABLE_AGENTS_NAME, null, values);
+            }
+            db.endTransaction();
         } finally {
             db.close();
         }
@@ -144,6 +208,10 @@ import org.pvoid.apteryx.util.LogHelper;
                         updateAccountImpl((Account) msg.obj);
                     }
                     break;
+                case MSG_ADD_AGENTS:
+                    if (msg.obj != null) {
+                        addAgentsImpl((Agent[]) msg.obj);
+                    }
             }
         }
     }

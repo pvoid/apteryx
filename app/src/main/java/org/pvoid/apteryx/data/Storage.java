@@ -20,8 +20,10 @@ package org.pvoid.apteryx.data;
 import android.support.annotation.NonNull;
 
 import org.pvoid.apteryx.data.accounts.Account;
+import org.pvoid.apteryx.data.accounts.Agent;
 
 public interface Storage {
     void storeAccount(@NonNull Account account);
     void updateAccount(@NonNull Account account);
+    void storeAgents(@NonNull Agent... agents);
 }

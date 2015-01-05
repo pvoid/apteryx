@@ -24,7 +24,7 @@ import android.text.TextUtils;
 
 import org.pvoid.apteryx.util.LogHelper;
 
-public abstract class Result implements Parcelable {
+public abstract class Result {
 
     private static final String TAG = "Result";
     public static final int INVALID_VALUE = -1;
@@ -51,13 +51,6 @@ public abstract class Result implements Parcelable {
         mQueueId = getIntAttribute(root, ATTR_QUEUQ_ID);
         mResult = getIntAttribute(root, ATTR_RESULT);
         mStatus = getIntAttribute(root, ATTR_STATUS);
-    }
-
-    protected Result(@NonNull Parcel source) {
-        mName = source.readString();
-        mQueueId = source.readInt();
-        mResult = source.readInt();
-        mStatus = source.readInt();
     }
 
     private int getIntAttribute(@NonNull ResponseTag tag, @NonNull String attribute) {
@@ -115,18 +108,5 @@ public abstract class Result implements Parcelable {
 
     public int getStatus() {
         return mStatus;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mName);
-        dest.writeInt(mQueueId);
-        dest.writeInt(mResult);
-        dest.writeInt(mStatus);
     }
 }

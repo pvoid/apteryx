@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class OsmpResponse implements Parcelable {
+public class OsmpResponse {
     private static final String ROOT_TAG_NAME = "response";
     private static final String ATTR_RESULT = "result";
     private static final String ATTR_RESULT_DESCRIPTION = "result-description";
@@ -77,26 +77,6 @@ public class OsmpResponse implements Parcelable {
                     mInterfaces.put(i, commands);
                 }
                 commands.put(command.getName(), command);
-            }
-        }
-    }
-
-    private OsmpResponse(@NonNull Parcel parcel) {
-        mResult = parcel.readInt();
-        mResultDescription = parcel.readString();
-
-        int interfacesCount = parcel.readInt();
-        final ClassLoader classLoader = OsmpResponse.class.getClassLoader();
-        while (interfacesCount-- > 0) {
-            OsmpInterface iface = OsmpInterface.fromName(parcel.readString());
-            int itemsCount = parcel.readInt();
-            ResultMap map = new ResultMap();
-            while (itemsCount-- > 0) {
-                Result result = parcel.readParcelable(classLoader);
-                map.put(result.getName(), result);
-            }
-            if (iface != null && map.size() != 0) {
-                mInterfaces.put(iface, map);
             }
         }
     }
@@ -145,26 +125,6 @@ public class OsmpResponse implements Parcelable {
     @Nullable
     public Results getInterface(@NonNull OsmpInterface iface) {
         return mInterfaces.get(iface);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(mResult);
-        dest.writeString(mResultDescription);
-
-        dest.writeInt(mInterfaces.size());
-        for (Map.Entry<OsmpInterface, ResultMap> entry : mInterfaces.entrySet()) {
-            dest.writeString(entry.getKey().getName());
-            dest.writeInt(entry.getValue().size());
-            for (Result result : entry.getValue()) {
-                dest.writeParcelable(result, flags);
-            }
-        }
     }
 
     private static class ResultMap extends HashMap<String, Result> implements Results {
@@ -242,16 +202,4 @@ public class OsmpResponse implements Parcelable {
         <T extends Result> T get(String command);
         int size();
     }
-
-    public static final Creator<OsmpResponse> CREATOR = new Creator<OsmpResponse>() {
-        @Override
-        public OsmpResponse createFromParcel(Parcel source) {
-            return new OsmpResponse(source);
-        }
-
-        @Override
-        public OsmpResponse[] newArray(int size) {
-            return new OsmpResponse[size];
-        }
-    };
 }

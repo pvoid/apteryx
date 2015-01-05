@@ -29,7 +29,9 @@ import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
 import org.pvoid.apteryx.net.ResultReceiver;
 import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
+import org.pvoid.apteryx.net.commands.GetAgentsCommand;
 import org.pvoid.apteryx.net.results.GetAgentInfoResult;
+import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.HashMap;
@@ -70,7 +72,7 @@ import java.util.concurrent.locks.ReentrantLock;
     public void verify(@NonNull Account account) {
         OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
         builder.getInterface(OsmpInterface.Agents).add(new GetAgentInfoCommand());
-        // TODO: add agent's list command
+        builder.getInterface(OsmpInterface.Agents).add(new GetAgentsCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
             NetworkService.executeRequest(mContext, request,
@@ -98,9 +100,10 @@ import java.util.concurrent.locks.ReentrantLock;
             mLock.lock();
             try {
                 account = mAccounts.get(mLogin);
-                String name = info.getAgentName();
-                if (name != null) {
-                    account = account.cloneVerified(name);
+                final String name = info.getAgentName();
+                final String id = info.getAgentId();
+                if (name != null && id != null) {
+                    account = account.cloneVerified(name, id);
                     mAccounts.put(mLogin, account);
                 } else {
                     LogHelper.error(TAG, "Account name is NULL");
@@ -112,8 +115,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
             Intent intent = new Intent(ACTION_VERIFIED);
             intent.putExtra(EXTRA_ACCOUNT, account);
-
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+
+            GetAgentsResult agentsResult = results.get(GetAgentsCommand.NAME);
+            if (agentsResult != null && agentsResult.getAgents() != null) {
+                mStorage.storeAgents(agentsResult.getAgents());
+            }
         }
 
         @Override
