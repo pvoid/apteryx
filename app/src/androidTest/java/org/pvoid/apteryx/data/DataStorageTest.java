@@ -55,9 +55,51 @@ public class DataStorageTest {
         Assert.assertEquals("title", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("agent_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("verified", cursor.getString(1));
         Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
+        cursor.close();
+
+        cursor = db.rawQuery("pragma table_info(agents)", null);
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("_id", cursor.getString(1));
+        Assert.assertEquals("INTEGER", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("agent_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("parent_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("inn", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("jur_address", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("phys_address", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("name", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("city", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("fiscal_mode", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("kmm", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("tax_regnum", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertFalse(cursor.moveToNext());
+        cursor.close();
+
         db.close();
     }
 
@@ -66,18 +108,30 @@ public class DataStorageTest {
         DataStorage storage = new DataStorage(Robolectric.application);
         Account account = new Account("LOGIN", "PASSWORD", "TERMINAL");
         storage.addAccountImpl(account);
+        storage.addAccountImpl(account.cloneVerified("TITLE", "AGENT_ID"));
+        account = new Account("LOGIN2", "PASSWORD", "TERMINAL");
+        storage.addAccountImpl(account.cloneVerified("TITLE", "AGENT_ID"));
 
         SQLiteDatabase db = storage.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT _id, login, password, terminal, title, verified FROM accounts", null);
+        Cursor cursor = db.rawQuery("SELECT _id, login, password, terminal, title, agent_id, verified FROM accounts", null);
         Assert.assertNotNull(cursor);
-        Assert.assertEquals(1, cursor.getCount());
+        Assert.assertEquals(2, cursor.getCount());
         Assert.assertTrue(cursor.moveToFirst());
         Assert.assertEquals(1, cursor.getInt(0));
         Assert.assertEquals("LOGIN", cursor.getString(1));
         Assert.assertEquals("PASSWORD", cursor.getString(2));
         Assert.assertEquals("TERMINAL", cursor.getString(3));
         Assert.assertNull(cursor.getString(4));
-        Assert.assertEquals(0, cursor.getInt(5));
+        Assert.assertNull(cursor.getString(5));
+        Assert.assertEquals(0, cursor.getInt(6));
+        cursor.moveToNext();
+        Assert.assertEquals(2, cursor.getInt(0));
+        Assert.assertEquals("LOGIN2", cursor.getString(1));
+        Assert.assertEquals("PASSWORD", cursor.getString(2));
+        Assert.assertEquals("TERMINAL", cursor.getString(3));
+        Assert.assertEquals("TITLE", cursor.getString(4));
+        Assert.assertEquals("AGENT_ID", cursor.getString(5));
+        Assert.assertEquals(1, cursor.getInt(6));
         cursor.close();
         db.close();
     }

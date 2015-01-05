@@ -33,14 +33,16 @@ public class AccountTest {
         Assert.assertEquals("PASS_HASH", account.getPasswordHash());
         Assert.assertEquals("TERMINAL", account.getTerminal());
         Assert.assertNull(account.getTitle());
+        Assert.assertNull(account.getAgentId());
         Assert.assertFalse(account.isVerified());
 
-        Account verified = account.cloneVerified("TITLE");
+        Account verified = account.cloneVerified("TITLE", "ID");
         Assert.assertNotSame(account, verified);
         Assert.assertEquals("LOGIN", verified.getLogin());
         Assert.assertEquals("PASS_HASH", verified.getPasswordHash());
         Assert.assertEquals("TERMINAL", verified.getTerminal());
-        Assert.assertEquals("TITLE", verified.getTitle());
+        Assert.assertEquals("TERMINAL", verified.getTerminal());
+        Assert.assertEquals("ID", verified.getAgentId());
         Assert.assertTrue(verified.isVerified());
     }
 
@@ -52,7 +54,7 @@ public class AccountTest {
         Assert.assertTrue(account.equals(account));
         Assert.assertFalse(account.equals(null));
         Assert.assertFalse(account.equals("Some object"));
-        Assert.assertTrue(account.equals(account.cloneVerified("TITLE")));
+        Assert.assertTrue(account.equals(account.cloneVerified("TITLE", "ID")));
         Assert.assertTrue(account.equals(new Account("LOGIN", "", "")));
         Assert.assertFalse(account.equals(new Account("LOGIN2", "PASS_HASH", "TERMINAL")));
     }
