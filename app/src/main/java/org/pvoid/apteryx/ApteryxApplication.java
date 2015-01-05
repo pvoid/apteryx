@@ -19,6 +19,8 @@ package org.pvoid.apteryx;
 
 import android.app.Application;
 
+import org.pvoid.apteryx.data.DataModule;
+import org.pvoid.apteryx.data.accounts.AccountsModule;
 import org.pvoid.apteryx.net.NetworkModule;
 
 import dagger.ObjectGraph;
@@ -34,7 +36,8 @@ public class ApteryxApplication extends Application implements GraphHolder {
     }
 
     protected void createGraph() {
-        mGraph = ObjectGraph.create(new NetworkModule());
+        mGraph = ObjectGraph.create(new NetworkModule(), new DataModule(this),
+                new AccountsModule(this));
     }
 
     @Override

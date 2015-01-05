@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,16 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.accounts;
+package org.pvoid.apteryx.data;
 
-import android.support.annotation.NonNull;
+import android.content.Context;
 
-public interface AccountsManager {
+import javax.inject.Singleton;
 
-    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.accounts.ACTION_VERIFIED";
+import dagger.Module;
+import dagger.Provides;
 
-    public static final String EXTRA_ACCOUNT = "account";
+@Module(injects = Storage.class)
+public class DataModule {
 
-    boolean add(@NonNull Account account);
-    void verify(@NonNull Account account);
+    private final Context mContext;
+
+    public DataModule(Context context) {
+        mContext = context.getApplicationContext();
+    }
+
+    @Provides
+    @Singleton
+    public Storage provideStorage() {
+        return new DataStorage(mContext);
+    }
 }

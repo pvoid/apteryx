@@ -169,8 +169,9 @@ public class OsmpResponse implements Parcelable {
 
     private static class ResultMap extends HashMap<String, Result> implements Results {
         @Override
-        public Result get(String command) {
-            return super.get(command);
+        public <T extends Result> T get(String command) {
+            //noinspection unchecked
+            return (T) super.get(command);
         }
 
         @Override
@@ -238,7 +239,7 @@ public class OsmpResponse implements Parcelable {
     }
 
     public interface Results extends Iterable<Result> {
-        Result get(String command);
+        <T extends Result> T get(String command);
         int size();
     }
 

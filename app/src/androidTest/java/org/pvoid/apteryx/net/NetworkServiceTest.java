@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,16 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.accounts;
+package org.pvoid.apteryx.net;
 
-import android.support.annotation.NonNull;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
-public interface AccountsManager {
-
-    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.accounts.ACTION_VERIFIED";
-
-    public static final String EXTRA_ACCOUNT = "account";
-
-    boolean add(@NonNull Account account);
-    void verify(@NonNull Account account);
+@RunWith(RobolectricTestRunner.class)
+@Config(emulateSdk = 18)
+public class NetworkServiceTest {
+    @Test
+    public void startCommandCheck() throws Exception {
+    }
 }

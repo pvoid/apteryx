@@ -26,7 +26,6 @@ import dagger.Provides;
 
 @Module(injects = {RequestExecutor.class, ResultFactories.class})
 public class NetworkModule {
-
     @Provides
     public ResultFactories provideFactories() {
         OsmpResultFactories factories = new OsmpResultFactories();

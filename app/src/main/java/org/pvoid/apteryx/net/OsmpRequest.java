@@ -66,6 +66,11 @@ public class OsmpRequest implements Parcelable {
         return new OsmpRequestBody();
     }
 
+    @NonNull
+    public Account getAccount() {
+        return mAccount;
+    }
+
     public Builder buildUppon() {
         return new Builder(mAccount);
     }

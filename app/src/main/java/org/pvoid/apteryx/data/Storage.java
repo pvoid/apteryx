@@ -23,4 +23,5 @@ import org.pvoid.apteryx.data.accounts.Account;
 
 public interface Storage {
     void storeAccount(@NonNull Account account);
+    void updateAccount(@NonNull Account account);
 }

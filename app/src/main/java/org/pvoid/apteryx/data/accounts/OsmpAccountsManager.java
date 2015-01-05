@@ -17,28 +17,108 @@
 
 package org.pvoid.apteryx.data.accounts;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.pvoid.apteryx.data.Storage;
+import org.pvoid.apteryx.net.NetworkService;
+import org.pvoid.apteryx.net.OsmpInterface;
+import org.pvoid.apteryx.net.OsmpRequest;
+import org.pvoid.apteryx.net.OsmpResponse;
+import org.pvoid.apteryx.net.ResultReceiver;
+import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
+import org.pvoid.apteryx.net.results.GetAgentInfoResult;
+import org.pvoid.apteryx.util.LogHelper;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /* package */ class OsmpAccountsManager implements AccountsManager {
 
-    @NonNull private final Storage mStorage;
-    private final Set<Account> mAccounts = new HashSet<>();
+    private static final String TAG = "AccountManager";
 
-    /* package */ OsmpAccountsManager(@NonNull Storage storage) {
+    @NonNull private final Context mContext;
+    @NonNull private final Storage mStorage;
+    @NonNull private final Lock mLock = new ReentrantLock();
+    private final Map<String, Account> mAccounts = new HashMap<>();
+
+    /* package */ OsmpAccountsManager(@NonNull Context context, @NonNull Storage storage) {
         mStorage = storage;
+        mContext = context.getApplicationContext();
     }
 
     @Override
     public boolean add(@NonNull Account account) {
-        if (!mAccounts.add(account)) {
-            return false;
+        mLock.lock();
+        try {
+            if (mAccounts.containsKey(account.getLogin())) {
+                return false;
+            }
+            mAccounts.put(account.getLogin(), account);
+        } finally {
+            mLock.unlock();
         }
         mStorage.storeAccount(account);
         return true;
+    }
+
+    @Override
+    public void verify(@NonNull Account account) {
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        builder.getInterface(OsmpInterface.Agents).add(new GetAgentInfoCommand());
+        // TODO: add agent's list command
+        OsmpRequest request = builder.create();
+        if (request != null) {
+            NetworkService.executeRequest(mContext, request,
+                    new VerificatioResultReceiver(account.getLogin()));
+        }
+    }
+
+    private class VerificatioResultReceiver implements ResultReceiver {
+
+        @NonNull private final String mLogin;
+
+        private VerificatioResultReceiver(@NonNull String login) {
+            mLogin = login;
+        }
+
+        @Override
+        public void onResponse(@NonNull OsmpResponse response) {
+            OsmpResponse.Results results = response.getInterface(OsmpInterface.Agents);
+            if (results == null) {
+                LogHelper.error(TAG, "Error while verifying account. Can't get <agents> session.");
+                return;
+            }
+            GetAgentInfoResult info = results.get(GetAgentInfoCommand.NAME);
+            Account account = null;
+            mLock.lock();
+            try {
+                account = mAccounts.get(mLogin);
+                String name = info.getAgentName();
+                if (name != null) {
+                    account = account.cloneVerified(name);
+                    mAccounts.put(mLogin, account);
+                } else {
+                    LogHelper.error(TAG, "Account name is NULL");
+                }
+            } finally {
+                mLock.unlock();
+            }
+            mStorage.updateAccount(account);
+
+            Intent intent = new Intent(ACTION_VERIFIED);
+            intent.putExtra(EXTRA_ACCOUNT, account);
+
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        }
+
+        @Override
+        public void onError() {
+            LogHelper.error(TAG, "Error while verifying account.");
+        }
     }
 }

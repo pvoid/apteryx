@@ -18,28 +18,33 @@
 package org.pvoid.apteryx.net;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.pvoid.apteryx.BuildConfig;
 import org.pvoid.apteryx.GraphHolder;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import dagger.ObjectGraph;
 
+// TODO: add ability to stop request
 public class NetworkService extends Service {
 
     private final static String EXTRA_REQUEST = "request";
-    private final static String EXTRA_RESULT_INTENT = "intent";
+    private final static String EXTRA_ID = "id";
 
-    public final static String EXTRA_STATE = "state";
-    public final static String EXTRA_RESULT = "result";
+    private RequestExecutor mExecutor;
+    private static final Map<UUID, ResultReceiver> sReceivers = new HashMap<>();
 
-    public final static int STATE_OK = 0;
-    public final static int STATE_ERROR = 1;
-
-    private final RequestExecutor mExecutor;
-
-    public NetworkService() {
+    @Override
+    public void onCreate() {
+        super.onCreate();
         ObjectGraph graph = ((GraphHolder)getApplication()).getGraph();
         mExecutor = graph.get(RequestExecutor.class);
     }
@@ -47,8 +52,8 @@ public class NetworkService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         final OsmpRequest request = intent.getParcelableExtra(EXTRA_REQUEST);
-        final Intent resultIntent = intent.getParcelableExtra(EXTRA_RESULT_INTENT);
-        mExecutor.execute(request, new ResultReceiverWrap(startId, resultIntent));
+        final UUID id = UUID.fromString(intent.getStringExtra(EXTRA_ID));
+        mExecutor.execute(request, new ResultReceiverWrap(id, startId));
         return START_NOT_STICKY;
     }
 
@@ -57,29 +62,55 @@ public class NetworkService extends Service {
         return null;
     }
 
+    public static void executeRequest(@NonNull Context context, @NonNull OsmpRequest request,
+                                      @NonNull ResultReceiver receiver) {
+        UUID id;
+        synchronized (sReceivers) {
+            if (BuildConfig.DEBUG && sReceivers.containsValue(receiver)) {
+                throw new IllegalArgumentException("Receiver already registered");
+            }
+            id = UUID.randomUUID();
+            sReceivers.put(id, receiver);
+        }
+
+        final Intent intent = new Intent(context, NetworkService.class);
+        intent.putExtra(EXTRA_REQUEST, request);
+        intent.putExtra(EXTRA_ID, id.toString());
+        context.startService(intent);
+    }
+
     private class ResultReceiverWrap implements ResultReceiver {
 
         private final int mStartId;
-        private final Intent mResultIntent;
+        private final UUID mId;
 
-        private ResultReceiverWrap(int startId, Intent resultIntent) {
+        private ResultReceiverWrap(@NonNull UUID id, int startId) {
+            mId = id;
             mStartId = startId;
-            mResultIntent = resultIntent;
         }
 
         @Override
-        public void onResponse(OsmpResponse response) {
-            mResultIntent.putExtra(EXTRA_STATE, STATE_OK);
-            mResultIntent.putExtra(EXTRA_RESULT, response);
+        public void onResponse(@NonNull OsmpResponse response) {
+            ResultReceiver receiver;
+            synchronized (sReceivers) {
+                receiver = sReceivers.remove(mId);
+            }
             stopSelf(mStartId);
+            if (receiver != null) {
+                receiver.onResponse(response);
+            }
         }
 
         @Override
         public void onError() {
-            mResultIntent.removeExtra(EXTRA_RESULT);
-            mResultIntent.putExtra(EXTRA_STATE, STATE_ERROR);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(mResultIntent);
+            ResultReceiver receiver;
+            synchronized (sReceivers) {
+                receiver = sReceivers.get(mId);
+            }
             stopSelf(mStartId);
+            if (receiver != null) {
+                receiver.onError();
+            }
         }
     }
 }

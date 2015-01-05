@@ -19,6 +19,7 @@ package org.pvoid.apteryx.data;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
@@ -28,8 +29,11 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 
 import org.pvoid.apteryx.data.accounts.Account;
+import org.pvoid.apteryx.util.LogHelper;
 
 /* package */ class DataStorage extends SQLiteOpenHelper implements Storage {
+
+    private static final String TAG = "Storage";
 
     /* package */ static final String DB_NAME = "apteryx";
     /* package */ static final int DB_VERSION = 1;
@@ -43,6 +47,7 @@ import org.pvoid.apteryx.data.accounts.Account;
     private static final String TABLE_ACCOUNTS_COLUMN_VERIFIED = "verified";
 
     private static final int MSG_ADD_ACCOUNT = 1;
+    private static final int MSG_UPDATE_ACCOUNT = 2;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -57,6 +62,12 @@ import org.pvoid.apteryx.data.accounts.Account;
     @Override
     public void storeAccount(@NonNull Account account) {
         Message msg = mHandler.obtainMessage(MSG_ADD_ACCOUNT, account);
+        mHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void updateAccount(@NonNull Account account) {
+        Message msg = mHandler.obtainMessage(MSG_UPDATE_ACCOUNT, account);
         mHandler.sendMessage(msg);
     }
 
@@ -92,6 +103,24 @@ import org.pvoid.apteryx.data.accounts.Account;
             values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
             values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
             db.insert(TABLE_ACCOUNTS_NAME, null, values);
+        } catch (SQLiteConstraintException e) {
+            LogHelper.error(TAG, "Error while adding account: %1$s", e.getMessage());
+        } finally {
+            db.close();
+        }
+    }
+
+    /* package */ void updateAccountImpl(@NonNull Account account) {
+        SQLiteDatabase db = getWritableDatabase();
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            ContentValues values = new ContentValues();
+            values.put(TABLE_ACCOUNTS_COLUMN_PASSWORD, account.getPasswordHash());
+            values.put(TABLE_ACCOUNTS_COLUMN_TERMINAL, account.getTerminal());
+            values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
+            values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
+            db.update(TABLE_ACCOUNTS_NAME, values, TABLE_ACCOUNTS_COLUMN_LOGIN + "=?",
+                    new String[] {account.getLogin()});
         } finally {
             db.close();
         }
@@ -108,6 +137,11 @@ import org.pvoid.apteryx.data.accounts.Account;
                 case MSG_ADD_ACCOUNT:
                     if (msg.obj != null) {
                         addAccountImpl((Account) msg.obj);
+                    }
+                    break;
+                case MSG_UPDATE_ACCOUNT:
+                    if (msg.obj != null) {
+                        updateAccountImpl((Account) msg.obj);
                     }
                     break;
             }

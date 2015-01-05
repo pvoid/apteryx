@@ -17,10 +17,13 @@
 
 package org.pvoid.apteryx.net;
 
+import android.support.annotation.NonNull;
+
 import org.pvoid.apteryx.annotations.NotOnMainThread;
 
-@NotOnMainThread
 public interface ResultReceiver {
-    void onResponse(OsmpResponse response);
+    @NotOnMainThread
+    void onResponse(@NonNull OsmpResponse response);
+    @NotOnMainThread
     void onError();
 }
