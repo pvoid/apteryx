@@ -47,7 +47,6 @@ import org.pvoid.apteryx.data.persons.Person;
     private static final String TABLE_PERSONS_COLUMN_VERIFIED = "verified";
 
     private static final String TABLE_AGENTS_NAME = "agents";
-    private static final String TABLE_AGENTS_COLUMN_ID = "_id";
     private static final String TABLE_AGENTS_COLUMN_AGENT_ID = "agent_id";
     private static final String TABLE_AGENTS_COLUMN_PARENT_ID = "parent_id";
     private static final String TABLE_AGENTS_COLUMN_PERSON_LOGIN = "person_login";
@@ -101,8 +100,7 @@ import org.pvoid.apteryx.data.persons.Person;
                         TABLE_PERSONS_COLUMN_ENABLED + " INTEGER);"
         );
         db.execSQL("CREATE TABLE " + TABLE_AGENTS_NAME + "(" +
-                        TABLE_AGENTS_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        TABLE_AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT FAIL, " +
+                        TABLE_AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
                         TABLE_AGENTS_COLUMN_PARENT_ID + " TEXT, " +
                         TABLE_AGENTS_COLUMN_PERSON_LOGIN + " TEXT, " +
                         TABLE_AGENTS_COLUMN_INN + " TEXT, " +
@@ -141,11 +139,14 @@ import org.pvoid.apteryx.data.persons.Person;
 
     /* package */ void addAgentsImpl(@NonNull Agent[] agents) {
         SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            db.beginTransaction();
             for (Agent agent : agents) {
+                if (agent == null || !agent.isValid()) {
+                    continue;
+                }
                 values.clear();
                 values.put(TABLE_AGENTS_COLUMN_AGENT_ID, agent.getId());
                 values.put(TABLE_AGENTS_COLUMN_PARENT_ID, agent.getParentId());
@@ -157,10 +158,12 @@ import org.pvoid.apteryx.data.persons.Person;
                 values.put(TABLE_AGENTS_COLUMN_FISCAL_MODE, agent.getFiscalMode());
                 values.put(TABLE_AGENTS_COLUMN_KMM, agent.getKMM());
                 values.put(TABLE_AGENTS_COLUMN_TAX_REGNUM, agent.getTaxRegnum());
-                db.insert(TABLE_AGENTS_NAME, null, values);
+                values.put(TABLE_AGENTS_COLUMN_PERSON_LOGIN, agent.getPersonLogin());
+                db.replace(TABLE_AGENTS_NAME, null, values);
             }
-            db.endTransaction();
+            db.setTransactionSuccessful();
         } finally {
+            db.endTransaction();
             db.close();
         }
     }

@@ -19,6 +19,7 @@ package org.pvoid.apteryx.data.agents;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.persons.Person;
 
@@ -142,5 +143,9 @@ public class Agent {
     @NonNull
     public Agent cloneForPerson(@NonNull Person person) {
         return new Agent(this, person.getLogin());
+    }
+
+    public boolean isValid() {
+        return !TextUtils.isEmpty(mPersonLogin)  && !TextUtils.isEmpty(mId);
     }
 }

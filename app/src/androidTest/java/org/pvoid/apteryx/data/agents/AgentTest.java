@@ -74,4 +74,20 @@ public class AgentTest {
         Assert.assertTrue(agent.equals(agent));
         Assert.assertEquals("ID".hashCode(), agent.hashCode());
     }
+
+    @Test
+    public void validCheck() throws Exception {
+        Agent agent = new Agent("ID", "PARENT_ID", "INN", "JUR_ADDRESS", "PHYS_ADDRESS", "NAME",
+                "CITY", "FISCAL_MODE", "KMM", "TAX");
+        Assert.assertFalse(agent.isValid());
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("PERSON_LOGIN");
+        agent = agent.cloneForPerson(person);
+        Assert.assertTrue(agent.isValid());
+        agent = new Agent(null, "PARENT_ID", "INN", "JUR_ADDRESS", "PHYS_ADDRESS", "NAME",
+                "CITY", "FISCAL_MODE", "KMM", "TAX");
+        Assert.assertFalse(agent.isValid());
+        agent = agent.cloneForPerson(person);
+        Assert.assertFalse(agent.isValid());
+    }
 }
