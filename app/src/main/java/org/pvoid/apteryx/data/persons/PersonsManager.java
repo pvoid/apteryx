@@ -15,29 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.accounts;
+package org.pvoid.apteryx.data.persons;
 
-import android.content.Context;
+import android.support.annotation.NonNull;
 
-import org.pvoid.apteryx.data.Storage;
+public interface PersonsManager {
+    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_VERIFIED";
+    public static final String EXTRA_PERSON = "person";
 
-import javax.inject.Singleton;
-
-import dagger.Module;
-import dagger.Provides;
-
-@Module(injects = {AccountsManager.class}, complete = false)
-public class AccountsModule {
-
-    private final Context mContext;
-
-    public AccountsModule(Context context) {
-        mContext = context.getApplicationContext();
-    }
-
-    @Provides
-    @Singleton
-    public AccountsManager provideAccountManager(Storage storage) {
-        return new OsmpAccountsManager(mContext, storage);
-    }
+    boolean add(@NonNull Person person);
+    void verify(@NonNull Person person);
 }

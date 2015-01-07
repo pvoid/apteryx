@@ -19,7 +19,6 @@ package org.pvoid.apteryx.data;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
@@ -28,9 +27,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 
-import org.pvoid.apteryx.data.accounts.Account;
-import org.pvoid.apteryx.data.accounts.Agent;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.data.agents.Agent;
+import org.pvoid.apteryx.data.persons.Person;
 
 /* package */ class DataStorage extends SQLiteOpenHelper implements Storage {
 
@@ -39,19 +37,20 @@ import org.pvoid.apteryx.util.LogHelper;
     /* package */ static final String DB_NAME = "apteryx";
     /* package */ static final int DB_VERSION = 1;
 
-    private static final String TABLE_ACCOUNTS_NAME = "accounts";
-    private static final String TABLE_ACCOUNTS_COLUMN_ID = "_id";
-    private static final String TABLE_ACCOUNTS_COLUMN_LOGIN = "login";
-    private static final String TABLE_ACCOUNTS_COLUMN_PASSWORD = "password";
-    private static final String TABLE_ACCOUNTS_COLUMN_TERMINAL = "terminal";
-    private static final String TABLE_ACCOUNTS_COLUMN_TITLE = "title";
-    private static final String TABLE_ACCOUNTS_COLUMN_AGENT_ID = "agent_id";
-    private static final String TABLE_ACCOUNTS_COLUMN_VERIFIED = "verified";
+    private static final String TABLE_PERSONS_NAME = "persons";
+    private static final String TABLE_PERSONS_COLUMN_LOGIN = "login";
+    private static final String TABLE_PERSONS_COLUMN_PASSWORD = "password";
+    private static final String TABLE_PERSONS_COLUMN_TERMINAL = "terminal";
+    private static final String TABLE_PERSONS_COLUMN_NAME = "name";
+    private static final String TABLE_PERSONS_COLUMN_AGENT_ID = "agent_id";
+    private static final String TABLE_PERSONS_COLUMN_ENABLED = "enabled";
+    private static final String TABLE_PERSONS_COLUMN_VERIFIED = "verified";
 
     private static final String TABLE_AGENTS_NAME = "agents";
     private static final String TABLE_AGENTS_COLUMN_ID = "_id";
     private static final String TABLE_AGENTS_COLUMN_AGENT_ID = "agent_id";
     private static final String TABLE_AGENTS_COLUMN_PARENT_ID = "parent_id";
+    private static final String TABLE_AGENTS_COLUMN_PERSON_LOGIN = "person_login";
     private static final String TABLE_AGENTS_COLUMN_INN = "inn";
     private static final String TABLE_AGENTS_COLUMN_JUR_ADDRESS = "jur_address";
     private static final String TABLE_AGENTS_COLUMN_PHYS_ADDRESS = "phys_address";
@@ -61,9 +60,8 @@ import org.pvoid.apteryx.util.LogHelper;
     private static final String TABLE_AGENTS_COLUMN_KMM = "kmm";
     private static final String TABLE_AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
 
-    private static final int MSG_ADD_ACCOUNT = 1;
-    private static final int MSG_UPDATE_ACCOUNT = 2;
-    private static final int MSG_ADD_AGENTS = 3;
+    private static final int MSG_STORE_PERSON = 1;
+    private static final int MSG_ADD_AGENTS = 2;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -76,14 +74,8 @@ import org.pvoid.apteryx.util.LogHelper;
     }
 
     @Override
-    public void storeAccount(@NonNull Account account) {
-        Message msg = mHandler.obtainMessage(MSG_ADD_ACCOUNT, account);
-        mHandler.sendMessage(msg);
-    }
-
-    @Override
-    public void updateAccount(@NonNull Account account) {
-        Message msg = mHandler.obtainMessage(MSG_UPDATE_ACCOUNT, account);
+    public void storePerson(@NonNull Person person) {
+        Message msg = mHandler.obtainMessage(MSG_STORE_PERSON, person);
         mHandler.sendMessage(msg);
     }
 
@@ -99,19 +91,20 @@ import org.pvoid.apteryx.util.LogHelper;
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_ACCOUNTS_NAME + "(" +
-                        TABLE_ACCOUNTS_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        TABLE_ACCOUNTS_COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT FAIL, " +
-                        TABLE_ACCOUNTS_COLUMN_PASSWORD + " TEXT, " +
-                        TABLE_ACCOUNTS_COLUMN_TERMINAL + " TEXT, " +
-                        TABLE_ACCOUNTS_COLUMN_TITLE + " TEXT," +
-                        TABLE_ACCOUNTS_COLUMN_AGENT_ID + " TEXT," +
-                        TABLE_ACCOUNTS_COLUMN_VERIFIED + " INTEGER);"
+        db.execSQL("CREATE TABLE " + TABLE_PERSONS_NAME + "(" +
+                        TABLE_PERSONS_COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        TABLE_PERSONS_COLUMN_PASSWORD + " TEXT, " +
+                        TABLE_PERSONS_COLUMN_TERMINAL + " TEXT, " +
+                        TABLE_PERSONS_COLUMN_NAME + " TEXT," +
+                        TABLE_PERSONS_COLUMN_AGENT_ID + " TEXT," +
+                        TABLE_PERSONS_COLUMN_VERIFIED + " INTEGER, " +
+                        TABLE_PERSONS_COLUMN_ENABLED + " INTEGER);"
         );
         db.execSQL("CREATE TABLE " + TABLE_AGENTS_NAME + "(" +
                         TABLE_AGENTS_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                         TABLE_AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT FAIL, " +
                         TABLE_AGENTS_COLUMN_PARENT_ID + " TEXT, " +
+                        TABLE_AGENTS_COLUMN_PERSON_LOGIN + " TEXT, " +
                         TABLE_AGENTS_COLUMN_INN + " TEXT, " +
                         TABLE_AGENTS_COLUMN_JUR_ADDRESS + " TEXT, " +
                         TABLE_AGENTS_COLUMN_PHYS_ADDRESS + " TEXT, " +
@@ -128,37 +121,19 @@ import org.pvoid.apteryx.util.LogHelper;
 
     }
 
-    /* package */ void addAccountImpl(@NonNull Account account) {
+    /* package */ void storePersonImpl(@NonNull Person person) {
         SQLiteDatabase db = getWritableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            values.put(TABLE_ACCOUNTS_COLUMN_LOGIN, account.getLogin());
-            values.put(TABLE_ACCOUNTS_COLUMN_PASSWORD, account.getPasswordHash());
-            values.put(TABLE_ACCOUNTS_COLUMN_TERMINAL, account.getTerminal());
-            values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
-            values.put(TABLE_ACCOUNTS_COLUMN_AGENT_ID, account.getAgentId());
-            values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
-            db.insert(TABLE_ACCOUNTS_NAME, null, values);
-        } catch (SQLiteConstraintException e) {
-            LogHelper.error(TAG, "Error while adding account: %1$s", e.getMessage());
-        } finally {
-            db.close();
-        }
-    }
-
-    /* package */ void updateAccountImpl(@NonNull Account account) {
-        SQLiteDatabase db = getWritableDatabase();
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            ContentValues values = new ContentValues();
-            values.put(TABLE_ACCOUNTS_COLUMN_PASSWORD, account.getPasswordHash());
-            values.put(TABLE_ACCOUNTS_COLUMN_TERMINAL, account.getTerminal());
-            values.put(TABLE_ACCOUNTS_COLUMN_TITLE, account.getTitle());
-            values.put(TABLE_ACCOUNTS_COLUMN_AGENT_ID, account.getAgentId());
-            values.put(TABLE_ACCOUNTS_COLUMN_VERIFIED, account.isVerified() ? 1 : 0);
-            db.update(TABLE_ACCOUNTS_NAME, values, TABLE_ACCOUNTS_COLUMN_LOGIN + "=?",
-                    new String[] {account.getLogin()});
+            values.put(TABLE_PERSONS_COLUMN_LOGIN, person.getLogin());
+            values.put(TABLE_PERSONS_COLUMN_PASSWORD, person.getPasswordHash());
+            values.put(TABLE_PERSONS_COLUMN_TERMINAL, person.getTerminal());
+            values.put(TABLE_PERSONS_COLUMN_NAME, person.getName());
+            values.put(TABLE_PERSONS_COLUMN_AGENT_ID, person.getAgentId());
+            values.put(TABLE_PERSONS_COLUMN_ENABLED, person.isEnabled());
+            values.put(TABLE_PERSONS_COLUMN_VERIFIED, person.isVerified());
+            db.replace(TABLE_PERSONS_NAME, null, values);
         } finally {
             db.close();
         }
@@ -198,14 +173,9 @@ import org.pvoid.apteryx.util.LogHelper;
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MSG_ADD_ACCOUNT:
+                case MSG_STORE_PERSON:
                     if (msg.obj != null) {
-                        addAccountImpl((Account) msg.obj);
-                    }
-                    break;
-                case MSG_UPDATE_ACCOUNT:
-                    if (msg.obj != null) {
-                        updateAccountImpl((Account) msg.obj);
+                        storePersonImpl((Person) msg.obj);
                     }
                     break;
                 case MSG_ADD_AGENTS:

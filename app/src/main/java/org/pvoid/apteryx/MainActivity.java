@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,14 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data;
+package org.pvoid.apteryx;
 
-import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import org.pvoid.apteryx.data.agents.Agent;
-import org.pvoid.apteryx.data.persons.Person;
+import org.pvoid.apteryx.R;
 
-public interface Storage {
-    void storePerson(@NonNull Person person);
-    void storeAgents(@NonNull Agent... agents);
+public class MainActivity extends ActionBarActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+    }
 }

@@ -19,14 +19,18 @@ package org.pvoid.apteryx.data;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
 
+import org.fest.reflect.core.Reflection;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.pvoid.apteryx.data.accounts.Account;
+import org.mockito.Mockito;
+import org.pvoid.apteryx.data.persons.Person;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowHandler;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
@@ -38,10 +42,7 @@ public class DataStorageTest {
         SQLiteDatabase db = storage.getReadableDatabase();
         Assert.assertEquals(DataStorage.DB_VERSION, db.getVersion());
 
-        Cursor cursor = db.rawQuery("pragma table_info(accounts)", null);
-        Assert.assertTrue(cursor.moveToNext());
-        Assert.assertEquals("_id", cursor.getString(1));
-        Assert.assertEquals("INTEGER", cursor.getString(2));
+        Cursor cursor = db.rawQuery("pragma table_info(persons)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("login", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
@@ -52,13 +53,16 @@ public class DataStorageTest {
         Assert.assertEquals("terminal", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
-        Assert.assertEquals("title", cursor.getString(1));
+        Assert.assertEquals("name", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("agent_id", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("verified", cursor.getString(1));
+        Assert.assertEquals("INTEGER", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("enabled", cursor.getString(1));
         Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
@@ -72,6 +76,9 @@ public class DataStorageTest {
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("parent_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("person_login", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("inn", cursor.getString(1));
@@ -104,35 +111,101 @@ public class DataStorageTest {
     }
 
     @Test
-    public void addAccountCheck() throws Exception {
+    public void storePersonCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
-        Account account = new Account("LOGIN", "PASSWORD", "TERMINAL");
-        storage.addAccountImpl(account);
-        storage.addAccountImpl(account.cloneVerified("TITLE", "AGENT_ID"));
-        account = new Account("LOGIN2", "PASSWORD", "TERMINAL");
-        storage.addAccountImpl(account.cloneVerified("TITLE", "AGENT_ID"));
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("LOGIN");
+        Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
+        Mockito.when(person.getName()).thenReturn(null);
+        Mockito.when(person.getAgentId()).thenReturn(null);
+        Mockito.when(person.isVerified()).thenReturn(false);
+        Mockito.when(person.isEnabled()).thenReturn(true);
+        storage = Mockito.spy(storage);
+        storage.storePerson(person);
+        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
+        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
+        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
+        Assert.assertTrue(shadowHandler.hasMessages(1, person));
+    }
 
+    @Test
+    public void storePersonImplCheck() throws Exception {
+        DataStorage storage = new DataStorage(Robolectric.application);
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("LOGIN");
+        Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
+        Mockito.when(person.getName()).thenReturn(null);
+        Mockito.when(person.getAgentId()).thenReturn(null);
+        Mockito.when(person.isVerified()).thenReturn(false);
+        Mockito.when(person.isEnabled()).thenReturn(true);
+        storage.storePersonImpl(person);
         SQLiteDatabase db = storage.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT _id, login, password, terminal, title, agent_id, verified FROM accounts", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
-        Assert.assertEquals(2, cursor.getCount());
+        Assert.assertEquals(1, cursor.getCount());
         Assert.assertTrue(cursor.moveToFirst());
-        Assert.assertEquals(1, cursor.getInt(0));
-        Assert.assertEquals("LOGIN", cursor.getString(1));
-        Assert.assertEquals("PASSWORD", cursor.getString(2));
-        Assert.assertEquals("TERMINAL", cursor.getString(3));
+        Assert.assertEquals("LOGIN", cursor.getString(0));
+        Assert.assertEquals("PASSWORD", cursor.getString(1));
+        Assert.assertEquals("TERMINAL", cursor.getString(2));
+        Assert.assertNull(cursor.getString(3));
         Assert.assertNull(cursor.getString(4));
-        Assert.assertNull(cursor.getString(5));
-        Assert.assertEquals(0, cursor.getInt(6));
-        cursor.moveToNext();
-        Assert.assertEquals(2, cursor.getInt(0));
-        Assert.assertEquals("LOGIN2", cursor.getString(1));
-        Assert.assertEquals("PASSWORD", cursor.getString(2));
-        Assert.assertEquals("TERMINAL", cursor.getString(3));
-        Assert.assertEquals("TITLE", cursor.getString(4));
-        Assert.assertEquals("AGENT_ID", cursor.getString(5));
+        Assert.assertEquals(0, cursor.getInt(5));
         Assert.assertEquals(1, cursor.getInt(6));
         cursor.close();
         db.close();
+
+        Mockito.when(person.getName()).thenReturn("NAME");
+        Mockito.when(person.getAgentId()).thenReturn("AGENT");
+        Mockito.when(person.isVerified()).thenReturn(true);
+        Mockito.when(person.isEnabled()).thenReturn(false);
+        storage.storePersonImpl(person);
+        db = storage.getReadableDatabase();
+        cursor = db.rawQuery("SELECT * FROM persons;", null);
+        Assert.assertNotNull(cursor);
+        Assert.assertEquals(1, cursor.getCount());
+        Assert.assertTrue(cursor.moveToFirst());
+        Assert.assertEquals("LOGIN", cursor.getString(0));
+        Assert.assertEquals("PASSWORD", cursor.getString(1));
+        Assert.assertEquals("TERMINAL", cursor.getString(2));
+        Assert.assertEquals("NAME", cursor.getString(3));
+        Assert.assertEquals("AGENT", cursor.getString(4));
+        Assert.assertEquals(1, cursor.getInt(5));
+        Assert.assertEquals(0, cursor.getInt(6));
+        cursor.close();
+        db.close();
+
+        Mockito.when(person.getLogin()).thenReturn("LOGIN1");
+        Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD1");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL1");
+        Mockito.when(person.getName()).thenReturn("NAME1");
+        Mockito.when(person.getAgentId()).thenReturn("AGENT1");
+        Mockito.when(person.isVerified()).thenReturn(true);
+        Mockito.when(person.isEnabled()).thenReturn(true);
+        storage.storePersonImpl(person);
+        db = storage.getReadableDatabase();
+        cursor = db.rawQuery("SELECT * FROM persons;", null);
+        Assert.assertNotNull(cursor);
+        Assert.assertEquals(2, cursor.getCount());
+        Assert.assertTrue(cursor.moveToFirst());
+        Assert.assertEquals("LOGIN", cursor.getString(0));
+        Assert.assertEquals("PASSWORD", cursor.getString(1));
+        Assert.assertEquals("TERMINAL", cursor.getString(2));
+        Assert.assertEquals("NAME", cursor.getString(3));
+        Assert.assertEquals("AGENT", cursor.getString(4));
+        Assert.assertEquals(1, cursor.getInt(5));
+        Assert.assertEquals(0, cursor.getInt(6));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("LOGIN1", cursor.getString(0));
+        Assert.assertEquals("PASSWORD1", cursor.getString(1));
+        Assert.assertEquals("TERMINAL1", cursor.getString(2));
+        Assert.assertEquals("NAME1", cursor.getString(3));
+        Assert.assertEquals("AGENT1", cursor.getString(4));
+        Assert.assertEquals(1, cursor.getInt(5));
+        Assert.assertEquals(1, cursor.getInt(6));
+        cursor.close();
+        db.close();
+
     }
 }

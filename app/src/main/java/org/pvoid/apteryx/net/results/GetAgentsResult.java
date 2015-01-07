@@ -20,7 +20,7 @@ package org.pvoid.apteryx.net.results;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import org.pvoid.apteryx.data.accounts.Agent;
+import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;

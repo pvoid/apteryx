@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,52 +15,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.accounts;
+package org.pvoid.apteryx.data.persons;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class Account implements Parcelable {
-    @NonNull
-    private final String mLogin;
-    @NonNull
-    private final String mPasswordHash;
-    @NonNull
-    private final String mTerminal;
-    @Nullable
-    private final String mTitle;
-    @Nullable
-    private final String mAgentId;
+public class Person implements Parcelable {
+    @NonNull private final String mLogin;
+    @NonNull private final String mPasswordHash;
+    @NonNull private final String mTerminal;
+    @Nullable private final String mAgentId;
+    @Nullable private final String mName;
+    private boolean mIsVerified;
+    private boolean mIsEnabled;
 
-    private final boolean mIsVerified;
-
-    public Account(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal) {
+    public Person(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal) {
         mLogin = login;
         mPasswordHash = passwordHash;
         mTerminal = terminal;
-        mTitle = null;
         mAgentId = null;
+        mName = null;
+        mIsEnabled = true;
         mIsVerified = false;
     }
 
-    private Account(@NonNull Account src, @Nullable String title, @Nullable String agentId) {
-        mLogin = src.mLogin;
-        mPasswordHash = src.mPasswordHash;
-        mTerminal = src.mTerminal;
-        mTitle = title;
-        mAgentId = agentId;
-        mIsVerified = true;
-    }
-
-    private Account(@NonNull Parcel source) {
+    private Person(@NonNull Parcel source) {
         mLogin = source.readString();
         mPasswordHash = source.readString();
         mTerminal = source.readString();
-        mTitle = source.readString();
         mAgentId = source.readString();
-        mIsVerified = source.readByte() != 0;
+        mName = source.readString();
+        mIsVerified = source.readByte() == 1;
+        mIsEnabled= source.readByte() == 1;
+    }
+
+    private Person(@NonNull Person src, @Nullable String agentId, @Nullable String name,
+                   boolean isEnabled) {
+        mLogin = src.mLogin;
+        mPasswordHash = src.mPasswordHash;
+        mTerminal = src.mTerminal;
+        mAgentId = agentId;
+        mName = name;
+        mIsEnabled = isEnabled;
+        mIsVerified = true;
     }
 
     @NonNull
@@ -79,21 +78,25 @@ public class Account implements Parcelable {
     }
 
     @Nullable
-    public String getTitle() {
-        return mTitle;
+    public String getAgentId() {
+        return mAgentId;
+    }
+
+    @Nullable
+    public String getName() {
+        return mName;
     }
 
     public boolean isVerified() {
         return mIsVerified;
     }
 
-    @Nullable
-    public String getAgentId() {
-        return mAgentId;
+    public boolean isEnabled() {
+        return mIsEnabled;
     }
 
-    public Account cloneVerified(@NonNull String title, @NonNull String agentId) {
-        return new Account(this, title, agentId);
+    public Person verify(@NonNull String agentId, @NonNull String name, boolean isEnabled) {
+        return new Person(this, agentId, name, isEnabled);
     }
 
     @Override
@@ -102,10 +105,10 @@ public class Account implements Parcelable {
             return true;
         }
         //noinspection SimplifiableIfStatement
-        if (o == null || !Account.class.equals(o.getClass())) {
+        if (o == null || !Person.class.equals(o.getClass())) {
             return false;
         }
-        return mLogin.equals(((Account) o).getLogin());
+        return mLogin.equals(((Person) o).getLogin());
     }
 
     @Override
@@ -123,20 +126,21 @@ public class Account implements Parcelable {
         dest.writeString(mLogin);
         dest.writeString(mPasswordHash);
         dest.writeString(mTerminal);
-        dest.writeString(mTitle);
         dest.writeString(mAgentId);
+        dest.writeString(mName);
         dest.writeByte((byte) (mIsVerified ? 1 : 0));
+        dest.writeByte((byte) (mIsEnabled ? 1 : 0));
     }
 
-    public static final Creator<Account> CREATOR = new Creator<Account>() {
+    public static final Creator<Person> CREATOR = new Creator<Person>() {
         @Override
-        public Account createFromParcel(Parcel source) {
-            return new Account(source);
+        public Person createFromParcel(Parcel source) {
+            return new Person(source);
         }
 
         @Override
-        public Account[] newArray(int size) {
-            return new Account[size];
+        public Person[] newArray(int size) {
+            return new Person[size];
         }
     };
 }

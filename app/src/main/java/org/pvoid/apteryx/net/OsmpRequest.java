@@ -28,7 +28,7 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 
 import org.pvoid.apteryx.BuildConfig;
-import org.pvoid.apteryx.data.accounts.Account;
+import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.net.commands.Command;
 
 import java.io.IOException;
@@ -45,16 +45,16 @@ public class OsmpRequest implements Parcelable {
 
     private static final MediaType MEDIA_TYPE = MediaType.parse("application/xml; charset=" + DEFAULT_ENCODING);
     private static final Uri SERVER_URI = Uri.parse(BuildConfig.SERVER_URL);
-    @NonNull private final Account mAccount;
+    @NonNull private final Person mPerson;
     @NonNull private final byte[] mBody;
 
-    private OsmpRequest(@NonNull Account account, @NonNull byte[] data) {
+    private OsmpRequest(@NonNull Person person, @NonNull byte[] data) {
         mBody = data;
-        mAccount = account;
+        mPerson = person;
     }
 
     private OsmpRequest(@NonNull Parcel source) {
-        mAccount = source.readParcelable(Account.class.getClassLoader());
+        mPerson = source.readParcelable(Person.class.getClassLoader());
         mBody = source.createByteArray();
     }
 
@@ -67,12 +67,12 @@ public class OsmpRequest implements Parcelable {
     }
 
     @NonNull
-    public Account getAccount() {
-        return mAccount;
+    public Person getPerson() {
+        return mPerson;
     }
 
     public Builder buildUppon() {
-        return new Builder(mAccount);
+        return new Builder(mPerson);
     }
 
     @Override
@@ -82,19 +82,19 @@ public class OsmpRequest implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(mAccount, flags);
+        dest.writeParcelable(mPerson, flags);
         dest.writeByteArray(mBody);
     }
 
     public static class Builder {
 
         @NonNull
-        private final Account mAccount;
+        private final Person mPerson;
         @Nullable
         private Map<OsmpInterface, CommandsArrayList> mInterfaces = null;
 
-        public Builder(@NonNull Account account) {
-            mAccount = account;
+        public Builder(@NonNull Person person) {
+            mPerson = person;
         }
 
         @NonNull
@@ -123,11 +123,11 @@ public class OsmpRequest implements Parcelable {
             resultText.append("<?xml version=\"1.0\" encoding=\"windows-1251\"?>");
             resultText.append("<request>");
 
-            resultText.append("<auth login=\"").append(TextUtils.htmlEncode(mAccount.getLogin()))
+            resultText.append("<auth login=\"").append(TextUtils.htmlEncode(mPerson.getLogin()))
                       .append("\" ").append("signAlg=\"MD5\" sign=\"")
-                      .append(TextUtils.htmlEncode(mAccount.getPasswordHash())).append("\"/>");
+                      .append(TextUtils.htmlEncode(mPerson.getPasswordHash())).append("\"/>");
             resultText.append("<client terminal=\"")
-                      .append(TextUtils.htmlEncode(mAccount.getTerminal()))
+                      .append(TextUtils.htmlEncode(mPerson.getTerminal()))
                       .append("\" software=\"Dealer v0\" serial=\"\"/>");
 
             if (mInterfaces != null) {
@@ -155,7 +155,7 @@ public class OsmpRequest implements Parcelable {
 
             resultText.append("</request>");
 
-            return new OsmpRequest(mAccount, resultText.toString().getBytes(charset));
+            return new OsmpRequest(mPerson, resultText.toString().getBytes(charset));
         }
     }
 

@@ -47,7 +47,7 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
                        '**/R$*.class',
                        '**/*$ViewInjector*.*',
                        '**/*$ModuleAdapter*.*',
-                       'org/pvoid/apteryx/net/NetworkModule.class',
+                       'org/pvoid/apteryx/**/*Module.class',
                        '**/BuildConfig.*',
                        '**/Manifest*.*']
     )

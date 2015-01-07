@@ -27,19 +27,31 @@
 
     <application
         android:name=".ApteryxApplication"
-        android:hardwareAccelerated="true"
         android:allowBackup="false"
+        android:hardwareAccelerated="true"
         android:icon="@drawable/icon"
         android:label="@string/app_name" >
 
-        <activity android:name=".accounts.AddAccountActivity"
-                  android:theme="@style/Theme.Apteryx"
-                  android:label="@string/account_title"
-                  android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Apteryx">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".accounts.AddAccountActivity"
+            android:label="@string/account_title"
+            android:theme="@style/Theme.Apteryx"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
+
         <service
             android:name=".net.NetworkService"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="false" />
 
         <!--
       activity android:name=".ui.MainActivity"
@@ -69,6 +81,7 @@
         </intent-filter>
       </receiver
         -->
+
 
     </application>
 

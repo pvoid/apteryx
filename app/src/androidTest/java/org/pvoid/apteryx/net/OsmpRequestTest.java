@@ -27,7 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.pvoid.apteryx.data.accounts.Account;
+import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.net.commands.Command;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -58,10 +58,10 @@ public class OsmpRequestTest {
             "</request>";
 
 
-        Account account = Mockito.mock(Account.class);
-        Mockito.when(account.getLogin()).thenReturn("LOGIN");
-        Mockito.when(account.getPasswordHash()).thenReturn("HASH");
-        Mockito.when(account.getTerminal()).thenReturn("TERMINAL");
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("LOGIN");
+        Mockito.when(person.getPasswordHash()).thenReturn("HASH");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
 
         Command getConfig = Mockito.mock(Command.class);
         Mockito.when(getConfig.getName()).thenReturn("getConfig");
@@ -75,7 +75,7 @@ public class OsmpRequestTest {
         }};
         Mockito.when(requestProcessList.getParams()).thenReturn(params);
 
-        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
 
         builder.getInterface(OsmpInterface.Terminals).add(getConfig);
         builder.getInterface(OsmpInterface.Terminals).add(requestProcessList);
@@ -99,21 +99,21 @@ public class OsmpRequestTest {
 
     @Test
     public void buildUponTest() throws Exception {
-        Account account = Mockito.mock(Account.class);
-        Mockito.when(account.getLogin()).thenReturn("LOGIN");
-        Mockito.when(account.getPasswordHash()).thenReturn("HASH");
-        Mockito.when(account.getTerminal()).thenReturn("TERMINAL");
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("LOGIN");
+        Mockito.when(person.getPasswordHash()).thenReturn("HASH");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
 
-        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder = builder.create().buildUppon();
         OsmpRequest request = builder.create();
         Assert.assertNotNull(request);
-        Assert.assertSame(account, Reflection.field("mAccount").ofType(Account.class).in(request).get());
+        Assert.assertSame(person, Reflection.field("mPerson").ofType(Person.class).in(request).get());
     }
 
     @Test
     public void storeCheck() throws Exception {
-        Account account = new Account("LOGIN", "HASH", "TERMINAL");
+        Person person = new Person("LOGIN", "HASH", "TERMINAL");
 
         Command commad = Mockito.mock(Command.class);
         Mockito.when(commad.getName()).thenReturn("requestProcessList");
@@ -123,7 +123,7 @@ public class OsmpRequestTest {
         }};
         Mockito.when(commad.getParams()).thenReturn(params);
 
-        OsmpRequest.Builder builder = new OsmpRequest.Builder(account);
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Terminals).add(commad);
         OsmpRequest request = builder.create();
         Assert.assertNotNull(request);

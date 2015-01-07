@@ -31,8 +31,8 @@ import android.view.inputmethod.InputMethodManager;
 
 import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
-import org.pvoid.apteryx.data.accounts.Account;
-import org.pvoid.apteryx.data.accounts.AccountsManager;
+import org.pvoid.apteryx.data.persons.Person;
+import org.pvoid.apteryx.data.persons.PersonsManager;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.math.BigInteger;
@@ -54,7 +54,7 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
                             .commitAllowingStateLoss();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
-                new IntentFilter(AccountsManager.ACTION_VERIFIED));
+                new IntentFilter(PersonsManager.ACTION_VERIFIED));
     }
 
     @Override
@@ -113,10 +113,10 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
 
         @Override
         public void run() {
-            final Account account = new Account(mLogin, mPassword, mTerminal);
-            AccountsManager manager = ((GraphHolder) getApplication()).getGraph().get(AccountsManager.class);
-            manager.add(account);
-            manager.verify(account);
+            final Person person = new Person(mLogin, mPassword, mTerminal);
+            PersonsManager manager = ((GraphHolder) getApplication()).getGraph().get(PersonsManager.class);
+            manager.add(person);
+            manager.verify(person);
         }
     }
 

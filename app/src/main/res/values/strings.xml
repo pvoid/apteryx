@@ -16,8 +16,8 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
-    <string name="app_name">Apteryx australis</string>
 
+    <string name="app_name">Apteryx australis</string>
     <string name="account_title">Новый аккаунт</string>
     <string name="account_login">ЛОГИН</string>
     <string name="account_empty_login">Укажите логин</string>
@@ -25,19 +25,17 @@
     <string name="account_empty_password">Укажите пароль</string>
     <string name="account_terminal_id">ID терминала</string>
     <string name="account_empty_terminal">Укажите id терминала</string>
-
     <string name="account_empty_login_error">Для работы нам необходим логин. Пожалуйста, укажите ваш.</string>
     <string name="account_empty_password_error">Для аккаунта необходим пароль. Пожалуйста, укажите тот что подходит к вашему.</string>
     <string name="account_empty_terminal_error">Для работы нам нужен идентификатор терминала. Пожалуйста, укажите какой-нибудь из действитеьно существующих.</string>
-
     <string name="one_menute_pleas">Одну минуточку…</string>
     <string name="account_being_checking">Пожалуйста, подождите пока мы проверяем ваши учетные данные и инициализируем аккаунт. Это не должно занять много времени.</string>
-
     <string name="button_next">Дальше</string>
     <string name="button_stop">Стоп</string>
     <string name="button_ok">OK</string>
 
-    <!--string name="last_update">Последнее обновление</string>
+    <!--
+    string name="last_update">Последнее обновление</string>
     <string name="balance">Баланс</string>
     <string name="overdraft">Овердрафт</string>
     <string name="error">Ошибка</string>
@@ -130,6 +128,11 @@
     <string name="warn_level">Уровень предупреждения</string>
     <string name="cant_obtain_storage">Не могу получить экземпляр хранилища</string>
     <string name="reboot_command_sended">Команда перезагрузки отправлена</string>
-    <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string-->
+    <string name="how_to_add_acc"><a href="#">Как добавить аккаунт?</a></string
+    -->
+
+    <string name="title_activity_main">MainActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
