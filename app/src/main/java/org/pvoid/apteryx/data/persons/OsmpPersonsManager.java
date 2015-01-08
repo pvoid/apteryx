@@ -23,17 +23,23 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.pvoid.apteryx.data.Storage;
+import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.net.NetworkService;
 import org.pvoid.apteryx.net.OsmpInterface;
 import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
 import org.pvoid.apteryx.net.ResultReceiver;
+import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
 import org.pvoid.apteryx.net.commands.GetAgentsCommand;
 import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
+import org.pvoid.apteryx.net.results.GetAgentInfoResult;
+import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.util.LogHelper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,6 +77,7 @@ import java.util.concurrent.locks.ReentrantLock;
     public void verify(@NonNull Person person) {
         OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Persons).add(new GetPersonInfoCommand());
+        builder.getInterface(OsmpInterface.Agents).add(new GetAgentInfoCommand());
         builder.getInterface(OsmpInterface.Agents).add(new GetAgentsCommand());
         OsmpRequest request = builder.create();
 
@@ -112,10 +119,32 @@ import java.util.concurrent.locks.ReentrantLock;
             intent.putExtra(EXTRA_PERSON, person);
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
 
-//            GetAgentsResult agentsResult = results.get(GetAgentsCommand.NAME);
-//            if (agentsResult != null && agentsResult.getAgents() != null) {
-//                mStorage.storeAgents(agentsResult.getAgents());
-//            }
+            results = response.getInterface(OsmpInterface.Agents);
+            if (results == null) {
+                return;
+            }
+
+            List<Agent> agentsList = new ArrayList<>();
+            GetAgentInfoResult agentInfoResult = results.get(GetAgentInfoCommand.NAME);
+            if (agentInfoResult != null && agentInfoResult.getAgentId() != null
+                    && agentInfoResult.getAgentName() != null) {
+                agentsList.add(new Agent(agentInfoResult.getAgentId(), null,
+                        agentInfoResult.getAgentINN(), agentInfoResult.getAgentAddress(),
+                        agentInfoResult.getAgentAddress(), agentInfoResult.getAgentName(),
+                        null, null, null, null).cloneForPerson(person));
+            }
+
+            GetAgentsResult agentsResult = results.get(GetAgentsCommand.NAME);
+            if (agentsResult != null && agentsResult.getAgents() != null) {
+                for (Agent agent : agentsResult.getAgents()) {
+                    agentsList.add(agent.cloneForPerson(person));
+                }
+            }
+
+            if (!agentsList.isEmpty()) {
+                Agent[] agents = agentsList.toArray(new Agent[agentsList.size()]);
+                mStorage.storeAgents(agents);
+            }
         }
 
         @Override

@@ -25,21 +25,21 @@ import org.pvoid.apteryx.data.persons.Person;
 
 public class Agent {
     @NonNull private final String mId;
-    @NonNull private final String mParentId;
+    @Nullable private final String mParentId;
     @Nullable private final String mPersonLogin;
-    @NonNull private final String mINN;
-    @NonNull private final String mJurAddress;
-    @NonNull private final String mPhysAddress;
+    @Nullable private final String mINN;
+    @Nullable private final String mJurAddress;
+    @Nullable private final String mPhysAddress;
     @NonNull private final String mName;
-    @NonNull private final String mCity;
-    @NonNull private final String mFiscalMode;
-    @NonNull private final String mKMM;
-    @NonNull private final String mTaxRegnum;
+    @Nullable private final String mCity;
+    @Nullable private final String mFiscalMode;
+    @Nullable private final String mKMM;
+    @Nullable private final String mTaxRegnum;
 
-    public Agent(@NonNull String id, @NonNull String parentId, @NonNull String inn,
-                 @NonNull String jurAddress, @NonNull String physAddress, @NonNull  String name,
-                 @NonNull String city, @NonNull String fiscalMode, @NonNull String kmm,
-                 @NonNull String taxRegnum) {
+    public Agent(@NonNull String id, @Nullable String parentId, @Nullable String inn,
+                 @Nullable String jurAddress, @Nullable String physAddress, @NonNull  String name,
+                 @Nullable String city, @Nullable String fiscalMode, @Nullable String kmm,
+                 @Nullable String taxRegnum) {
         mId = id;
         mParentId = parentId;
         mINN = inn;
@@ -73,47 +73,47 @@ public class Agent {
         return mId;
     }
 
-    @NonNull
+    @Nullable
     public String getParentId() {
         return mParentId;
     }
 
-    @NonNull
+    @Nullable
     public String getINN() {
         return mINN;
     }
 
-    @NonNull
+    @Nullable
     public String getJurAddress() {
         return mJurAddress;
     }
 
-    @NonNull
+    @Nullable
     public String getPhysAddress() {
         return mPhysAddress;
     }
 
-    @NonNull
+    @Nullable
     public String getName() {
         return mName;
     }
 
-    @NonNull
+    @Nullable
     public String getCity() {
         return mCity;
     }
 
-    @NonNull
+    @Nullable
     public String getFiscalMode() {
         return mFiscalMode;
     }
 
-    @NonNull
+    @Nullable
     public String getKMM() {
         return mKMM;
     }
 
-    @NonNull
+    @Nullable
     public String getTaxRegnum() {
         return mTaxRegnum;
     }

@@ -85,4 +85,12 @@ public class GetPersonInfoResult extends Result {
     public boolean isEnabled() {
         return mIsEnabled;
     }
+
+    public static class Factory implements ResultFactory {
+        @Nullable
+        @Override
+        public Result create(@NonNull ResponseTag tag) {
+            return new GetPersonInfoResult(tag);
+        }
+    }
 }
