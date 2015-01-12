@@ -21,8 +21,11 @@ import android.support.annotation.NonNull;
 
 public interface PersonsManager {
     public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_VERIFIED";
+    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CHANGED";
+
     public static final String EXTRA_PERSON = "person";
 
     boolean add(@NonNull Person person);
     void verify(@NonNull Person person);
+    @NonNull Person[] getPersons();
 }

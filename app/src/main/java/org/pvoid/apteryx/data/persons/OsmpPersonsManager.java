@@ -22,8 +22,10 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.pvoid.apteryx.annotations.GuardedBy;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.agents.Agent;
+import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.net.NetworkService;
 import org.pvoid.apteryx.net.OsmpInterface;
 import org.pvoid.apteryx.net.OsmpRequest;
@@ -41,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -50,13 +53,34 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
+    @NonNull private final TerminalsManager mTerminalsManager;
     @NonNull private final Lock mLock = new ReentrantLock();
-    private final Map<String, Person> mPersons = new HashMap<>();
+    @GuardedBy("mLock") private final Map<String, Person> mPersons = new HashMap<>();
+    @GuardedBy("mLock") private Person[] mPersonsList = null;
 
-    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage) {
+    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
+                                     @NonNull TerminalsManager terminalsManager) {
         mStorage = storage;
+        mTerminalsManager = terminalsManager;
         mContext = context.getApplicationContext();
+        try {
+            Person[] persons = storage.getPersons();
+            if (persons != null && persons.length > 0) {
+                mPersonsList = new Person[persons.length];
+                for (int index = 0; index < persons.length; ++index) {
+                    Person person = persons[index];
+                    mPersons.put(person.getLogin(), person);
+                    mPersonsList[index] = person;
+                }
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            LogHelper.error(TAG, "Can't fill persons list: %1$s", e.getMessage());
+        }
+
+        notifyChanged();
     }
+
+
 
     @Override
     public boolean add(@NonNull Person person) {
@@ -66,10 +90,12 @@ import java.util.concurrent.locks.ReentrantLock;
                 return false;
             }
             mPersons.put(person.getLogin(), person);
+            mPersonsList = null;
         } finally {
             mLock.unlock();
         }
         mStorage.storePerson(person);
+        notifyChanged();
         return true;
     }
 
@@ -85,6 +111,31 @@ import java.util.concurrent.locks.ReentrantLock;
             NetworkService.executeRequest(mContext, request,
                     new VerificatioResultReceiver());
         }
+    }
+
+    @Override
+    @NonNull
+    public Person[] getPersons() {
+        mLock.lock();
+        try {
+            if (mPersonsList == null) {
+                mPersonsList = mPersons.values().toArray(new Person[mPersons.size()]);
+            }
+        } finally {
+            mLock.unlock();
+        }
+        return mPersonsList;
+    }
+
+    private void notifyChanged() {
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+        lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+    }
+
+    private void notifyVerified(@NonNull Person person) {
+        Intent intent = new Intent(ACTION_VERIFIED);
+        intent.putExtra(EXTRA_PERSON, person);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
     private class VerificatioResultReceiver implements ResultReceiver {
@@ -107,6 +158,7 @@ import java.util.concurrent.locks.ReentrantLock;
                 if (name != null && agentId != null) {
                     person = person.verify(agentId, name, person.isEnabled());
                     mPersons.put(person.getLogin(), person);
+                    mPersonsList = null;
                 } else {
                     LogHelper.error(TAG, "Account name is NULL");
                 }
@@ -114,10 +166,8 @@ import java.util.concurrent.locks.ReentrantLock;
                 mLock.unlock();
             }
             mStorage.storePerson(person);
-
-            Intent intent = new Intent(ACTION_VERIFIED);
-            intent.putExtra(EXTRA_PERSON, person);
-            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+            mTerminalsManager.sync(person);
+            notifyVerified(person);
 
             results = response.getInterface(OsmpInterface.Agents);
             if (results == null) {

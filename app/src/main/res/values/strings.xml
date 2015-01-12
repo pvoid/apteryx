@@ -33,6 +33,8 @@
     <string name="button_next">Дальше</string>
     <string name="button_stop">Стоп</string>
     <string name="button_ok">OK</string>
+    <string name="empty_account"><i>Аккаунт не выбран</i></string>
+    <string name="add_new_account">Добавить новый аккаунт</string>
 
     <!--
     string name="last_update">Последнее обновление</string>
@@ -44,7 +46,6 @@
     <string name="last_activity">п. активность: </string>
     <string name="last_payment">п. платеж: </string>
     <string name="refreshed">обновлено:</string>
-    <string name="add_account">Новый аккаунт</string>
     <string name="settings">Настройки</string>
     <string name="refresh">Обновить статусы</string>
     <string name="title">Отображамое имя</string>

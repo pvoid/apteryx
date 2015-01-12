@@ -41,6 +41,18 @@ public class Person implements Parcelable {
         mIsVerified = false;
     }
 
+    public Person(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal,
+                  @Nullable String agentId, @Nullable String name, boolean isEnabled,
+                  boolean isVerified) {
+        mLogin = login;
+        mPasswordHash = passwordHash;
+        mTerminal = terminal;
+        mAgentId = agentId;
+        mName = name;
+        mIsEnabled = isEnabled;
+        mIsVerified = isVerified;
+    }
+
     private Person(@NonNull Parcel source) {
         mLogin = source.readString();
         mPasswordHash = source.readString();

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<resources>
+    <string name="terminal_type_0">Неизвестный</string>
+    <string name="terminal_type_1">POS терминал \"Linudix LMT3000\"</string>
+    <string name="terminal_type_2">Веб-терминал Терминал</string>
+    <string name="terminal_type_3">Windows терминал \"ОСМП Дилер\"</string>
+    <string name="terminal_type_4">Автомат самообслуживания</string>
+    <string name="terminal_type_5">Шлюз MySQL</string>
+    <string name="terminal_type_6">XML протокол</string>
+    <string name="terminal_type_7">QIWI Кассир для 1С:Предприятия</string>
+    <string name="terminal_type_8">WAP терминал</string>
+    <string name="terminal_type_9">PDA терминал</string>
+    <string name="terminal_type_10">QIWI Монитор / QIWI Монитор Мобайл</string>
+    <string name="terminal_type_11">ABG Терминал</string>
+    <string name="terminal_type_12">QIWI POS Nurit</string>
+    <string name="terminal_type_13">QIWI Защита</string>
+    <string name="terminal_type_15">Банкомат</string>
+    <string name="terminal_type_16">Дилерский автомат самообслуживания</string>
+    <string name="terminal_type_17">Терминал для iPhone</string>
+    <string name="terminal_type_18">Linux автомат самообслуживания</string>
+    <string name="terminal_type_19">АСО РИ Light</string>
+    <string name="terminal_type_33">QIWI Кассир</string>
+    <string name="terminal_type_52">Java приложение для телефона</string>
+    <string name="terminal_type_53">QIWI Кассир Мобайл</string>
+    <string name="terminal_type_101">EportMobile</string>
+    <string name="terminal_type_102">Адаптер OpenWay</string>
+    <string name="terminal_type_103">Адаптер TSB</string>
+    <string name="terminal_type_201">Адаптер XML2</string>
+    <string name="terminal_type_500">QIWI POS Ingenico</string>
+    <string name="terminal_type_700">POS терминал \"Штрих-miniPOS\"</string>
+    <string name="terminal_type_701">POS терминал \"Штрих-MobilePAY\"</string>
+    <string name="terminal_type_800">QIWI POS Pax</string>
+    <string name="terminal_type_801">POS UniPos</string>
+    <string name="terminal_type_1300">QIWI мобильный мониторинг</string>
+</resources>

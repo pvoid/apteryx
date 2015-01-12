@@ -32,4 +32,22 @@
         <item name="android:paddingLeft">@dimen/button_padding</item>
         <item name="android:paddingRight">@dimen/button_padding</item>
     </style>
+
+    <style name="DrawerBase">
+        <item name="android:id">@id/drawer_shadow</item>
+        <item name="android:background">@drawable/drawer_shadow</item>
+    </style>
+
+    <style name="Drawer" parent="DrawerBase">
+        <item name="android:layout_alignParentRight">true</item>
+    </style>
+
+    <style name="DrawerContentBase">
+        <item name="android:background">@color/drawer_background</item>
+    </style>
+
+    <style name="DrawerContent" parent="DrawerContentBase">
+        <item name="android:layout_toLeftOf">@id/drawer_shadow</item>
+        <item name="android:layout_alignParentLeft">true</item>
+    </style>
 </resources>

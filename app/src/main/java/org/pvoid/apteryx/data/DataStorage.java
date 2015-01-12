@@ -19,6 +19,7 @@ package org.pvoid.apteryx.data;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
@@ -26,9 +27,18 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
+import org.pvoid.apteryx.data.terminals.Terminal;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /* package */ class DataStorage extends SQLiteOpenHelper implements Storage {
 
@@ -45,6 +55,12 @@ import org.pvoid.apteryx.data.persons.Person;
     private static final String TABLE_PERSONS_COLUMN_AGENT_ID = "agent_id";
     private static final String TABLE_PERSONS_COLUMN_ENABLED = "enabled";
     private static final String TABLE_PERSONS_COLUMN_VERIFIED = "verified";
+    private static final String[] TABLE_PERSONS_COLUMNS = new String[] {
+        TABLE_PERSONS_COLUMN_LOGIN, TABLE_PERSONS_COLUMN_PASSWORD,
+        TABLE_PERSONS_COLUMN_TERMINAL, TABLE_PERSONS_COLUMN_NAME,
+        TABLE_PERSONS_COLUMN_AGENT_ID, TABLE_PERSONS_COLUMN_ENABLED,
+        TABLE_PERSONS_COLUMN_VERIFIED
+    };
 
     private static final String TABLE_AGENTS_NAME = "agents";
     private static final String TABLE_AGENTS_COLUMN_AGENT_ID = "agent_id";
@@ -59,8 +75,25 @@ import org.pvoid.apteryx.data.persons.Person;
     private static final String TABLE_AGENTS_COLUMN_KMM = "kmm";
     private static final String TABLE_AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
 
+    private static final String TABLE_TERMINALS_NAME = "terminals";
+    private static final String TABLE_TERMINALS_COLUMN_ID = "id";
+    private static final String TABLE_TERMINALS_COLUMN_TYPE = "type";
+    private static final String TABLE_TERMINALS_COLUMN_SERIAL = "serial";
+    private static final String TABLE_TERMINALS_COLUMN_NAME = "display_name";
+    private static final String TABLE_TERMINALS_COLUMN_WHO = "who_added";
+    private static final String TABLE_TERMINALS_COLUMN_WORK_TIME = "work_time";
+    private static final String TABLE_TERMINALS_COLUMN_AGENT_ID = "agent_id";
+    private static final String TABLE_TERMINALS_COLUMN_CITY = "city";
+    private static final String TABLE_TERMINALS_COLUMN_CITY_ID = "city_id";
+    private static final String TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS = "display_address";
+    private static final String TABLE_TERMINALS_COLUMN_MAIN_ADDRESS = "main_address";
+    private static final String TABLE_TERMINALS_COLUMN_PERSON_ID = "person_id";
+
+
     private static final int MSG_STORE_PERSON = 1;
     private static final int MSG_ADD_AGENTS = 2;
+    private static final int MSG_GET_PERSONS = 3;
+    private static final int MSG_STORE_TERMINALS = 4;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -78,9 +111,24 @@ import org.pvoid.apteryx.data.persons.Person;
         mHandler.sendMessage(msg);
     }
 
+    @Nullable
+    @Override
+    public Person[] getPersons() throws ExecutionException, InterruptedException {
+        PersonsFuture future = new PersonsFuture();
+        Message msg = mHandler.obtainMessage(MSG_GET_PERSONS, future);
+        mHandler.sendMessage(msg);
+        return future.get();
+    }
+
     @Override
     public void storeAgents(@NonNull Agent... agents) {
         Message msg = mHandler.obtainMessage(MSG_ADD_AGENTS, agents);
+        mHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals) {
+        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINALS, new Pair<>(personId, terminals));
         mHandler.sendMessage(msg);
     }
 
@@ -112,11 +160,24 @@ import org.pvoid.apteryx.data.persons.Person;
                         TABLE_AGENTS_COLUMN_KMM + " TEXT, " +
                         TABLE_AGENTS_COLUMN_TAX_REGNUM + " TEXT);"
         );
+        db.execSQL("CREATE TABLE " + TABLE_TERMINALS_NAME + "(" +
+                        TABLE_TERMINALS_COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        TABLE_TERMINALS_COLUMN_TYPE + " INTEGER, " +
+                        TABLE_TERMINALS_COLUMN_SERIAL + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_NAME + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_WHO + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_WORK_TIME + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_AGENT_ID + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_CITY + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_CITY_ID + " INTEGER, " +
+                        TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_MAIN_ADDRESS + " TEXT, " +
+                        TABLE_TERMINALS_COLUMN_PERSON_ID + " TEXT);"
+        );
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
     }
 
     /* package */ void storePersonImpl(@NonNull Person person) {
@@ -132,6 +193,32 @@ import org.pvoid.apteryx.data.persons.Person;
             values.put(TABLE_PERSONS_COLUMN_ENABLED, person.isEnabled());
             values.put(TABLE_PERSONS_COLUMN_VERIFIED, person.isVerified());
             db.replace(TABLE_PERSONS_NAME, null, values);
+        } finally {
+            db.close();
+        }
+    }
+
+    @Nullable
+    /* package */ Person[] getPersonsImpl() {
+        SQLiteDatabase db = getReadableDatabase();
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            Cursor cursor = db.query(TABLE_PERSONS_NAME, TABLE_PERSONS_COLUMNS, null, null, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
+            try {
+                Person[] result = new Person[cursor.getCount()];
+                int index = 0;
+                while (cursor.moveToNext()) {
+                    result[index++] = new Person(cursor.getString(0), cursor.getString(1),
+                            cursor.getString(2), cursor.getString(4), cursor.getString(3),
+                            cursor.getInt(5) == 1, cursor.getInt(6) == 1);
+                }
+                return result;
+            } finally {
+                cursor.close();
+            }
         } finally {
             db.close();
         }
@@ -168,6 +255,38 @@ import org.pvoid.apteryx.data.persons.Person;
         }
     }
 
+    /* package */ void addTerminalsImpl(@NonNull String personId, @NonNull Terminal[] terminals) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            ContentValues values = new ContentValues();
+            for (Terminal terminal : terminals) {
+                if (terminal == null) {
+                    continue;
+                }
+                values.clear();
+                values.put(TABLE_TERMINALS_COLUMN_ID, terminal.getId());
+                values.put(TABLE_TERMINALS_COLUMN_TYPE, terminal.getType().id);
+                values.put(TABLE_TERMINALS_COLUMN_SERIAL, terminal.getSerial());
+                values.put(TABLE_TERMINALS_COLUMN_NAME, terminal.getDisplayName());
+                values.put(TABLE_TERMINALS_COLUMN_WHO, terminal.getWhoAdded());
+                values.put(TABLE_TERMINALS_COLUMN_WORK_TIME, terminal.getWorkTime());
+                values.put(TABLE_TERMINALS_COLUMN_AGENT_ID, terminal.getAgentId());
+                values.put(TABLE_TERMINALS_COLUMN_CITY, terminal.getCity());
+                values.put(TABLE_TERMINALS_COLUMN_CITY_ID, terminal.getCityId());
+                values.put(TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS, terminal.getDisplayAddress());
+                values.put(TABLE_TERMINALS_COLUMN_MAIN_ADDRESS, terminal.getMainAddress());
+                values.put(TABLE_TERMINALS_COLUMN_PERSON_ID, personId);
+                db.replace(TABLE_TERMINALS_NAME, null, values);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
     private class DbHandler extends Handler {
         public DbHandler(Looper looper) {
             super(looper);
@@ -185,7 +304,63 @@ import org.pvoid.apteryx.data.persons.Person;
                     if (msg.obj != null) {
                         addAgentsImpl((Agent[]) msg.obj);
                     }
+                    break;
+                case MSG_GET_PERSONS:
+                    if (msg.obj != null) {
+                        ((PersonsFuture) msg.obj).setPersons(getPersonsImpl());
+                    }
+                    break;
+                case MSG_STORE_TERMINALS:
+                    if (msg.obj != null) {
+                        //noinspection unchecked
+                        Pair<String, Terminal[]> data = (Pair<String, Terminal[]>) msg.obj;
+                        addTerminalsImpl(data.first, data.second);
+                    }
+                    break;
             }
+        }
+    }
+
+    private static class PersonsFuture implements Future<Person[]> {
+
+        private final CountDownLatch mLatch = new CountDownLatch(1);
+        @Nullable private Person[] mPersons;
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        public void setPersons(@Nullable Person[] persons) {
+            mPersons = persons;
+            mLatch.countDown();
+        }
+
+        @Override
+        public boolean isDone() {
+            return false;
+        }
+
+        @Override
+        @Nullable
+        public Person[] get() throws InterruptedException, ExecutionException {
+            mLatch.await();
+            return mPersons;
+        }
+
+        @Override
+        @Nullable
+        public Person[] get(long timeout, @NonNull TimeUnit unit) throws InterruptedException,
+                ExecutionException, TimeoutException {
+            if (mLatch.await(timeout, unit)) {
+                return mPersons;
+            }
+            throw new TimeoutException();
         }
     }
 }

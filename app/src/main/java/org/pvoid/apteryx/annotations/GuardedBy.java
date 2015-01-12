@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,20 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data;
+package org.pvoid.apteryx.annotations;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.pvoid.apteryx.data.agents.Agent;
-import org.pvoid.apteryx.data.persons.Person;
-import org.pvoid.apteryx.data.terminals.Terminal;
-
-import java.util.concurrent.ExecutionException;
-
-public interface Storage {
-    void storePerson(@NonNull Person person);
-    @Nullable Person[] getPersons() throws ExecutionException, InterruptedException;
-    void storeAgents(@NonNull Agent... agents);
-    void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
+@Retention(RetentionPolicy.SOURCE)
+@Target(value = {ElementType.FIELD, ElementType.METHOD})
+public @interface GuardedBy {
+    String value();
 }

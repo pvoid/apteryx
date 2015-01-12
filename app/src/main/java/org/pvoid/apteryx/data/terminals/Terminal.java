@@ -21,53 +21,107 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public class Terminal {
-    private static final String ATTR_DISPLAY_ADDRESS = "address";
-    private static final String ATTR_ARENDA = "arenda";
-    private static final String ATTR_CITY = "city";
-    private static final String ATTR_FISCAL_MODE = "fiscal_mode";
     private static final String ATTR_FULL_ADDRESS = "full_address";
+
+    private static final String ATTR_ARENDA = "arenda";
+    private static final String ATTR_FISCAL_MODE = "fiscal_mode";
     private static final String ATTR_KKM = "kkm_registration_number";
     private static final String ATTR_LABEL = "label";
-    private static final String ATTR_MAIN_ADDRESS = "main_address";
-    private static final String ATTR_PRIORITY = "priority";
     private static final String ATTR_TAX_NUM = "taxpayer_regnum";
     private static final String ATTR_ADDRESS = "trm_address";
     private static final String ATTR_AGENT_NAME = "trm_agt_display";
-    private static final String ATTR_APPROVED = "trm_approved";
-    private static final String ATTR_BEE_ID = "trm_bee_id";
-    private static final String ATTR_BEE_REGION = "trm_bee_region";
-    private static final String ATTR_CITY_ID = "trm_city_id";
     private static final String ATTR_CONTACT_PERS = "trm_contact_pers";
-    private static final String ATTR_DISTRICT = "trm_district_id";
-    private static final String ATTR_DUP = "trm_dup";
-    private static final String ATTR_METRO_ID = "trm_metro_id";
-    private static final String ATTR_MONITOR_BILLS = "trm_monitor_bills";
-    private static final String ATTR_MONITOR_HEALTH = "trm_monitor_health";
-    private static final String ATTR_MONITOR_LASTDATE = "trm_monitor_lastdate";
     private static final String ATTR_PHONE = "trm_phone";
-    private static final String ATTR_STREET_ABSENT = "trm_street_absent";
-    private static final String ATTR_STREET_ID = "trm_street_id";
-    private static final String ATTR_TIP_MESTA = "trm_tip_mesta";
     private static final String ATTR_UNION_CODE = "union_code";
     private static final String ATTR_URL = "url";
 
-    private final String mId;
-    private final String mTypeId;
-    private final String mSerial;
-    private final String mDisplayName;
-    private final String mWhoAdded;
-    private final String mWorkTime;
-    private final String mAgentId;
+    @NonNull private final String mId;
+    @NonNull private final TerminalType mType;
+    @NonNull private final String mSerial;
+    @NonNull private final String mDisplayName;
+    @Nullable private final String mWhoAdded;
+    @Nullable private final String mWorkTime;
+    @NonNull private final String mAgentId;
 
-    public Terminal(@NonNull String id, @NonNull String agentId, @NonNull String typeId, @NonNull String serial,
+    @Nullable private String mCity;
+    private int mCityId;
+    @Nullable private String mAddress;
+    @Nullable private String mMainAddress;
+
+
+    public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @NonNull String serial,
                     @NonNull String displayName, @Nullable String whoAdded,
                     @Nullable String workTime) {
         mId = id;
         mAgentId = agentId;
-        mTypeId = typeId;
+        mType = type;
         mSerial = serial;
         mDisplayName = displayName;
         mWhoAdded = whoAdded;
         mWorkTime = workTime;
+    }
+
+    public void setCity(int cityId, @NonNull String city) {
+        mCity = city;
+        mCityId = cityId;
+    }
+
+    public void setAddress(@NonNull String address, @Nullable String mainAddress) {
+        mAddress = address;
+        mMainAddress = mainAddress;
+    }
+
+    @Nullable
+    public String getCity() {
+        return mCity;
+    }
+
+    public int getCityId() {
+        return mCityId;
+    }
+
+    @Nullable
+    public String getDisplayAddress() {
+        return mAddress;
+    }
+
+    @Nullable
+    public String getMainAddress() {
+        return mMainAddress;
+    }
+
+    @NonNull
+    public String getId() {
+        return mId;
+    }
+
+    @NonNull
+    public TerminalType getType() {
+        return mType;
+    }
+
+    @NonNull
+    public String getSerial() {
+        return mSerial;
+    }
+
+    @NonNull
+    public String getDisplayName() {
+        return mDisplayName;
+    }
+
+    @Nullable
+    public String getWhoAdded() {
+        return mWhoAdded;
+    }
+
+    @Nullable
+    public String getWorkTime() {
+        return mWorkTime;
+    }
+
+    @NonNull
+    public String getAgentId() {
+        return mAgentId;
     }
 }

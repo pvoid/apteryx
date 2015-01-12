@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,20 +15,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data;
+package org.pvoid.apteryx.data.terminals;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.content.Context;
 
-import org.pvoid.apteryx.data.agents.Agent;
-import org.pvoid.apteryx.data.persons.Person;
-import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.Storage;
 
-import java.util.concurrent.ExecutionException;
+import javax.inject.Singleton;
 
-public interface Storage {
-    void storePerson(@NonNull Person person);
-    @Nullable Person[] getPersons() throws ExecutionException, InterruptedException;
-    void storeAgents(@NonNull Agent... agents);
-    void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
+import dagger.Module;
+import dagger.Provides;
+
+@Module(injects = TerminalsManager.class, complete = false)
+public class TerminalsModule {
+    private final Context mContext;
+
+    public TerminalsModule(Context context) {
+        mContext = context.getApplicationContext();
+    }
+
+    @Provides
+    @Singleton
+    public TerminalsManager provideManager(Storage storage) {
+        return new OsmpTerminalsManager(mContext, storage);
+    }
 }

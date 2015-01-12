@@ -17,4 +17,5 @@
 <resources>
   <color name="actionbar_primary">#03a9f4</color>
   <color name="actionbar_primary_dark">#0277bd</color>
+  <color name="drawer_background">#eceff1</color>
 </resources>

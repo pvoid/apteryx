@@ -20,6 +20,9 @@ package org.pvoid.apteryx.data.persons;
 import android.content.Context;
 
 import org.pvoid.apteryx.data.Storage;
+import org.pvoid.apteryx.data.terminals.TerminalsManager;
+
+import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
@@ -34,7 +37,8 @@ public class PersonsModule {
     }
 
     @Provides
-    public PersonsManager provideManager(Storage storage) {
-        return new OsmpPersonsManager(mContext, storage);
+    @Singleton
+    public PersonsManager provideManager(Storage storage, TerminalsManager terminalsManager) {
+        return new OsmpPersonsManager(mContext, storage, terminalsManager);
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+  ~ Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -14,11 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
+  -->
 <resources>
-    <dimen name="window_padding">16dp</dimen>
-    <dimen name="button_padding">38dp</dimen>
-    <dimen name="account_input_margin">24dp</dimen>
-    <dimen name="drawer_menu_width">280dp</dimen>
-    <dimen name="drawer_padding">6dp</dimen>
+    <item name="drawer_shadow" type="id"/>
 </resources>
