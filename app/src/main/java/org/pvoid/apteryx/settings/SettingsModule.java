@@ -15,20 +15,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.persons;
+package org.pvoid.apteryx.settings;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-public interface PersonsManager {
-    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_VERIFIED";
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CHANGED";
+import javax.inject.Singleton;
 
-    public static final String EXTRA_PERSON = "person";
-    public static final String EXTRA_STATE = "state";
+import dagger.Module;
+import dagger.Provides;
 
-    boolean add(@NonNull Person person);
-    void verify(@NonNull Person person);
-    @NonNull Person[] getPersons();
-    @Nullable Person getPerson(String login);
+@Module(injects = {SettingsManager.class})
+public class SettingsModule {
+
+    @NonNull private final Context mContext;
+
+    public SettingsModule(@NonNull Context context) {
+        mContext = context;
+    }
+
+    @Provides
+    @Singleton
+    public SettingsManager provideSettingsManager() {
+        return new ApteryxSettingsManager(mContext);
+    }
 }

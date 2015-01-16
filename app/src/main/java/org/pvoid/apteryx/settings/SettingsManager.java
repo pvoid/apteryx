@@ -15,20 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.persons;
+package org.pvoid.apteryx.settings;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public interface PersonsManager {
-    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_VERIFIED";
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CHANGED";
-
-    public static final String EXTRA_PERSON = "person";
-    public static final String EXTRA_STATE = "state";
-
-    boolean add(@NonNull Person person);
-    void verify(@NonNull Person person);
-    @NonNull Person[] getPersons();
-    @Nullable Person getPerson(String login);
+public interface SettingsManager {
+    @Nullable String getActiveLogin();
+    void setActiveLogin(@Nullable String login);
 }

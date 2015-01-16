@@ -20,6 +20,7 @@ package org.pvoid.apteryx.data.persons;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.pvoid.apteryx.annotations.GuardedBy;
@@ -127,14 +128,26 @@ import java.util.concurrent.locks.ReentrantLock;
         return mPersonsList;
     }
 
+    @Nullable
+    @Override
+    public Person getPerson(String login) {
+        mLock.lock();
+        try {
+            return mPersons.get(login);
+        } finally {
+            mLock.unlock();
+        }
+    }
+
     private void notifyChanged() {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
         lbm.sendBroadcast(new Intent(ACTION_CHANGED));
     }
 
-    private void notifyVerified(@NonNull Person person) {
+    private void notifyVerifyResult(boolean success, @Nullable Person person) {
         Intent intent = new Intent(ACTION_VERIFIED);
         intent.putExtra(EXTRA_PERSON, person);
+        intent.putExtra(EXTRA_STATE, success);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
@@ -145,6 +158,7 @@ import java.util.concurrent.locks.ReentrantLock;
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Persons);
             if (results == null) {
                 LogHelper.error(TAG, "Error while verifying account. Can't get <agents> session.");
+                notifyVerifyResult(false, null);
                 return;
             }
             GetPersonInfoResult info = results.get(GetPersonInfoCommand.NAME);
@@ -167,7 +181,7 @@ import java.util.concurrent.locks.ReentrantLock;
             }
             mStorage.storePerson(person);
             mTerminalsManager.sync(person);
-            notifyVerified(person);
+            notifyVerifyResult(true, person);
 
             results = response.getInterface(OsmpInterface.Agents);
             if (results == null) {
@@ -200,6 +214,7 @@ import java.util.concurrent.locks.ReentrantLock;
         @Override
         public void onError() {
             LogHelper.error(TAG, "Error while verifying account.");
+            notifyVerifyResult(false, null);
         }
     }
 }

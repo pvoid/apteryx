@@ -18,28 +18,38 @@
 package org.pvoid.apteryx.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.accounts.AddAccountActivity;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
+import org.pvoid.apteryx.settings.SettingsManager;
 
 import dagger.ObjectGraph;
 
-public class DrawerFragment extends Fragment {
+public class DrawerFragment extends Fragment implements View.OnClickListener, DialogInterface.OnClickListener {
     public DrawerFragment() {
         super();
     }
 
     private PersonsManager mPersonsManager;
+    private SettingsManager mSettingsManager;
     private AccountsAdapter mAccountsAdapter;
+    private String mCurrentLogin;
 
     @Nullable
     @Override
@@ -52,14 +62,15 @@ public class DrawerFragment extends Fragment {
         super.onAttach(activity);
         ObjectGraph graph = ((GraphHolder) activity.getApplication()).getGraph();
         mPersonsManager = graph.get(PersonsManager.class);
+        mSettingsManager = graph.get(SettingsManager.class);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mAccountsAdapter = new AccountsAdapter(view.getContext());
-        Spinner accountsSpinner = (Spinner) view.findViewById(R.id.account_switcher);
-        accountsSpinner.setAdapter(mAccountsAdapter);
+        final TextView currentAccount = (TextView) view.findViewById(R.id.current_account);
+        currentAccount.setOnClickListener(this);
     }
 
     @Override
@@ -67,5 +78,55 @@ public class DrawerFragment extends Fragment {
         super.onResume();
         Person[] persons = mPersonsManager.getPersons();
         mAccountsAdapter.setPersons(persons);
+
+        final View rootView = getView();
+        if (rootView == null) {
+            return;
+        }
+        final TextView currentAccount = (TextView) rootView.findViewById(R.id.current_account);
+        mCurrentLogin = mSettingsManager.getActiveLogin();
+        if (mCurrentLogin != null) {
+            int index = mAccountsAdapter.findPersonIndex(mCurrentLogin);
+            if (index != -1) {
+                currentAccount.setText(mAccountsAdapter.getItem(index).getName());
+                return;
+            }
+        }
+        currentAccount.setText(R.string.empty_account);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.current_account: {
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setSingleChoiceItems(mAccountsAdapter,
+                        mAccountsAdapter.findPersonIndex(mCurrentLogin), this);
+                builder.create().show();
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        dialog.dismiss();
+
+        final Person person = mAccountsAdapter.getItem(which);
+        if (person == null) {
+            final Context context = getActivity();
+            if (context != null) {
+                startActivity(new Intent(context, AddAccountActivity.class));
+            }
+            return;
+        }
+
+        View root = getView();
+        if (root != null) {
+            TextView currentAccount = (TextView) root.findViewById(R.id.current_account);
+            currentAccount.setText(person.getName());
+            mCurrentLogin = person.getLogin();
+            mSettingsManager.setActiveLogin(mCurrentLogin);
+        }
     }
 }

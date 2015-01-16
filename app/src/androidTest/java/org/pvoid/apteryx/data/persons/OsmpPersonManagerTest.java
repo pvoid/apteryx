@@ -18,6 +18,7 @@
 package org.pvoid.apteryx.data.persons;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -29,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
+import org.pvoid.apteryx.net.NetworkService;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -120,5 +122,22 @@ public class OsmpPersonManagerTest {
         Mockito.verify(receiver, Mockito.never()).onReceive(Mockito.any(Context.class),
                 Mockito.eq(new Intent(PersonsManager.ACTION_CHANGED)));
 
+    }
+
+    @Test
+    public void personVerifyCheck() throws Exception {
+        Storage storage = Mockito.mock(Storage.class);
+        TerminalsManager tm = Mockito.mock(TerminalsManager.class);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        Person person = Mockito.mock(Person.class);
+        Mockito.when(person.getLogin()).thenReturn("LOGIN");
+        Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD");
+        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
+        manager.verify(person);
+
+        Intent intent = Robolectric.getShadowApplication().getNextStartedService();
+        Assert.assertNotNull(intent);
+        Assert.assertEquals(new ComponentName(Robolectric.application, NetworkService.class),
+                intent.getComponent());
     }
 }

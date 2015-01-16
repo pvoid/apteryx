@@ -20,10 +20,12 @@ package org.pvoid.apteryx.views;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckedTextView;
 import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
@@ -32,6 +34,11 @@ import org.pvoid.apteryx.data.persons.Person;
 
 @OnMainThread
 public class AccountsAdapter extends BaseAdapter {
+
+    private static final int INVALID_INDEX = -1;
+
+    private static final int VIEW_TYPE_PERSON_ITEM = 0;
+    private static final int VIEW_TYPE_PERSON_ADD = 1;
 
     @NonNull
     private final LayoutInflater mInflater;
@@ -54,11 +61,11 @@ public class AccountsAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
-        if (mPersons == null) {
-            return null;
+    public Person getItem(int position) {
+        if (mPersons != null && position < mPersons.length) {
+            return mPersons[position];
         }
-        return mPersons[position];
+        return null;
     }
 
     @Override
@@ -67,30 +74,45 @@ public class AccountsAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getDropDownView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (getItemViewType(position) == VIEW_TYPE_PERSON_ADD) {
+            if (convertView == null) {
+                convertView = mInflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+            }
+            TextView textView = (TextView) convertView.findViewById(android.R.id.text1);
+            textView.setText(R.string.add_new_account);
+            return convertView;
+        }
+
+
         if (convertView == null) {
-            convertView = mInflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+            convertView = mInflater.inflate(android.R.layout.simple_list_item_single_choice, parent, false);
         }
-        TextView text = (TextView) convertView.findViewById(android.R.id.text1);
-        if (mPersons == null || position >= mPersons.length) {
-            text.setText(R.string.add_new_account);
-        } else {
-            text.setText(mPersons[position].getName());
-        }
+        TextView textView = (TextView) convertView.findViewById(android.R.id.text1);
+        textView.setText(mPersons[position].getName());
         return convertView;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = mInflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+    public int getItemViewType(int position) {
+        if (mPersons != null && position < mPersons.length) {
+            return VIEW_TYPE_PERSON_ITEM;
         }
-        TextView text = (TextView) convertView.findViewById(android.R.id.text1);
-        if (mPersons == null || position >= mPersons.length) {
-            text.setText(R.string.empty_account);
-        } else {
-            text.setText(mPersons[position].getName());
+        return VIEW_TYPE_PERSON_ADD;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 2;
+    }
+
+    public int findPersonIndex(@NonNull String login) {
+        for (int index = 0; index < mPersons.length; ++index) {
+            final Person person = mPersons[index];
+            if (TextUtils.equals(login, person.getLogin())) {
+                return index;
+            }
         }
-        return convertView;
+        return INVALID_INDEX;
     }
 }

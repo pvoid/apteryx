@@ -33,6 +33,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:collapseIcon="@drawable/ic_drawer"/>
+        <fragment
+            android:name="org.pvoid.apteryx.views.TerminalsFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_below="@id/toolbar"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/terminals"
+            tools:layout="@layout/fragment_terminals"/>
     </RelativeLayout>
     <fragment
         android:name="org.pvoid.apteryx.views.DrawerFragment"
