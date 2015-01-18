@@ -58,4 +58,25 @@
         <item name="android:paddingRight">10dp</item>
         <item name="android:gravity">center_vertical</item>
     </style>
+
+    <style name="TerminalCard" parent="CardView.Light">
+    </style>
+
+    <style name="TerminalCard.Container" parent="">
+        <item name="android:layout_height">@dimen/terminal_card_height</item>
+        <item name="android:layout_margin">@dimen/card_padding</item>
+    </style>
+
+    <style name="TerminalCard.Title" parent="">
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">middle</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TerminalCard.Address" parent="">
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">middle</item>
+        <item name="android:layout_marginTop">4dp</item>
+    </style>
 </resources>

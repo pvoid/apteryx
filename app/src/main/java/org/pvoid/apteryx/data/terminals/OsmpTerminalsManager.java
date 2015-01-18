@@ -18,7 +18,9 @@
 package org.pvoid.apteryx.data.terminals;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.pvoid.apteryx.annotations.GuardedBy;
 import org.pvoid.apteryx.data.Storage;
@@ -30,9 +32,12 @@ import org.pvoid.apteryx.net.OsmpResponse;
 import org.pvoid.apteryx.net.ResultReceiver;
 import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
 import org.pvoid.apteryx.net.results.GetTerminalsResult;
+import org.pvoid.apteryx.util.LogHelper;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 /* package */ class OsmpTerminalsManager implements TerminalsManager {
@@ -45,6 +50,22 @@ import java.util.concurrent.locks.ReentrantLock;
     public OsmpTerminalsManager(@NonNull Context context, @NonNull Storage storage) {
         mContext = context.getApplicationContext();
         mStorage = storage;
+
+        try {
+            Terminal[] terminals = mStorage.getTerminals();
+            if (terminals != null) {
+                for (Terminal terminal : terminals) {
+                    Map<String, Terminal> t = mTerminals.get(terminal.getPersonId());
+                    if (t == null) {
+                        t = new HashMap<>();
+                        mTerminals.put(terminal.getPersonId(), t);
+                    }
+                    t.put(terminal.getId(), terminal);
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            LogHelper.error("TerminalsManager", "Filling terminals list failed: %1$s", e.getMessage());
+        }
     }
 
     @Override
@@ -63,6 +84,24 @@ import java.util.concurrent.locks.ReentrantLock;
             mLock.unlock();
         }
         mStorage.storeTerminals(person, terminals);
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+        lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+    }
+
+    @Override
+    @NonNull
+    public Terminal[] getTerminals(@NonNull String person) {
+        mLock.lock();
+        try {
+            Map<String, Terminal> t = mTerminals.get(person);
+            if (t == null) {
+                return new Terminal[0];
+            }
+            Collection<Terminal> terminals = t.values();
+            return terminals.toArray(new Terminal[terminals.size()]);
+        } finally {
+            mLock.unlock();
+        }
     }
 
     @Override

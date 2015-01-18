@@ -20,6 +20,9 @@ package org.pvoid.apteryx.settings;
 import android.support.annotation.Nullable;
 
 public interface SettingsManager {
+
+    static final String ACTION_ACCOUNT_CHANGED = "org.pvoid.apteryx.settings.ACCOUNT_CHANGED";
+
     @Nullable String getActiveLogin();
     void setActiveLogin(@Nullable String login);
 }

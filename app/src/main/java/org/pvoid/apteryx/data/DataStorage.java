@@ -33,6 +33,7 @@ import android.support.v4.util.Pair;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalType;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -47,53 +48,79 @@ import java.util.concurrent.TimeoutException;
     /* package */ static final String DB_NAME = "apteryx";
     /* package */ static final int DB_VERSION = 1;
 
-    private static final String TABLE_PERSONS_NAME = "persons";
-    private static final String TABLE_PERSONS_COLUMN_LOGIN = "login";
-    private static final String TABLE_PERSONS_COLUMN_PASSWORD = "password";
-    private static final String TABLE_PERSONS_COLUMN_TERMINAL = "terminal";
-    private static final String TABLE_PERSONS_COLUMN_NAME = "name";
-    private static final String TABLE_PERSONS_COLUMN_AGENT_ID = "agent_id";
-    private static final String TABLE_PERSONS_COLUMN_ENABLED = "enabled";
-    private static final String TABLE_PERSONS_COLUMN_VERIFIED = "verified";
+    private static final String PERSONS_TABLE_NAME = "persons";
+    private static final String PERSONS_COLUMN_LOGIN = "login";
+    private static final String PERSONS_COLUMN_PASSWORD = "password";
+    private static final String PERSONS_COLUMN_TERMINAL = "terminal";
+    private static final String PERSONS_COLUMN_NAME = "name";
+    private static final String PERSONS_COLUMN_AGENT_ID = "agent_id";
+    private static final String PERSONS_COLUMN_ENABLED = "enabled";
+    private static final String PERSONS_COLUMN_VERIFIED = "verified";
     private static final String[] TABLE_PERSONS_COLUMNS = new String[] {
-        TABLE_PERSONS_COLUMN_LOGIN, TABLE_PERSONS_COLUMN_PASSWORD,
-        TABLE_PERSONS_COLUMN_TERMINAL, TABLE_PERSONS_COLUMN_NAME,
-        TABLE_PERSONS_COLUMN_AGENT_ID, TABLE_PERSONS_COLUMN_ENABLED,
-        TABLE_PERSONS_COLUMN_VERIFIED
+        PERSONS_COLUMN_LOGIN, PERSONS_COLUMN_PASSWORD,
+        PERSONS_COLUMN_TERMINAL, PERSONS_COLUMN_NAME,
+        PERSONS_COLUMN_AGENT_ID, PERSONS_COLUMN_ENABLED,
+        PERSONS_COLUMN_VERIFIED
     };
+    private static final int PERSONS_COLUMN_LOGIN_INDEX = 0;
+    private static final int PERSONS_COLUMN_PASSWORD_INDEX = 1;
+    private static final int PERSONS_COLUMN_TERMINAL_INDEX = 2;
+    private static final int PERSONS_COLUMN_NAME_INDEX = 3;
+    private static final int PERSONS_COLUMN_AGENT_ID_INDEX = 4;
+    private static final int PERSONS_COLUMN_ENABLED_INDEX = 5;
+    private static final int PERSONS_COLUMN_VERIFIED_INDEX = 6;
 
-    private static final String TABLE_AGENTS_NAME = "agents";
-    private static final String TABLE_AGENTS_COLUMN_AGENT_ID = "agent_id";
-    private static final String TABLE_AGENTS_COLUMN_PARENT_ID = "parent_id";
-    private static final String TABLE_AGENTS_COLUMN_PERSON_LOGIN = "person_login";
-    private static final String TABLE_AGENTS_COLUMN_INN = "inn";
-    private static final String TABLE_AGENTS_COLUMN_JUR_ADDRESS = "jur_address";
-    private static final String TABLE_AGENTS_COLUMN_PHYS_ADDRESS = "phys_address";
-    private static final String TABLE_AGENTS_COLUMN_NAME = "name";
-    private static final String TABLE_AGENTS_COLUMN_CITY = "city";
-    private static final String TABLE_AGENTS_COLUMN_FISCAL_MODE = "fiscal_mode";
-    private static final String TABLE_AGENTS_COLUMN_KMM = "kmm";
-    private static final String TABLE_AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
+    private static final String AGENTS_TABLE_NAME = "agents";
+    private static final String AGENTS_COLUMN_AGENT_ID = "agent_id";
+    private static final String AGENTS_COLUMN_PARENT_ID = "parent_id";
+    private static final String AGENTS_COLUMN_PERSON_LOGIN = "person_login";
+    private static final String AGENTS_COLUMN_INN = "inn";
+    private static final String AGENTS_COLUMN_JUR_ADDRESS = "jur_address";
+    private static final String AGENTS_COLUMN_PHYS_ADDRESS = "phys_address";
+    private static final String AGENTS_COLUMN_NAME = "name";
+    private static final String AGENTS_COLUMN_CITY = "city";
+    private static final String AGENTS_COLUMN_FISCAL_MODE = "fiscal_mode";
+    private static final String AGENTS_COLUMN_KMM = "kmm";
+    private static final String AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
 
-    private static final String TABLE_TERMINALS_NAME = "terminals";
-    private static final String TABLE_TERMINALS_COLUMN_ID = "id";
-    private static final String TABLE_TERMINALS_COLUMN_TYPE = "type";
-    private static final String TABLE_TERMINALS_COLUMN_SERIAL = "serial";
-    private static final String TABLE_TERMINALS_COLUMN_NAME = "display_name";
-    private static final String TABLE_TERMINALS_COLUMN_WHO = "who_added";
-    private static final String TABLE_TERMINALS_COLUMN_WORK_TIME = "work_time";
-    private static final String TABLE_TERMINALS_COLUMN_AGENT_ID = "agent_id";
-    private static final String TABLE_TERMINALS_COLUMN_CITY = "city";
-    private static final String TABLE_TERMINALS_COLUMN_CITY_ID = "city_id";
-    private static final String TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS = "display_address";
-    private static final String TABLE_TERMINALS_COLUMN_MAIN_ADDRESS = "main_address";
-    private static final String TABLE_TERMINALS_COLUMN_PERSON_ID = "person_id";
-
+    private static final String TERMINALS_TABLE_NAME = "terminals";
+    private static final String TERMINALS_COLUMN_ID = "id";
+    private static final String TERMINALS_COLUMN_TYPE = "type";
+    private static final String TERMINALS_COLUMN_SERIAL = "serial";
+    private static final String TERMINALS_COLUMN_NAME = "display_name";
+    private static final String TERMINALS_COLUMN_WHO = "who_added";
+    private static final String TERMINALS_COLUMN_WORK_TIME = "work_time";
+    private static final String TERMINALS_COLUMN_AGENT_ID = "agent_id";
+    private static final String TERMINALS_COLUMN_CITY = "city";
+    private static final String TERMINALS_COLUMN_CITY_ID = "city_id";
+    private static final String TERMINALS_COLUMN_DISPLAY_ADDRESS = "display_address";
+    private static final String TERMINALS_COLUMN_MAIN_ADDRESS = "main_address";
+    private static final String TERMINALS_COLUMN_PERSON_ID = "person_id";
+    private static final String[] TABLE_TERMINALS_COLUMNS = new String[] {
+            TERMINALS_COLUMN_ID, TERMINALS_COLUMN_TYPE, TERMINALS_COLUMN_SERIAL,
+            TERMINALS_COLUMN_NAME, TERMINALS_COLUMN_WHO, TERMINALS_COLUMN_WORK_TIME,
+            TERMINALS_COLUMN_AGENT_ID, TERMINALS_COLUMN_CITY, TERMINALS_COLUMN_CITY_ID,
+            TERMINALS_COLUMN_DISPLAY_ADDRESS, TERMINALS_COLUMN_MAIN_ADDRESS,
+            TERMINALS_COLUMN_PERSON_ID
+    };
+    private static final int TERMINALS_COLUMN_ID_INDEX = 0;
+    private static final int TERMINALS_COLUMN_TYPE_INDEX = 1;
+    private static final int TERMINALS_COLUMN_SERIAL_INDEX = 2;
+    private static final int TERMINALS_COLUMN_NAME_INDEX = 3;
+    private static final int TERMINALS_COLUMN_WHO_INDEX = 4;
+    private static final int TERMINALS_COLUMN_WORK_TIME_INDEX = 5;
+    private static final int TERMINALS_COLUMN_AGENT_ID_INDEX = 6;
+    private static final int TERMINALS_COLUMN_CITY_INDEX = 7;
+    private static final int TERMINALS_COLUMN_CITY_ID_INDEX = 8;
+    private static final int TERMINALS_COLUMN_DISPLAY_ADDRESS_INDEX = 9;
+    private static final int TERMINALS_COLUMN_MAIN_ADDRESS_INDEX =10;
+    private static final int TERMINALS_COLUMN_PERSON_ID_INDEX = 11;
 
     private static final int MSG_STORE_PERSON = 1;
     private static final int MSG_ADD_AGENTS = 2;
     private static final int MSG_GET_PERSONS = 3;
     private static final int MSG_STORE_TERMINALS = 4;
+    private static final int MSG_GET_TERMINALS = 5;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -114,7 +141,7 @@ import java.util.concurrent.TimeoutException;
     @Nullable
     @Override
     public Person[] getPersons() throws ExecutionException, InterruptedException {
-        PersonsFuture future = new PersonsFuture();
+        ResultFuture<Person> future = new ResultFuture<>();
         Message msg = mHandler.obtainMessage(MSG_GET_PERSONS, future);
         mHandler.sendMessage(msg);
         return future.get();
@@ -132,47 +159,56 @@ import java.util.concurrent.TimeoutException;
         mHandler.sendMessage(msg);
     }
 
+    @Nullable
+    @Override
+    public Terminal[] getTerminals() throws ExecutionException, InterruptedException {
+        ResultFuture<Terminal> future = new ResultFuture<>();
+        Message msg = mHandler.obtainMessage(MSG_GET_TERMINALS, future);
+        mHandler.sendMessage(msg);
+        return future.get();
+    }
+
     public void shutdown() {
         mThread.quit();
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_PERSONS_NAME + "(" +
-                        TABLE_PERSONS_COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        TABLE_PERSONS_COLUMN_PASSWORD + " TEXT, " +
-                        TABLE_PERSONS_COLUMN_TERMINAL + " TEXT, " +
-                        TABLE_PERSONS_COLUMN_NAME + " TEXT," +
-                        TABLE_PERSONS_COLUMN_AGENT_ID + " TEXT," +
-                        TABLE_PERSONS_COLUMN_VERIFIED + " INTEGER, " +
-                        TABLE_PERSONS_COLUMN_ENABLED + " INTEGER);"
+        db.execSQL("CREATE TABLE " + PERSONS_TABLE_NAME + "(" +
+                        PERSONS_COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        PERSONS_COLUMN_PASSWORD + " TEXT, " +
+                        PERSONS_COLUMN_TERMINAL + " TEXT, " +
+                        PERSONS_COLUMN_NAME + " TEXT," +
+                        PERSONS_COLUMN_AGENT_ID + " TEXT," +
+                        PERSONS_COLUMN_VERIFIED + " INTEGER, " +
+                        PERSONS_COLUMN_ENABLED + " INTEGER);"
         );
-        db.execSQL("CREATE TABLE " + TABLE_AGENTS_NAME + "(" +
-                        TABLE_AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        TABLE_AGENTS_COLUMN_PARENT_ID + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_PERSON_LOGIN + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_INN + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_JUR_ADDRESS + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_PHYS_ADDRESS + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_NAME + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_CITY + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_FISCAL_MODE + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_KMM + " TEXT, " +
-                        TABLE_AGENTS_COLUMN_TAX_REGNUM + " TEXT);"
+        db.execSQL("CREATE TABLE " + AGENTS_TABLE_NAME + "(" +
+                        AGENTS_COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        AGENTS_COLUMN_PARENT_ID + " TEXT, " +
+                        AGENTS_COLUMN_PERSON_LOGIN + " TEXT, " +
+                        AGENTS_COLUMN_INN + " TEXT, " +
+                        AGENTS_COLUMN_JUR_ADDRESS + " TEXT, " +
+                        AGENTS_COLUMN_PHYS_ADDRESS + " TEXT, " +
+                        AGENTS_COLUMN_NAME + " TEXT, " +
+                        AGENTS_COLUMN_CITY + " TEXT, " +
+                        AGENTS_COLUMN_FISCAL_MODE + " TEXT, " +
+                        AGENTS_COLUMN_KMM + " TEXT, " +
+                        AGENTS_COLUMN_TAX_REGNUM + " TEXT);"
         );
-        db.execSQL("CREATE TABLE " + TABLE_TERMINALS_NAME + "(" +
-                        TABLE_TERMINALS_COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        TABLE_TERMINALS_COLUMN_TYPE + " INTEGER, " +
-                        TABLE_TERMINALS_COLUMN_SERIAL + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_NAME + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_WHO + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_WORK_TIME + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_AGENT_ID + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_CITY + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_CITY_ID + " INTEGER, " +
-                        TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_MAIN_ADDRESS + " TEXT, " +
-                        TABLE_TERMINALS_COLUMN_PERSON_ID + " TEXT);"
+        db.execSQL("CREATE TABLE " + TERMINALS_TABLE_NAME + "(" +
+                        TERMINALS_COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        TERMINALS_COLUMN_TYPE + " INTEGER, " +
+                        TERMINALS_COLUMN_SERIAL + " TEXT, " +
+                        TERMINALS_COLUMN_NAME + " TEXT, " +
+                        TERMINALS_COLUMN_WHO + " TEXT, " +
+                        TERMINALS_COLUMN_WORK_TIME + " TEXT, " +
+                        TERMINALS_COLUMN_AGENT_ID + " TEXT, " +
+                        TERMINALS_COLUMN_CITY + " TEXT, " +
+                        TERMINALS_COLUMN_CITY_ID + " INTEGER, " +
+                        TERMINALS_COLUMN_DISPLAY_ADDRESS + " TEXT, " +
+                        TERMINALS_COLUMN_MAIN_ADDRESS + " TEXT, " +
+                        TERMINALS_COLUMN_PERSON_ID + " TEXT);"
         );
     }
 
@@ -185,14 +221,14 @@ import java.util.concurrent.TimeoutException;
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            values.put(TABLE_PERSONS_COLUMN_LOGIN, person.getLogin());
-            values.put(TABLE_PERSONS_COLUMN_PASSWORD, person.getPasswordHash());
-            values.put(TABLE_PERSONS_COLUMN_TERMINAL, person.getTerminal());
-            values.put(TABLE_PERSONS_COLUMN_NAME, person.getName());
-            values.put(TABLE_PERSONS_COLUMN_AGENT_ID, person.getAgentId());
-            values.put(TABLE_PERSONS_COLUMN_ENABLED, person.isEnabled());
-            values.put(TABLE_PERSONS_COLUMN_VERIFIED, person.isVerified());
-            db.replace(TABLE_PERSONS_NAME, null, values);
+            values.put(PERSONS_COLUMN_LOGIN, person.getLogin());
+            values.put(PERSONS_COLUMN_PASSWORD, person.getPasswordHash());
+            values.put(PERSONS_COLUMN_TERMINAL, person.getTerminal());
+            values.put(PERSONS_COLUMN_NAME, person.getName());
+            values.put(PERSONS_COLUMN_AGENT_ID, person.getAgentId());
+            values.put(PERSONS_COLUMN_ENABLED, person.isEnabled());
+            values.put(PERSONS_COLUMN_VERIFIED, person.isVerified());
+            db.replace(PERSONS_TABLE_NAME, null, values);
         } finally {
             db.close();
         }
@@ -203,7 +239,7 @@ import java.util.concurrent.TimeoutException;
         SQLiteDatabase db = getReadableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            Cursor cursor = db.query(TABLE_PERSONS_NAME, TABLE_PERSONS_COLUMNS, null, null, null, null, null);
+            Cursor cursor = db.query(PERSONS_TABLE_NAME, TABLE_PERSONS_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
                 return null;
             }
@@ -211,9 +247,13 @@ import java.util.concurrent.TimeoutException;
                 Person[] result = new Person[cursor.getCount()];
                 int index = 0;
                 while (cursor.moveToNext()) {
-                    result[index++] = new Person(cursor.getString(0), cursor.getString(1),
-                            cursor.getString(2), cursor.getString(4), cursor.getString(3),
-                            cursor.getInt(5) == 1, cursor.getInt(6) == 1);
+                    result[index++] = new Person(cursor.getString(PERSONS_COLUMN_LOGIN_INDEX),
+                            cursor.getString(PERSONS_COLUMN_PASSWORD_INDEX),
+                            cursor.getString(PERSONS_COLUMN_TERMINAL_INDEX),
+                            cursor.getString(PERSONS_COLUMN_AGENT_ID_INDEX),
+                            cursor.getString(PERSONS_COLUMN_NAME_INDEX),
+                            cursor.getInt(PERSONS_COLUMN_ENABLED_INDEX) == 1,
+                            cursor.getInt(PERSONS_COLUMN_VERIFIED_INDEX) == 1);
                 }
                 return result;
             } finally {
@@ -235,18 +275,18 @@ import java.util.concurrent.TimeoutException;
                     continue;
                 }
                 values.clear();
-                values.put(TABLE_AGENTS_COLUMN_AGENT_ID, agent.getId());
-                values.put(TABLE_AGENTS_COLUMN_PARENT_ID, agent.getParentId());
-                values.put(TABLE_AGENTS_COLUMN_INN, agent.getINN());
-                values.put(TABLE_AGENTS_COLUMN_JUR_ADDRESS, agent.getJurAddress());
-                values.put(TABLE_AGENTS_COLUMN_PHYS_ADDRESS, agent.getPhysAddress());
-                values.put(TABLE_AGENTS_COLUMN_NAME, agent.getName());
-                values.put(TABLE_AGENTS_COLUMN_CITY, agent.getCity());
-                values.put(TABLE_AGENTS_COLUMN_FISCAL_MODE, agent.getFiscalMode());
-                values.put(TABLE_AGENTS_COLUMN_KMM, agent.getKMM());
-                values.put(TABLE_AGENTS_COLUMN_TAX_REGNUM, agent.getTaxRegnum());
-                values.put(TABLE_AGENTS_COLUMN_PERSON_LOGIN, agent.getPersonLogin());
-                db.replace(TABLE_AGENTS_NAME, null, values);
+                values.put(AGENTS_COLUMN_AGENT_ID, agent.getId());
+                values.put(AGENTS_COLUMN_PARENT_ID, agent.getParentId());
+                values.put(AGENTS_COLUMN_INN, agent.getINN());
+                values.put(AGENTS_COLUMN_JUR_ADDRESS, agent.getJurAddress());
+                values.put(AGENTS_COLUMN_PHYS_ADDRESS, agent.getPhysAddress());
+                values.put(AGENTS_COLUMN_NAME, agent.getName());
+                values.put(AGENTS_COLUMN_CITY, agent.getCity());
+                values.put(AGENTS_COLUMN_FISCAL_MODE, agent.getFiscalMode());
+                values.put(AGENTS_COLUMN_KMM, agent.getKMM());
+                values.put(AGENTS_COLUMN_TAX_REGNUM, agent.getTaxRegnum());
+                values.put(AGENTS_COLUMN_PERSON_LOGIN, agent.getPersonLogin());
+                db.replace(AGENTS_TABLE_NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -266,23 +306,59 @@ import java.util.concurrent.TimeoutException;
                     continue;
                 }
                 values.clear();
-                values.put(TABLE_TERMINALS_COLUMN_ID, terminal.getId());
-                values.put(TABLE_TERMINALS_COLUMN_TYPE, terminal.getType().id);
-                values.put(TABLE_TERMINALS_COLUMN_SERIAL, terminal.getSerial());
-                values.put(TABLE_TERMINALS_COLUMN_NAME, terminal.getDisplayName());
-                values.put(TABLE_TERMINALS_COLUMN_WHO, terminal.getWhoAdded());
-                values.put(TABLE_TERMINALS_COLUMN_WORK_TIME, terminal.getWorkTime());
-                values.put(TABLE_TERMINALS_COLUMN_AGENT_ID, terminal.getAgentId());
-                values.put(TABLE_TERMINALS_COLUMN_CITY, terminal.getCity());
-                values.put(TABLE_TERMINALS_COLUMN_CITY_ID, terminal.getCityId());
-                values.put(TABLE_TERMINALS_COLUMN_DISPLAY_ADDRESS, terminal.getDisplayAddress());
-                values.put(TABLE_TERMINALS_COLUMN_MAIN_ADDRESS, terminal.getMainAddress());
-                values.put(TABLE_TERMINALS_COLUMN_PERSON_ID, personId);
-                db.replace(TABLE_TERMINALS_NAME, null, values);
+                values.put(TERMINALS_COLUMN_ID, terminal.getId());
+                values.put(TERMINALS_COLUMN_TYPE, terminal.getType().id);
+                values.put(TERMINALS_COLUMN_SERIAL, terminal.getSerial());
+                values.put(TERMINALS_COLUMN_NAME, terminal.getDisplayName());
+                values.put(TERMINALS_COLUMN_WHO, terminal.getWhoAdded());
+                values.put(TERMINALS_COLUMN_WORK_TIME, terminal.getWorkTime());
+                values.put(TERMINALS_COLUMN_AGENT_ID, terminal.getAgentId());
+                values.put(TERMINALS_COLUMN_CITY, terminal.getCity());
+                values.put(TERMINALS_COLUMN_CITY_ID, terminal.getCityId());
+                values.put(TERMINALS_COLUMN_DISPLAY_ADDRESS, terminal.getDisplayAddress());
+                values.put(TERMINALS_COLUMN_MAIN_ADDRESS, terminal.getMainAddress());
+                values.put(TERMINALS_COLUMN_PERSON_ID, personId);
+                db.replace(TERMINALS_TABLE_NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+            db.close();
+        }
+    }
+
+    @Nullable
+    /* package */ Terminal[] getTerminalsImpl() {
+        SQLiteDatabase db = getReadableDatabase();
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            Cursor cursor = db.query(TERMINALS_TABLE_NAME, TABLE_TERMINALS_COLUMNS, null, null, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
+            try {
+                Terminal result[] = new Terminal[cursor.getCount()];
+                int index = 0;
+                while (cursor.moveToNext()) {
+                    result[index] = new Terminal(cursor.getString(TERMINALS_COLUMN_ID_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_AGENT_ID_INDEX),
+                            TerminalType.fromId(cursor.getInt(TERMINALS_COLUMN_TYPE_INDEX)),
+                            cursor.getString(TERMINALS_COLUMN_SERIAL_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_NAME_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_WHO_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_WORK_TIME_INDEX));
+                    result[index].setAddress(cursor.getString(TERMINALS_COLUMN_DISPLAY_ADDRESS_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_MAIN_ADDRESS_INDEX));
+                    result[index].setCity(cursor.getInt(TERMINALS_COLUMN_CITY_ID_INDEX),
+                            cursor.getString(TERMINALS_COLUMN_CITY_INDEX));
+                    result[index].setPersonId(cursor.getString(TERMINALS_COLUMN_PERSON_ID_INDEX));
+                    ++index;
+                }
+                return result;
+            } finally {
+                cursor.close();
+            }
+        } finally {
             db.close();
         }
     }
@@ -307,7 +383,8 @@ import java.util.concurrent.TimeoutException;
                     break;
                 case MSG_GET_PERSONS:
                     if (msg.obj != null) {
-                        ((PersonsFuture) msg.obj).setPersons(getPersonsImpl());
+                        //noinspection unchecked
+                        ((ResultFuture<Person>) msg.obj).setResult(getPersonsImpl());
                     }
                     break;
                 case MSG_STORE_TERMINALS:
@@ -317,14 +394,20 @@ import java.util.concurrent.TimeoutException;
                         addTerminalsImpl(data.first, data.second);
                     }
                     break;
+                case MSG_GET_TERMINALS:
+                    if (msg.obj != null) {
+                        //noinspection unchecked
+                        ((ResultFuture<Terminal>) msg.obj).setResult(getTerminalsImpl());
+                    }
+                    break;
             }
         }
     }
 
-    private static class PersonsFuture implements Future<Person[]> {
+    private static class ResultFuture<T> implements Future<T[]> {
 
         private final CountDownLatch mLatch = new CountDownLatch(1);
-        @Nullable private Person[] mPersons;
+        @Nullable private T[] mResult;
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
@@ -336,8 +419,8 @@ import java.util.concurrent.TimeoutException;
             return false;
         }
 
-        public void setPersons(@Nullable Person[] persons) {
-            mPersons = persons;
+        public void setResult(@Nullable T[] result) {
+            mResult = result;
             mLatch.countDown();
         }
 
@@ -348,17 +431,17 @@ import java.util.concurrent.TimeoutException;
 
         @Override
         @Nullable
-        public Person[] get() throws InterruptedException, ExecutionException {
+        public T[] get() throws InterruptedException, ExecutionException {
             mLatch.await();
-            return mPersons;
+            return mResult;
         }
 
         @Override
         @Nullable
-        public Person[] get(long timeout, @NonNull TimeUnit unit) throws InterruptedException,
+        public T[] get(long timeout, @NonNull TimeUnit unit) throws InterruptedException,
                 ExecutionException, TimeoutException {
             if (mLatch.await(timeout, unit)) {
-                return mPersons;
+                return mResult;
             }
             throw new TimeoutException();
         }

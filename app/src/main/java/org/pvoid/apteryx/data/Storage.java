@@ -24,6 +24,7 @@ import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface Storage {
@@ -31,4 +32,5 @@ public interface Storage {
     @Nullable Person[] getPersons() throws ExecutionException, InterruptedException;
     void storeAgents(@NonNull Agent... agents);
     void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
+    @Nullable Terminal[] getTerminals() throws ExecutionException, InterruptedException;
 }

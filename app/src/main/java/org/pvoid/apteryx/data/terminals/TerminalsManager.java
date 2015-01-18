@@ -22,7 +22,10 @@ import android.support.annotation.NonNull;
 import org.pvoid.apteryx.data.persons.Person;
 
 public interface TerminalsManager {
+
+    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_CHANGED";
+
     void store(@NonNull String person, @NonNull Terminal... terminals);
     void sync(@NonNull Person person);
-//    @NonNull Terminal[] getTerminals(@NonNull String person);
+    @NonNull Terminal[] getTerminals(@NonNull String person);
 }

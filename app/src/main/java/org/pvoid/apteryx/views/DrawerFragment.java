@@ -85,7 +85,15 @@ public class DrawerFragment extends Fragment implements View.OnClickListener, Di
         }
         final TextView currentAccount = (TextView) rootView.findViewById(R.id.current_account);
         mCurrentLogin = mSettingsManager.getActiveLogin();
-        if (mCurrentLogin != null) {
+        if (mCurrentLogin == null) {
+            Person person = mAccountsAdapter.getItem(0);
+            if (person != null) {
+                mCurrentLogin = person.getLogin();
+                currentAccount.setText(person.getName());
+                mSettingsManager.setActiveLogin(mCurrentLogin);
+                return;
+            }
+        } else {
             int index = mAccountsAdapter.findPersonIndex(mCurrentLogin);
             if (index != -1) {
                 currentAccount.setText(mAccountsAdapter.getItem(index).getName());

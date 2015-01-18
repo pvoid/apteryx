@@ -18,9 +18,11 @@
 package org.pvoid.apteryx.settings;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 
 /* package */ class ApteryxSettingsManager implements SettingsManager {
 
@@ -28,9 +30,11 @@ import android.support.annotation.Nullable;
     private static final String PREF_ACTIVE_LOGIN = "active_login";
 
     private final SharedPreferences mPreferences;
+    private final LocalBroadcastManager mLBM;
 
     /* package */ ApteryxSettingsManager(@NonNull Context context) {
         mPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
+        mLBM = LocalBroadcastManager.getInstance(context);
     }
 
     @Nullable
@@ -42,5 +46,6 @@ import android.support.annotation.Nullable;
     @Override
     public void setActiveLogin(@Nullable String login) {
         mPreferences.edit().putString(PREF_ACTIVE_LOGIN, login).apply();
+        mLBM.sendBroadcast(new Intent(ACTION_ACCOUNT_CHANGED));
     }
 }

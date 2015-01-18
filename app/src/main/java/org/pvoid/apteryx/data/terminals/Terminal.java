@@ -48,6 +48,7 @@ public class Terminal {
     @Nullable private String mAddress;
     @Nullable private String mMainAddress;
 
+    @Nullable private String mPersonId;
 
     public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @NonNull String serial,
                     @NonNull String displayName, @Nullable String whoAdded,
@@ -123,5 +124,14 @@ public class Terminal {
     @NonNull
     public String getAgentId() {
         return mAgentId;
+    }
+
+    @Nullable
+    public String getPersonId() {
+        return mPersonId;
+    }
+
+    public void setPersonId(@Nullable String personId) {
+        mPersonId = personId;
     }
 }
