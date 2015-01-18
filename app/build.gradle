@@ -15,6 +15,7 @@ android {
 
         buildConfigField 'String', 'SERVER_URL', "\"${project.properties['osmp.server_url']}\""
         buildConfigField 'String', 'USER_AGENT', '"Dealer v0"'
+        buildConfigField 'String', 'CREATE_ACCOUNT_INFO_URL', "\"${project.properties['howto.account_link']}\""
     }
 
     buildTypes {

@@ -29,18 +29,23 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import org.pvoid.apteryx.ApteryxApplication;
+import org.pvoid.apteryx.BuildConfig;
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.accounts.AddAccountActivity;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.settings.SettingsManager;
 
 import dagger.ObjectGraph;
 
-public class TerminalsFragment extends Fragment {
+public class TerminalsFragment extends Fragment implements View.OnClickListener {
 
     @Nullable private TerminalsAdapter mAdapter;
     @NonNull private final LocalReceiver mReceiver = new LocalReceiver();
@@ -53,6 +58,12 @@ public class TerminalsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
         mAdapter = new TerminalsAdapter(inflater.getContext());
         recyclerView.setAdapter(mAdapter);
+        View button = root.findViewById(R.id.add_account_button);
+        button.setOnClickListener(this);
+        TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
+        String hint = getString(R.string.empty_account_message, BuildConfig.CREATE_ACCOUNT_INFO_URL);
+        hintText.setText(Html.fromHtml(hint));
+        hintText.setMovementMethod(LinkMovementMethod.getInstance());
         return root;
     }
 
@@ -88,11 +99,32 @@ public class TerminalsFragment extends Fragment {
     private void refillAdapter() {
         Application application = getActivity().getApplication();
         ObjectGraph graph = ((ApteryxApplication) application).getGraph();
+        final View root = getView();
+        if (root == null) {
+            return;
+        }
         final TerminalsManager terminalsManager = graph.get(TerminalsManager.class);
         final SettingsManager settingsManager = graph.get(SettingsManager.class);
         final String login = settingsManager.getActiveLogin();
+        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
+        View accountError = root.findViewById(R.id.empty_account_error);
+
         if (login != null && mAdapter != null) {
             mAdapter.setTerminals(terminalsManager.getTerminals(login));
+            recyclerView.setVisibility(View.VISIBLE);
+            accountError.setVisibility(View.INVISIBLE);
+        } else {
+            recyclerView.setVisibility(View.INVISIBLE);
+            accountError.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.add_account_button:
+                startActivity(new Intent(getActivity(), AddAccountActivity.class));
+                break;
         }
     }
 

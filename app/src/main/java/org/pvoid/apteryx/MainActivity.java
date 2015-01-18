@@ -17,15 +17,27 @@
 
 package org.pvoid.apteryx;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 
+import org.pvoid.apteryx.data.persons.Person;
+import org.pvoid.apteryx.data.persons.PersonsManager;
+import org.pvoid.apteryx.settings.SettingsManager;
+
+import dagger.ObjectGraph;
+
 public class MainActivity extends ActionBarActivity {
 
     private ActionBarDrawerToggle mDrawerToggle;
+    private AccountChangedBroadcastReceiver mReceiver = new AccountChangedBroadcastReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,5 +58,55 @@ public class MainActivity extends ActionBarActivity {
     protected void onPostResume() {
         super.onPostResume();
         mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(SettingsManager.ACTION_ACCOUNT_CHANGED);
+        lbm.registerReceiver(mReceiver, filter);
+        updateCurrentInfo();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
+        lbm.unregisterReceiver(mReceiver);
+    }
+
+    private void updateCurrentInfo() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ObjectGraph graph = ((GraphHolder) getApplication()).getGraph();
+        SettingsManager settingsManager = graph.get(SettingsManager.class);
+        String login = settingsManager.getActiveLogin();
+        if (login == null) {
+            toolbar.setTitle(null);
+            return;
+        }
+        PersonsManager personsManager = graph.get(PersonsManager.class);
+        Person person = personsManager.getPerson(login);
+        if (person == null) {
+            toolbar.setTitle(null);
+            return;
+        }
+        toolbar.setTitle(person.getName());
+    }
+
+    private class AccountChangedBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent == null) {
+                return;
+            }
+            switch (intent.getAction()) {
+                case SettingsManager.ACTION_ACCOUNT_CHANGED: {
+                    updateCurrentInfo();
+                    break;
+                }
+            }
+        }
     }
 }

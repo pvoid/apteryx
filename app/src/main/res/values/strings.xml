@@ -35,13 +35,14 @@
     <string name="button_ok">OK</string>
     <string name="empty_account"><i>Аккаунт не выбран</i></string>
     <string name="add_new_account">Добавить новый аккаунт</string>
+    <string name="empty_account_message">Для того что бы приложение смогло нормально работать ему необходим хотя бы один аккаунт. Пожалуйста, добавьте ваш, нажав на кнопку под этим текстом. Если у вас нет аккаунта и вы понятия не имеете о чем вас просят, попробуйте почиать текст по этой &lt;a href=\"%1$s\"&gt;ссылке&lt;/a&gt;. Должно помочь.</string>
+
 
     <!--
     string name="last_update">Последнее обновление</string>
     <string name="balance">Баланс</string>
     <string name="overdraft">Овердрафт</string>
     <string name="error">Ошибка</string>
-    <string name="add_account_message">Для работы необходим хотя бы один аккаунт</string>
     <string name="agents_list">Список агентов</string>
     <string name="last_activity">п. активность: </string>
     <string name="last_payment">п. платеж: </string>
