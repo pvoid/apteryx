@@ -40,6 +40,13 @@ public class Agent {
                  @Nullable String jurAddress, @Nullable String physAddress, @NonNull  String name,
                  @Nullable String city, @Nullable String fiscalMode, @Nullable String kmm,
                  @Nullable String taxRegnum) {
+        this(null, id, parentId, inn, jurAddress, physAddress, name, city, fiscalMode, kmm, taxRegnum);
+    }
+
+    public Agent(@Nullable String personLogin, @NonNull String id, @Nullable String parentId, @Nullable String inn,
+                 @Nullable String jurAddress, @Nullable String physAddress, @NonNull  String name,
+                 @Nullable String city, @Nullable String fiscalMode, @Nullable String kmm,
+                 @Nullable String taxRegnum) {
         mId = id;
         mParentId = parentId;
         mINN = inn;
@@ -50,7 +57,7 @@ public class Agent {
         mFiscalMode = fiscalMode;
         mKMM = kmm;
         mTaxRegnum = taxRegnum;
-        mPersonLogin = null;
+        mPersonLogin = personLogin;
     }
 
     private Agent(@NonNull Agent src,

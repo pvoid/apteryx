@@ -56,7 +56,7 @@ import java.util.concurrent.TimeoutException;
     private static final String PERSONS_COLUMN_AGENT_ID = "agent_id";
     private static final String PERSONS_COLUMN_ENABLED = "enabled";
     private static final String PERSONS_COLUMN_VERIFIED = "verified";
-    private static final String[] TABLE_PERSONS_COLUMNS = new String[] {
+    private static final String[] PERSONS_TABLE_COLUMNS = new String[] {
         PERSONS_COLUMN_LOGIN, PERSONS_COLUMN_PASSWORD,
         PERSONS_COLUMN_TERMINAL, PERSONS_COLUMN_NAME,
         PERSONS_COLUMN_AGENT_ID, PERSONS_COLUMN_ENABLED,
@@ -82,6 +82,23 @@ import java.util.concurrent.TimeoutException;
     private static final String AGENTS_COLUMN_FISCAL_MODE = "fiscal_mode";
     private static final String AGENTS_COLUMN_KMM = "kmm";
     private static final String AGENTS_COLUMN_TAX_REGNUM = "tax_regnum";
+    private static final String[] AGENTS_TABLE_COLUMNS = new String[] {
+            AGENTS_COLUMN_AGENT_ID, AGENTS_COLUMN_PARENT_ID, AGENTS_COLUMN_PERSON_LOGIN,
+            AGENTS_COLUMN_INN, AGENTS_COLUMN_JUR_ADDRESS, AGENTS_COLUMN_PHYS_ADDRESS,
+            AGENTS_COLUMN_NAME, AGENTS_COLUMN_CITY, AGENTS_COLUMN_FISCAL_MODE, AGENTS_COLUMN_KMM,
+            AGENTS_COLUMN_TAX_REGNUM
+    };
+    private static final int AGENTS_COLUMN_AGENT_ID_INDEX = 0;
+    private static final int AGENTS_COLUMN_PARENT_ID_INDEX = 1;
+    private static final int AGENTS_COLUMN_PERSON_LOGIN_INDEX = 2;
+    private static final int AGENTS_COLUMN_INN_INDEX = 3;
+    private static final int AGENTS_COLUMN_JUR_ADDRESS_INDEX = 4;
+    private static final int AGENTS_COLUMN_PHYS_ADDRESS_INDEX = 5;
+    private static final int AGENTS_COLUMN_NAME_INDEX = 6;
+    private static final int AGENTS_COLUMN_CITY_INDEX = 7;
+    private static final int AGENTS_COLUMN_FISCAL_MODE_INDEX = 8;
+    private static final int AGENTS_COLUMN_KMM_INDEX = 9;
+    private static final int AGENTS_COLUMN_TAX_REGNUM_INDEX = 10;
 
     private static final String TERMINALS_TABLE_NAME = "terminals";
     private static final String TERMINALS_COLUMN_ID = "id";
@@ -96,7 +113,7 @@ import java.util.concurrent.TimeoutException;
     private static final String TERMINALS_COLUMN_DISPLAY_ADDRESS = "display_address";
     private static final String TERMINALS_COLUMN_MAIN_ADDRESS = "main_address";
     private static final String TERMINALS_COLUMN_PERSON_ID = "person_id";
-    private static final String[] TABLE_TERMINALS_COLUMNS = new String[] {
+    private static final String[] TERMINALS_TABLE_COLUMNS = new String[] {
             TERMINALS_COLUMN_ID, TERMINALS_COLUMN_TYPE, TERMINALS_COLUMN_SERIAL,
             TERMINALS_COLUMN_NAME, TERMINALS_COLUMN_WHO, TERMINALS_COLUMN_WORK_TIME,
             TERMINALS_COLUMN_AGENT_ID, TERMINALS_COLUMN_CITY, TERMINALS_COLUMN_CITY_ID,
@@ -121,6 +138,7 @@ import java.util.concurrent.TimeoutException;
     private static final int MSG_GET_PERSONS = 3;
     private static final int MSG_STORE_TERMINALS = 4;
     private static final int MSG_GET_TERMINALS = 5;
+    private static final int MSG_GET_AGENTS = 6;
 
     private final HandlerThread mThread;
     private final Handler mHandler;
@@ -151,6 +169,15 @@ import java.util.concurrent.TimeoutException;
     public void storeAgents(@NonNull Agent... agents) {
         Message msg = mHandler.obtainMessage(MSG_ADD_AGENTS, agents);
         mHandler.sendMessage(msg);
+    }
+
+    @Nullable
+    @Override
+    public Agent[] getAgents() throws ExecutionException, InterruptedException {
+        ResultFuture<Agent> future = new ResultFuture<>();
+        Message msg = mHandler.obtainMessage(MSG_GET_AGENTS, future);
+        mHandler.sendMessage(msg);
+        return future.get();
     }
 
     @Override
@@ -239,7 +266,7 @@ import java.util.concurrent.TimeoutException;
         SQLiteDatabase db = getReadableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            Cursor cursor = db.query(PERSONS_TABLE_NAME, TABLE_PERSONS_COLUMNS, null, null, null, null, null);
+            Cursor cursor = db.query(PERSONS_TABLE_NAME, PERSONS_TABLE_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
                 return null;
             }
@@ -295,6 +322,40 @@ import java.util.concurrent.TimeoutException;
         }
     }
 
+    @Nullable
+    /* package */ Agent[] getAgentsImpl() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = null;
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            cursor = db.query(AGENTS_TABLE_NAME, AGENTS_TABLE_COLUMNS, null, null, null,null, null);
+            if (cursor == null) {
+                return null;
+            }
+            Agent[] result = new Agent[cursor.getCount()];
+            int index = 0;
+            while (cursor.moveToNext()) {
+                result[index++] = new Agent(cursor.getString(AGENTS_COLUMN_PERSON_LOGIN_INDEX),
+                        cursor.getString(AGENTS_COLUMN_AGENT_ID_INDEX),
+                        cursor.getString(AGENTS_COLUMN_PARENT_ID_INDEX),
+                        cursor.getString(AGENTS_COLUMN_INN_INDEX),
+                        cursor.getString(AGENTS_COLUMN_JUR_ADDRESS_INDEX),
+                        cursor.getString(AGENTS_COLUMN_PHYS_ADDRESS_INDEX),
+                        cursor.getString(AGENTS_COLUMN_NAME_INDEX),
+                        cursor.getString(AGENTS_COLUMN_CITY_INDEX),
+                        cursor.getString(AGENTS_COLUMN_FISCAL_MODE_INDEX),
+                        cursor.getString(AGENTS_COLUMN_KMM_INDEX),
+                        cursor.getString(AGENTS_COLUMN_TAX_REGNUM_INDEX));
+            }
+            return result;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+
     /* package */ void addTerminalsImpl(@NonNull String personId, @NonNull Terminal[] terminals) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -332,7 +393,7 @@ import java.util.concurrent.TimeoutException;
         SQLiteDatabase db = getReadableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            Cursor cursor = db.query(TERMINALS_TABLE_NAME, TABLE_TERMINALS_COLUMNS, null, null, null, null, null);
+            Cursor cursor = db.query(TERMINALS_TABLE_NAME, TERMINALS_TABLE_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
                 return null;
             }
@@ -398,6 +459,12 @@ import java.util.concurrent.TimeoutException;
                     if (msg.obj != null) {
                         //noinspection unchecked
                         ((ResultFuture<Terminal>) msg.obj).setResult(getTerminalsImpl());
+                    }
+                    break;
+                case MSG_GET_AGENTS:
+                    if (msg.obj != null) {
+                        //noinspection unchecked
+                        ((ResultFuture<Agent>) msg.obj).setResult(getAgentsImpl());
                     }
                     break;
             }

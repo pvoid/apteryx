@@ -20,9 +20,12 @@ package org.pvoid.apteryx.data.persons;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import org.pvoid.apteryx.data.agents.Agent;
+
 public interface PersonsManager {
-    public static final String ACTION_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_VERIFIED";
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CHANGED";
+    public static final String ACTION_PERSON_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_PERSON_VERIFIED";
+    public static final String ACTION_PERSONS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_PERSONS_CHANGED";
+    public static final String ACTION_AGENTS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_AGENTS_CHANGED";
 
     public static final String EXTRA_PERSON = "person";
     public static final String EXTRA_STATE = "state";
@@ -30,5 +33,6 @@ public interface PersonsManager {
     boolean add(@NonNull Person person);
     void verify(@NonNull Person person);
     @NonNull Person[] getPersons();
-    @Nullable Person getPerson(String login);
+    @Nullable Person getPerson(@NonNull String login);
+    @Nullable Agent[] getAgents(@NonNull String login);
 }

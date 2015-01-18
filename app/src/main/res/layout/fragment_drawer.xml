@@ -30,12 +30,14 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         style="@style/DrawerContent">
-        <TextView
-            android:id="@+id/current_account"
-            style="@style/CurrentAccount"
+        <include
+            layout="@layout/view_account_switcher"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/agents_list"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/current_account_height"
-            android:text="@string/empty_account"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
     </LinearLayout>
 </RelativeLayout>

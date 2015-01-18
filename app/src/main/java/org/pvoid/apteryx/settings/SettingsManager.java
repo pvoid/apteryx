@@ -22,7 +22,10 @@ import android.support.annotation.Nullable;
 public interface SettingsManager {
 
     static final String ACTION_ACCOUNT_CHANGED = "org.pvoid.apteryx.settings.ACCOUNT_CHANGED";
+    static final String ACTION_AGENT_CHANGED = "org.pvoid.apteryx.settings.AGENT_CHANGED";
 
     @Nullable String getActiveLogin();
-    void setActiveLogin(@Nullable String login);
+    void setActiveLogin(@Nullable String login, @Nullable String agent);
+    @Nullable String getActiveAgent();
+    void setActiveAgent(@Nullable String agent);
 }

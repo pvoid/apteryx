@@ -54,7 +54,7 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
                             .commitAllowingStateLoss();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
-                new IntentFilter(PersonsManager.ACTION_VERIFIED));
+                new IntentFilter(PersonsManager.ACTION_PERSON_VERIFIED));
     }
 
     @Override

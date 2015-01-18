@@ -28,6 +28,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
     private static final String FILE_NAME = "apteryx";
     private static final String PREF_ACTIVE_LOGIN = "active_login";
+    private static final String PREF_ACTIVE_AGENT = "active_agent";
 
     private final SharedPreferences mPreferences;
     private final LocalBroadcastManager mLBM;
@@ -44,8 +45,22 @@ import android.support.v4.content.LocalBroadcastManager;
     }
 
     @Override
-    public void setActiveLogin(@Nullable String login) {
-        mPreferences.edit().putString(PREF_ACTIVE_LOGIN, login).apply();
+    public void setActiveLogin(@Nullable String login, @Nullable String agent) {
+        mPreferences.edit().putString(PREF_ACTIVE_LOGIN, login)
+                .putString(PREF_ACTIVE_AGENT, agent).apply();
         mLBM.sendBroadcast(new Intent(ACTION_ACCOUNT_CHANGED));
+        mLBM.sendBroadcast(new Intent(ACTION_AGENT_CHANGED));
+    }
+
+    @Nullable
+    @Override
+    public String getActiveAgent() {
+        return mPreferences.getString(PREF_ACTIVE_AGENT, null);
+    }
+
+    @Override
+    public void setActiveAgent(@Nullable String agent) {
+        mPreferences.edit().putString(PREF_ACTIVE_AGENT, agent).apply();
+        mLBM.sendBroadcast(new Intent(ACTION_AGENT_CHANGED));
     }
 }

@@ -31,7 +31,7 @@
             app:theme="@style/ThemeOverlay.Apteryx.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="?attr/actionBarSize"
             app:elevation="2dp"/>
         <fragment
             android:name="org.pvoid.apteryx.views.terminals.TerminalsFragment"

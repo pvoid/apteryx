@@ -23,7 +23,7 @@ import org.pvoid.apteryx.data.persons.Person;
 
 public interface TerminalsManager {
 
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_CHANGED";
+    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_PERSONS_CHANGED";
 
     void store(@NonNull String person, @NonNull Terminal... terminals);
     void sync(@NonNull Person person);

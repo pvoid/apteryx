@@ -41,6 +41,7 @@ import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,8 +57,9 @@ import java.util.concurrent.locks.ReentrantLock;
     @NonNull private final Storage mStorage;
     @NonNull private final TerminalsManager mTerminalsManager;
     @NonNull private final Lock mLock = new ReentrantLock();
-    @GuardedBy("mLock") private final Map<String, Person> mPersons = new HashMap<>();
-    @GuardedBy("mLock") private Person[] mPersonsList = null;
+    @GuardedBy("mLock") @NonNull private final Map<String, Person> mPersons = new HashMap<>();
+    @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
+    @GuardedBy("mLock") @NonNull private Map<String, List<Agent>> mAgents = new HashMap<>();
 
     /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
                                      @NonNull TerminalsManager terminalsManager) {
@@ -74,14 +76,23 @@ import java.util.concurrent.locks.ReentrantLock;
                     mPersonsList[index] = person;
                 }
             }
+            Agent[] agents = storage.getAgents();
+            if (agents != null && agents.length > 0) {
+                for (Agent agent : agents) {
+                    List<Agent> a = mAgents.get(agent.getPersonLogin());
+                    if (a == null) {
+                        a = new ArrayList<>();
+                        mAgents.put(agent.getPersonLogin(), a);
+                    }
+                    a.add(agent);
+                }
+            }
         } catch (ExecutionException | InterruptedException e) {
             LogHelper.error(TAG, "Can't fill persons list: %1$s", e.getMessage());
         }
 
         notifyChanged();
     }
-
-
 
     @Override
     public boolean add(@NonNull Person person) {
@@ -130,7 +141,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @Nullable
     @Override
-    public Person getPerson(String login) {
+    public Person getPerson(@NonNull String login) {
         mLock.lock();
         try {
             return mPersons.get(login);
@@ -139,13 +150,25 @@ import java.util.concurrent.locks.ReentrantLock;
         }
     }
 
+    @Nullable
+    @Override
+    public Agent[] getAgents(@NonNull String login) {
+        mLock.lock();
+        try {
+            List<Agent> agents = mAgents.get(login);
+            return agents == null ? null : agents.toArray(new Agent[agents.size()]);
+        } finally {
+            mLock.unlock();
+        }
+    }
+
     private void notifyChanged() {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
-        lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+        lbm.sendBroadcast(new Intent(ACTION_PERSONS_CHANGED));
     }
 
     private void notifyVerifyResult(boolean success, @Nullable Person person) {
-        Intent intent = new Intent(ACTION_VERIFIED);
+        Intent intent = new Intent(ACTION_PERSON_VERIFIED);
         intent.putExtra(EXTRA_PERSON, person);
         intent.putExtra(EXTRA_STATE, success);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
@@ -166,6 +189,9 @@ import java.util.concurrent.locks.ReentrantLock;
             mLock.lock();
             try {
                 person = mPersons.get(info.getLogin());
+                if (person == null) {
+                    return;
+                }
                 final String name = info.getPersonName();
                 final String agentId = info.getAgentId();
 
@@ -206,8 +232,15 @@ import java.util.concurrent.locks.ReentrantLock;
             }
 
             if (!agentsList.isEmpty()) {
-                Agent[] agents = agentsList.toArray(new Agent[agentsList.size()]);
-                mStorage.storeAgents(agents);
+                mLock.lock();
+                try {
+                    mAgents.put(person.getLogin(), agentsList);
+                } finally {
+                    mLock.unlock();
+                }
+                mStorage.storeAgents(agentsList.toArray(new Agent[agentsList.size()]));
+                LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+                lbm.sendBroadcast(new Intent(ACTION_AGENTS_CHANGED));
             }
         }
 
