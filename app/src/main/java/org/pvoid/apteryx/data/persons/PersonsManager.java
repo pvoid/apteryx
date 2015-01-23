@@ -25,7 +25,9 @@ import org.pvoid.apteryx.data.agents.Agent;
 public interface PersonsManager {
     public static final String ACTION_PERSON_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_PERSON_VERIFIED";
     public static final String ACTION_PERSONS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_PERSONS_CHANGED";
+    public static final String ACTION_CURRENT_PERSON_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_PERSON_CHANGED";
     public static final String ACTION_AGENTS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_AGENTS_CHANGED";
+    public static final String ACTION_CURRENT_AGENT_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_AGENT_CHANGED";
 
     public static final String EXTRA_PERSON = "person";
     public static final String EXTRA_STATE = "state";
@@ -34,5 +36,9 @@ public interface PersonsManager {
     void verify(@NonNull Person person);
     @NonNull Person[] getPersons();
     @Nullable Person getPerson(@NonNull String login);
+    @Nullable Person getCurrentPerson();
+    void setCurrentPerson(@NonNull String login);
+    @Nullable Agent getCurrentAgent();
+    void setCurrentAgent(@NonNull String agentId);
     @Nullable Agent[] getAgents(@NonNull String login);
 }

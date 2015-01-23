@@ -22,12 +22,14 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.terminals.Terminal;
 
-public class TerminalsAdapter extends RecyclerView.Adapter<TerminalViewHolder> {
+public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.ViewHolder> {
 
     private final LayoutInflater mInflater;
     private Terminal[] mTerminals;
@@ -42,14 +44,14 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalViewHolder> {
     }
 
     @Override
-    public TerminalViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public TerminalsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         CardView v = (CardView) mInflater.inflate(R.layout.view_terminal_item, parent, false);
         v.setUseCompatPadding(true);
-        return new TerminalViewHolder(v);
+        return new TerminalsAdapter.ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(TerminalViewHolder holder, int position) {
+    public void onBindViewHolder(TerminalsAdapter.ViewHolder holder, int position) {
         holder.title.setText(mTerminals[position].getDisplayName());
         holder.address.setText(mTerminals[position].getDisplayAddress());
     }
@@ -57,5 +59,17 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalViewHolder> {
     @Override
     public int getItemCount() {
         return mTerminals == null ? 0 : mTerminals.length;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        public final TextView title;
+        public final TextView address;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            title = (TextView) itemView.findViewById(R.id.terminal_title);
+            address = (TextView) itemView.findViewById(R.id.terminal_address);
+
+        }
     }
 }

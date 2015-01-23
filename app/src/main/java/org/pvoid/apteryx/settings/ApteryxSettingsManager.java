@@ -48,8 +48,6 @@ import android.support.v4.content.LocalBroadcastManager;
     public void setActiveLogin(@Nullable String login, @Nullable String agent) {
         mPreferences.edit().putString(PREF_ACTIVE_LOGIN, login)
                 .putString(PREF_ACTIVE_AGENT, agent).apply();
-        mLBM.sendBroadcast(new Intent(ACTION_ACCOUNT_CHANGED));
-        mLBM.sendBroadcast(new Intent(ACTION_AGENT_CHANGED));
     }
 
     @Nullable
@@ -61,6 +59,5 @@ import android.support.v4.content.LocalBroadcastManager;
     @Override
     public void setActiveAgent(@Nullable String agent) {
         mPreferences.edit().putString(PREF_ACTIVE_AGENT, agent).apply();
-        mLBM.sendBroadcast(new Intent(ACTION_AGENT_CHANGED));
     }
 }

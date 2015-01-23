@@ -34,7 +34,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
@@ -42,22 +41,17 @@ import org.pvoid.apteryx.accounts.AddAccountActivity;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
-import org.pvoid.apteryx.settings.SettingsManager;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.views.accounts.AccountsAdapter;
-import org.pvoid.apteryx.views.accounts.AgentsAdapter;
 
 import dagger.ObjectGraph;
 
-public class DrawerFragment extends Fragment implements View.OnClickListener, DialogInterface.OnClickListener, AgentsAdapter.OnAgentSelectedListener {
+public class DrawerFragment extends Fragment implements DialogInterface.OnClickListener, DrawerAdapter.OnAccountSwitcherClickedListener {
     private static final String TAG = "DrawerFragment";
 
     @NonNull private final AccountsChangeReceiver mReceiver = new AccountsChangeReceiver();
     private PersonsManager mPersonsManager;
-    private SettingsManager mSettingsManager;
+    @Nullable private DrawerAdapter mDrawerAdapter;
     @Nullable private AccountsAdapter mAccountsAdapter;
-    @Nullable private AgentsAdapter mAgentsAdapter;
-    private String mCurrentLogin;
 
     public DrawerFragment() {
         super();
@@ -74,39 +68,36 @@ public class DrawerFragment extends Fragment implements View.OnClickListener, Di
         super.onAttach(activity);
         ObjectGraph graph = ((GraphHolder) activity.getApplication()).getGraph();
         mPersonsManager = graph.get(PersonsManager.class);
-        mSettingsManager = graph.get(SettingsManager.class);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         final Context context = view.getContext();
-        mAccountsAdapter = new AccountsAdapter(context);
-        mAgentsAdapter = new AgentsAdapter(context);
-        mAgentsAdapter.setAgentSelectListener(this);
 
-        final View currentAccount = view.findViewById(R.id.account_switcher);
-        currentAccount.setOnClickListener(this);
-        RecyclerView agentsList = (RecyclerView) view.findViewById(R.id.agents_list);
-        agentsList.setLayoutManager(new LinearLayoutManager(context));
-        agentsList.setAdapter(mAgentsAdapter);
+        RecyclerView drawerItems = (RecyclerView) view.findViewById(R.id.drawer_items);
+        mDrawerAdapter = new DrawerAdapter(context);
+        drawerItems.setLayoutManager(new LinearLayoutManager(context));
+        drawerItems.setAdapter(mDrawerAdapter);
+        mDrawerAdapter.setSwitcherClickedListener(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mDrawerAdapter = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
-        final View rootView = getView();
-        if (rootView == null || mAccountsAdapter == null) {
-            LogHelper.debug(TAG, "Wrong fragment call onResume()");
-            return;
-        }
-
         updateFragment();
 
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getActivity());
         IntentFilter filter = new IntentFilter();
         filter.addAction(PersonsManager.ACTION_PERSONS_CHANGED);
+        filter.addAction(PersonsManager.ACTION_CURRENT_PERSON_CHANGED);
         filter.addAction(PersonsManager.ACTION_AGENTS_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
     }
@@ -119,65 +110,13 @@ public class DrawerFragment extends Fragment implements View.OnClickListener, Di
     }
 
     private void updateFragment() {
-        Person person = null;
-        if (mCurrentLogin != null) {
-            person = mPersonsManager.getPerson(mCurrentLogin);
-        }
-        fillPersons();
-        updateCurrentAccount(person);
-        fillAgents();
-    }
-
-    private void updateCurrentAccount(@Nullable Person person) {
-        View rootView = getView();
-        if (rootView == null) {
-            return;
-        }
-        final TextView accountName = (TextView) rootView.findViewById(R.id.current_account_name);
-        final TextView accountLogin = (TextView) rootView.findViewById(R.id.current_account_login);
-
-        if (mAccountsAdapter != null && mAccountsAdapter.getCount() > 1) {
-            if (person == null) {
-                person = mAccountsAdapter.getItem(0);
+        if (mDrawerAdapter != null && mPersonsManager != null) {
+            Person person = mPersonsManager.getCurrentPerson();
+            Agent[] agents = null;
+            if (person != null) {
+                agents = mPersonsManager.getAgents(person.getLogin());
             }
-            mCurrentLogin = person.getLogin();
-            accountName.setText(person.getName());
-            accountLogin.setText(person.getLogin());
-
-            mSettingsManager.setActiveLogin(mCurrentLogin, person.getAgentId());
-            return;
-        }
-
-        accountName.setVisibility(View.GONE);
-        accountLogin.setText(R.string.empty_account);
-    }
-
-    private void fillAgents() {
-        if(mAgentsAdapter == null || mPersonsManager == null) {
-            return;
-        }
-        Agent[] agents = mPersonsManager.getAgents(mCurrentLogin);
-        mAgentsAdapter.setAgents(agents);
-    }
-
-    private void fillPersons() {
-        if (mPersonsManager == null || mAccountsAdapter == null) {
-            return;
-        }
-        Person[] persons = mPersonsManager.getPersons();
-        mAccountsAdapter.setPersons(persons);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.account_switcher: {
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setSingleChoiceItems(mAccountsAdapter,
-                        mAccountsAdapter.findPersonIndex(mCurrentLogin), this);
-                builder.create().show();
-                break;
-            }
+            mDrawerAdapter.setCurrentAccount(person, agents);
         }
     }
 
@@ -185,23 +124,45 @@ public class DrawerFragment extends Fragment implements View.OnClickListener, Di
     public void onClick(DialogInterface dialog, int which) {
         dialog.dismiss();
 
-        if (mAccountsAdapter != null) {
+        if (mAccountsAdapter != null && mPersonsManager != null) {
             final Person person = mAccountsAdapter.getItem(which);
-            updateCurrentAccount(person);
-            fillAgents();
+            if (person != null) {
+                mPersonsManager.setCurrentPerson(person.getLogin());
+            } else {
+                final Context context = getActivity();
+                if (context != null) {
+                    startActivity(new Intent(context, AddAccountActivity.class));
+                }
+            }
         }
     }
 
     @Override
-    public void onAgentSelected(@NonNull Agent agent) {
-        if (mSettingsManager != null) {
-            mSettingsManager.setActiveAgent(agent.getId());
-        }
+    public void onAccountSwitcherClicked() {
         Activity activity = getActivity();
-        if (activity instanceof DrawerListener) {
-            ((DrawerListener) activity).hideDrawer();
+        if (activity == null) {
+            return;
         }
+        mAccountsAdapter = new AccountsAdapter(activity);
+        mAccountsAdapter.setPersons(mPersonsManager.getPersons());
+        Person current = mPersonsManager.getCurrentPerson();
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setSingleChoiceItems(mAccountsAdapter,
+                current == null ? -1 : mAccountsAdapter.findPersonIndex(current.getLogin()),
+                this);
+        builder.create().show();
     }
+
+//    @Override
+//    public void onAgentSelected(@NonNull Agent agent) {
+//        if (mSettingsManager != null) {
+//            mSettingsManager.setActiveAgent(agent.getId());
+//        }
+//        Activity activity = getActivity();
+//        if (activity instanceof DrawerListener) {
+//            ((DrawerListener) activity).hideDrawer();
+//        }
+//    }
 
     private class AccountsChangeReceiver extends BroadcastReceiver {
         @Override
@@ -212,10 +173,11 @@ public class DrawerFragment extends Fragment implements View.OnClickListener, Di
             }
             switch (intent.getAction()) {
                 case PersonsManager.ACTION_PERSONS_CHANGED:
+                case PersonsManager.ACTION_CURRENT_PERSON_CHANGED:
                     updateFragment();
                     break;
                 case PersonsManager.ACTION_AGENTS_CHANGED:
-                    fillAgents();
+//                    fillAgents();
                     break;
             }
         }

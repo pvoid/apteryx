@@ -18,6 +18,7 @@
 package org.pvoid.apteryx.data.terminals;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import org.pvoid.apteryx.data.persons.Person;
 
@@ -27,5 +28,5 @@ public interface TerminalsManager {
 
     void store(@NonNull String person, @NonNull Terminal... terminals);
     void sync(@NonNull Person person);
-    @NonNull Terminal[] getTerminals(@NonNull String person);
+    @NonNull Terminal[] getTerminals(@NonNull String person, @Nullable String agentId);
 }

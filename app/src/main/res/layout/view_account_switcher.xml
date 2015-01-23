@@ -16,32 +16,53 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/account_switcher"
-    style="@style/CurrentAccount"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/current_account_height">
-    <ImageView
-        android:id="@+id/current_account_arrow"
-        style="@style/CurrentAccount.Image"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"/>
-    <TextView
-        android:id="@+id/current_account_name"
-        style="@style/CurrentAccount.Name"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:id="@+id/account_switcher"
+        style="@style/CurrentAccount"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/current_account_arrow"
-        tools:text="Some account name"/>
-    <TextView
-        android:id="@+id/current_account_login"
-        style="@style/CurrentAccount.Login"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_below="@id/current_account_name"
-        android:layout_toLeftOf="@id/current_account_arrow"
-        tools:text="09643624"/>
+        android:layout_height="@dimen/current_account_height">
+        <ImageView
+            android:id="@+id/current_account_arrow"
+            style="@style/CurrentAccount.Image"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"/>
+        <TextView
+            android:id="@+id/current_account_name"
+            style="@style/CurrentAccount.Name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/current_account_arrow"
+            tools:text="Some account name"/>
+        <TextView
+            android:id="@+id/current_account_login"
+            style="@style/CurrentAccount.Login"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_below="@id/current_account_name"
+            android:layout_toLeftOf="@id/current_account_arrow"
+            tools:text="09643624"/>
 
-</RelativeLayout>
+    </RelativeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:background="#ccc"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="?attr/listPreferredItemHeightSmall"
+        android:gravity="center_vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textColor="@color/hint_foreground_material_light"
+        android:text="@string/agents"
+        android:textAllCaps="true"/>
+</LinearLayout>

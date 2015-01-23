@@ -69,8 +69,8 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
         super.onStart();
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         IntentFilter filter = new IntentFilter();
-        filter.addAction(SettingsManager.ACTION_ACCOUNT_CHANGED);
-        filter.addAction(SettingsManager.ACTION_AGENT_CHANGED);
+        filter.addAction(PersonsManager.ACTION_CURRENT_PERSON_CHANGED);
+        // TODO: filter.addAction(SettingsManager.ACTION_AGENT_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
         updateCurrentInfo();
     }
@@ -131,8 +131,8 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
                 return;
             }
             switch (intent.getAction()) {
-                case SettingsManager.ACTION_ACCOUNT_CHANGED:
-                case SettingsManager.ACTION_AGENT_CHANGED: {
+                case PersonsManager.ACTION_CURRENT_PERSON_CHANGED:
+                /* TODO: case SettingsManager.ACTION_AGENT_CHANGED: */{
                     updateCurrentInfo();
                     break;
                 }

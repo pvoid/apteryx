@@ -44,13 +44,13 @@ public class AgentsAdapter extends RecyclerView.Adapter<AgentsAdapter.ViewHolder
 
     @Override
     public AgentsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View item = mInflater.inflate(R.layout.view_agent_item, parent, false);
-        return new ViewHolder(item);
+        return new ViewHolder(mInflater.inflate(R.layout.view_agent_item, parent, false));
     }
 
     @Override
     public void onBindViewHolder(AgentsAdapter.ViewHolder holder, int position) {
-        if (mAgents != null && position < mAgents.length) {
+        --position;
+        if (mAgents != null && position > -1 && position < mAgents.length) {
             holder.title.setText(mAgents[position].getName());
             holder.position = position;
         }
@@ -58,7 +58,7 @@ public class AgentsAdapter extends RecyclerView.Adapter<AgentsAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return mAgents != null ? mAgents.length : 0;
+        return (mAgents != null ? mAgents.length : 0) + 1;
     }
 
     public void setAgents(@Nullable Agent[] agents) {

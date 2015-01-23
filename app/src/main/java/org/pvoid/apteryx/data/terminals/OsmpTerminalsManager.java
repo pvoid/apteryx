@@ -20,7 +20,9 @@ package org.pvoid.apteryx.data.terminals;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 
 import org.pvoid.apteryx.annotations.GuardedBy;
 import org.pvoid.apteryx.data.Storage;
@@ -34,8 +36,10 @@ import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
 import org.pvoid.apteryx.net.results.GetTerminalsResult;
 import org.pvoid.apteryx.util.LogHelper;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -90,15 +94,24 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @Override
     @NonNull
-    public Terminal[] getTerminals(@NonNull String person) {
+    public Terminal[] getTerminals(@NonNull String person, @Nullable String agentId) {
         mLock.lock();
         try {
             Map<String, Terminal> t = mTerminals.get(person);
-            if (t == null) {
+            Collection<Terminal> terminals;
+            if (t == null || (terminals = t.values()) == null) {
                 return new Terminal[0];
             }
-            Collection<Terminal> terminals = t.values();
-            return terminals.toArray(new Terminal[terminals.size()]);
+            if (TextUtils.isEmpty(agentId)) {
+                return terminals.toArray(new Terminal[terminals.size()]);
+            }
+            List<Terminal> result = new ArrayList<>(terminals.size());
+            for (Terminal terminal : terminals) {
+                if (TextUtils.equals(agentId, terminal.getAgentId())) {
+                    result.add(terminal);
+                }
+            }
+            return result.toArray(new Terminal[result.size()]);
         } finally {
             mLock.unlock();
         }

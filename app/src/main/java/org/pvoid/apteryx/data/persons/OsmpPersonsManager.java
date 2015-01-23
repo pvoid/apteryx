@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 
 import org.pvoid.apteryx.annotations.GuardedBy;
 import org.pvoid.apteryx.data.Storage;
@@ -41,10 +42,11 @@ import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -57,8 +59,10 @@ import java.util.concurrent.locks.ReentrantLock;
     @NonNull private final Storage mStorage;
     @NonNull private final TerminalsManager mTerminalsManager;
     @NonNull private final Lock mLock = new ReentrantLock();
-    @GuardedBy("mLock") @NonNull private final Map<String, Person> mPersons = new HashMap<>();
+    @GuardedBy("mLock") @NonNull private final NavigableMap<String, Person> mPersons = new TreeMap<>();
     @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
+    @GuardedBy("mLock") @Nullable private Person mCurrentPerson = null;
+    @GuardedBy("mLock") @Nullable private Agent mCurrentAgent = null;
     @GuardedBy("mLock") @NonNull private Map<String, List<Agent>> mAgents = new HashMap<>();
 
     /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
@@ -91,7 +95,7 @@ import java.util.concurrent.locks.ReentrantLock;
             LogHelper.error(TAG, "Can't fill persons list: %1$s", e.getMessage());
         }
 
-        notifyChanged();
+        notifyPersonsChanged();
     }
 
     @Override
@@ -107,7 +111,7 @@ import java.util.concurrent.locks.ReentrantLock;
             mLock.unlock();
         }
         mStorage.storePerson(person);
-        notifyChanged();
+        notifyPersonsChanged();
         return true;
     }
 
@@ -152,6 +156,96 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @Nullable
     @Override
+    public Person getCurrentPerson() {
+        mLock.lock();
+        try {
+            if (mCurrentPerson == null && !mPersons.isEmpty()) {
+                mCurrentPerson = mPersons.firstEntry().getValue();
+                mCurrentAgent = null;
+            }
+            return mCurrentPerson;
+        } finally {
+            mLock.unlock();
+        }
+    }
+
+    @Override
+    public void setCurrentPerson(@NonNull String login) {
+        boolean notify = false;
+        mLock.lock();
+        try {
+            Person person = mPersons.get(login);
+            if (person != null && person != mCurrentPerson) {
+                mCurrentPerson = person;
+                mCurrentAgent = null;
+                notify = true;
+            }
+        } finally {
+            mLock.unlock();
+        }
+
+        if (notify) {
+            LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+            lbm.sendBroadcast(new Intent(ACTION_CURRENT_PERSON_CHANGED));
+        }
+    }
+
+    @Nullable
+    @Override
+    public Agent getCurrentAgent() {
+        mLock.lock();
+        try {
+            if (mCurrentAgent == null) {
+                Person person = getCurrentPerson();
+                if (person != null) {
+                    List<Agent> agents = mAgents.get(person.getLogin());
+                    if (agents != null) {
+                        for (Agent agent : agents) {
+                            if (TextUtils.equals(agent.getId(), person.getAgentId())) {
+                                mCurrentAgent = agent;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return mCurrentAgent;
+        } finally {
+            mLock.unlock();
+        }
+    }
+
+    @Override
+    public void setCurrentAgent(@NonNull String agentId) {
+        Person currentPerson = getCurrentPerson();
+        if (currentPerson == null) {
+            return;
+        }
+
+        boolean notify = false;
+        mLock.lock();
+        try {
+            List<Agent> agents = mAgents.get(currentPerson.getLogin());
+            if (agents != null) {
+                for (Agent agent : agents) {
+                    if (TextUtils.equals(agentId, agent.getId())) {
+                        mCurrentAgent = agent;
+                        notify = true;
+                        break;                    }
+                }
+            }
+        } finally {
+            mLock.unlock();
+        }
+
+        if (notify) {
+            LocalBroadcastManager.getInstance(mContext)
+                    .sendBroadcast(new Intent(ACTION_CURRENT_AGENT_CHANGED));
+        }
+    }
+
+    @Nullable
+    @Override
     public Agent[] getAgents(@NonNull String login) {
         mLock.lock();
         try {
@@ -162,7 +256,7 @@ import java.util.concurrent.locks.ReentrantLock;
         }
     }
 
-    private void notifyChanged() {
+    private void notifyPersonsChanged() {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
         lbm.sendBroadcast(new Intent(ACTION_PERSONS_CHANGED));
     }

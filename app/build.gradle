@@ -34,7 +34,7 @@ jacoco {
 }
 
 def coverageSourceDirs = [
-        '../app/src/main/java'
+        "${projectDir.absolutePath}/src/main/java"
 ]
 
 task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
@@ -43,7 +43,7 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
     description = "Generate Jacoco coverage reports"
 
     classDirectories = fileTree(
-            dir: '../app/build/intermediates/classes/debug',
+            dir: "${projectDir.absolutePath}/build/intermediates/classes/debug",
             excludes: ['**/R.class',
                        '**/R$*.class',
                        '**/*$ViewInjector*.*',
@@ -55,7 +55,7 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
 
     additionalSourceDirs = files(coverageSourceDirs)
     sourceDirectories = files(coverageSourceDirs)
-    executionData = files('../app/build/jacoco/testDebug.exec')
+    executionData = files("${projectDir.absolutePath}/build/jacoco/testDebug.exec")
 
     reports {
         xml.enabled = true
@@ -63,7 +63,7 @@ task jacocoTestReport(type:JacocoReport, dependsOn: "testDebug") {
     }
 
     doFirst {
-        new File('../app/build/intermediates/classes/debug').eachFileRecurse { file ->
+        new File("${projectDir.absolutePath}/build/intermediates/classes/debug").eachFileRecurse { file ->
             if (file.name.contains('$$')) {
                 file.renameTo(file.path.replace('$$', '$'))
             }

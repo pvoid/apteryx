@@ -84,7 +84,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         super.onStart();
         final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getActivity());
         final IntentFilter filter = new IntentFilter();
-        filter.addAction(SettingsManager.ACTION_ACCOUNT_CHANGED);
+        // TODO: filter.addAction(SettingsManager.ACTION_AGENT_CHANGED);
         filter.addAction(TerminalsManager.ACTION_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
     }
@@ -106,11 +106,12 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         final TerminalsManager terminalsManager = graph.get(TerminalsManager.class);
         final SettingsManager settingsManager = graph.get(SettingsManager.class);
         final String login = settingsManager.getActiveLogin();
+        final String agentId = settingsManager.getActiveAgent();
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
         View accountError = root.findViewById(R.id.empty_account_error);
 
         if (login != null && mAdapter != null) {
-            mAdapter.setTerminals(terminalsManager.getTerminals(login));
+            mAdapter.setTerminals(terminalsManager.getTerminals(login, agentId));
             recyclerView.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
         } else {
@@ -135,7 +136,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
                 return;
             }
             switch (intent.getAction()) {
-                case SettingsManager.ACTION_ACCOUNT_CHANGED:
+                // TODO: case SettingsManager.ACTION_AGENT_CHANGED:
                 case TerminalsManager.ACTION_CHANGED:
                     refillAdapter();
                     break;
