@@ -27,12 +27,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
-import org.pvoid.apteryx.settings.SettingsManager;
 import org.pvoid.apteryx.views.DrawerFragment;
 
 import dagger.ObjectGraph;
@@ -70,7 +68,7 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         IntentFilter filter = new IntentFilter();
         filter.addAction(PersonsManager.ACTION_CURRENT_PERSON_CHANGED);
-        // TODO: filter.addAction(SettingsManager.ACTION_AGENT_CHANGED);
+        filter.addAction(PersonsManager.ACTION_CURRENT_AGENT_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
         updateCurrentInfo();
     }
@@ -85,32 +83,15 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
     private void updateCurrentInfo() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         ObjectGraph graph = ((GraphHolder) getApplication()).getGraph();
-        SettingsManager settingsManager = graph.get(SettingsManager.class);
-        String login = settingsManager.getActiveLogin();
-        String agentId = settingsManager.getActiveAgent();
-        if (login == null) {
-            toolbar.setTitle(null);
-            toolbar.setSubtitle(null);
-            return;
-        }
         PersonsManager personsManager = graph.get(PersonsManager.class);
-        Person person = personsManager.getPerson(login);
-        if (person == null) {
+        Person person = personsManager.getCurrentPerson();
+        Agent agent = personsManager.getCurrentAgent();
+        if (person == null || agent == null) {
             toolbar.setTitle(null);
             toolbar.setSubtitle(null);
             return;
         }
-        Agent agents[] = personsManager.getAgents(person.getLogin());
-        if (agents == null) {
-            toolbar.setTitle(null);
-            toolbar.setSubtitle(null);
-            return;
-        }
-        for (Agent agent : agents) {
-            if (TextUtils.equals(agentId, agent.getId())) {
-                toolbar.setTitle(agent.getName());
-            }
-        }
+        toolbar.setTitle(agent.getName());
         toolbar.setSubtitle(person.getName());
     }
 
@@ -132,7 +113,7 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
             }
             switch (intent.getAction()) {
                 case PersonsManager.ACTION_CURRENT_PERSON_CHANGED:
-                /* TODO: case SettingsManager.ACTION_AGENT_CHANGED: */{
+                case PersonsManager.ACTION_CURRENT_AGENT_CHANGED: {
                     updateCurrentInfo();
                     break;
                 }

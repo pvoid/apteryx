@@ -40,6 +40,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
     @Nullable private Person mCurrentAccount;
     @Nullable private Agent[] mAgents;
     @Nullable private OnAccountSwitcherClickedListener mSwitcherClickedListener;
+    @Nullable private OnAgentSelectedListener mOnAgentSelectedListener;
 
     public DrawerAdapter(@NonNull Context context) {
         mInflater = LayoutInflater.from(context);
@@ -47,6 +48,10 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     public void setSwitcherClickedListener(@Nullable OnAccountSwitcherClickedListener switcherClickedListener) {
         mSwitcherClickedListener = switcherClickedListener;
+    }
+
+    public void setOnAgentSelectedListener(@Nullable OnAgentSelectedListener onAgentSelectedListener) {
+        mOnAgentSelectedListener = onAgentSelectedListener;
     }
 
     public void setCurrentAccount(@Nullable Person currentAccount, @Nullable Agent[] agents) {
@@ -152,11 +157,18 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
         @Override
         public void onClick(View v) {
-
+            OnAgentSelectedListener listener = mOnAgentSelectedListener;
+            if (listener != null && mAgents != null) {
+                listener.onAgentSelected(mAgents[position]);
+            }
         }
     }
 
     public interface OnAccountSwitcherClickedListener {
         void onAccountSwitcherClicked();
+    }
+
+    public interface OnAgentSelectedListener {
+        void onAgentSelected(@NonNull Agent agent);
     }
 }

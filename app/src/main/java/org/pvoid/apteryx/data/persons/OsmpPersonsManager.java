@@ -162,6 +162,8 @@ import java.util.concurrent.locks.ReentrantLock;
             if (mCurrentPerson == null && !mPersons.isEmpty()) {
                 mCurrentPerson = mPersons.firstEntry().getValue();
                 mCurrentAgent = null;
+                LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+                lbm.sendBroadcast(new Intent(ACTION_CURRENT_PERSON_CHANGED));
             }
             return mCurrentPerson;
         } finally {
@@ -203,6 +205,8 @@ import java.util.concurrent.locks.ReentrantLock;
                         for (Agent agent : agents) {
                             if (TextUtils.equals(agent.getId(), person.getAgentId())) {
                                 mCurrentAgent = agent;
+                                LocalBroadcastManager.getInstance(mContext)
+                                        .sendBroadcast(new Intent(ACTION_CURRENT_AGENT_CHANGED));
                                 break;
                             }
                         }

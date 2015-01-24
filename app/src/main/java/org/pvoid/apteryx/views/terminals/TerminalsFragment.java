@@ -40,6 +40,9 @@ import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.BuildConfig;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.accounts.AddAccountActivity;
+import org.pvoid.apteryx.data.agents.Agent;
+import org.pvoid.apteryx.data.persons.Person;
+import org.pvoid.apteryx.data.persons.PersonsManager;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.settings.SettingsManager;
 
@@ -84,7 +87,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         super.onStart();
         final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getActivity());
         final IntentFilter filter = new IntentFilter();
-        // TODO: filter.addAction(SettingsManager.ACTION_AGENT_CHANGED);
+        filter.addAction(PersonsManager.ACTION_CURRENT_AGENT_CHANGED);
         filter.addAction(TerminalsManager.ACTION_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
     }
@@ -104,14 +107,13 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
             return;
         }
         final TerminalsManager terminalsManager = graph.get(TerminalsManager.class);
-        final SettingsManager settingsManager = graph.get(SettingsManager.class);
-        final String login = settingsManager.getActiveLogin();
-        final String agentId = settingsManager.getActiveAgent();
+        final PersonsManager personsManager = graph.get(PersonsManager.class);
+        final Agent agent = personsManager.getCurrentAgent();
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
         View accountError = root.findViewById(R.id.empty_account_error);
 
-        if (login != null && mAdapter != null) {
-            mAdapter.setTerminals(terminalsManager.getTerminals(login, agentId));
+        if (agent != null && agent.getPersonLogin() !=  null && mAdapter != null) {
+            mAdapter.setTerminals(terminalsManager.getTerminals(agent.getPersonLogin(), agent.getId()));
             recyclerView.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
         } else {
@@ -136,7 +138,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
                 return;
             }
             switch (intent.getAction()) {
-                // TODO: case SettingsManager.ACTION_AGENT_CHANGED:
+                case PersonsManager.ACTION_CURRENT_AGENT_CHANGED:
                 case TerminalsManager.ACTION_CHANGED:
                     refillAdapter();
                     break;

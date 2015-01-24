@@ -45,7 +45,7 @@ import org.pvoid.apteryx.views.accounts.AccountsAdapter;
 
 import dagger.ObjectGraph;
 
-public class DrawerFragment extends Fragment implements DialogInterface.OnClickListener, DrawerAdapter.OnAccountSwitcherClickedListener {
+public class DrawerFragment extends Fragment implements DialogInterface.OnClickListener, DrawerAdapter.OnAccountSwitcherClickedListener, DrawerAdapter.OnAgentSelectedListener {
     private static final String TAG = "DrawerFragment";
 
     @NonNull private final AccountsChangeReceiver mReceiver = new AccountsChangeReceiver();
@@ -80,6 +80,7 @@ public class DrawerFragment extends Fragment implements DialogInterface.OnClickL
         drawerItems.setLayoutManager(new LinearLayoutManager(context));
         drawerItems.setAdapter(mDrawerAdapter);
         mDrawerAdapter.setSwitcherClickedListener(this);
+        mDrawerAdapter.setOnAgentSelectedListener(this);
     }
 
     @Override
@@ -153,16 +154,16 @@ public class DrawerFragment extends Fragment implements DialogInterface.OnClickL
         builder.create().show();
     }
 
-//    @Override
-//    public void onAgentSelected(@NonNull Agent agent) {
-//        if (mSettingsManager != null) {
-//            mSettingsManager.setActiveAgent(agent.getId());
-//        }
-//        Activity activity = getActivity();
-//        if (activity instanceof DrawerListener) {
-//            ((DrawerListener) activity).hideDrawer();
-//        }
-//    }
+    @Override
+    public void onAgentSelected(@NonNull Agent agent) {
+        if (mPersonsManager != null) {
+            mPersonsManager.setCurrentAgent(agent.getId());
+        }
+        Activity activity = getActivity();
+        if (activity instanceof DrawerListener) {
+            ((DrawerListener) activity).hideDrawer();
+        }
+    }
 
     private class AccountsChangeReceiver extends BroadcastReceiver {
         @Override
