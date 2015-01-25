@@ -196,20 +196,20 @@ public class OsmpPersonManagerTest {
         Assert.assertSame(persons[0], person);
         Assert.assertSame(person, manager.getCurrentPerson());
 
+        Mockito.reset(receiver);
         manager.setCurrentPerson("LOGIN100");
         Assert.assertSame(person, manager.getCurrentPerson());
         Mockito.verify(receiver, Mockito.never()).onReceive(Mockito.any(Context.class), Mockito.any(Intent.class));
-        Mockito.reset(receiver);
 
+        Mockito.reset(receiver);
         manager.setCurrentPerson("LOGIN0");
         Assert.assertSame(person, manager.getCurrentPerson());
         Mockito.verify(receiver, Mockito.never()).onReceive(Mockito.any(Context.class), Mockito.any(Intent.class));
-        Mockito.reset(receiver);
 
+        Mockito.reset(receiver);
         manager.setCurrentPerson("LOGIN1");
         Assert.assertSame(persons[1], manager.getCurrentPerson());
         Mockito.verify(receiver, Mockito.times(1)).onReceive(Mockito.any(Context.class), Mockito.any(Intent.class));
-        Mockito.reset(receiver);
     }
 
     @Test

@@ -23,6 +23,8 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalStatistics;
+import org.pvoid.apteryx.data.terminals.TerminalStatus;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -34,4 +36,6 @@ public interface Storage {
     @Nullable Agent[] getAgents() throws ExecutionException, InterruptedException;
     void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
     @Nullable Terminal[] getTerminals() throws ExecutionException, InterruptedException;
+    void storeTerminalStatuses(@NonNull TerminalStatus[] statuses);
+    void storeTerminalStatistics(@NonNull TerminalStatistics[] statistics);
 }
