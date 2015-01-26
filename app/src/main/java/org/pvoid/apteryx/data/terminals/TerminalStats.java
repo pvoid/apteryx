@@ -19,7 +19,7 @@ package org.pvoid.apteryx.data.terminals;
 
 import android.support.annotation.NonNull;
 
-public class TerminalStatistics {
+public class TerminalStats {
     @NonNull private final String mTerminalId; // trmId – идентификатор терминала;
     @NonNull private final String mAgentId; // agtId – идентификатор агента;
     private int mSystemUpTime; // systemUpTime – время работы ОС терминала;
@@ -33,10 +33,10 @@ public class TerminalStatistics {
     private long mTimeToPrinterPaperOut; // timeToPrinterPaperOut – оставшееся время до окончания бумаги в принтере;
     private long mTimeToPrinterService; // timeToPrinterService – оставшееся время до обслуживания принтера.
 
-    public TerminalStatistics(@NonNull String terminalId, @NonNull String agentId, int systemUpTime,
-                              int upTime, float paysPerHour, float billsPerPay, int cardReaderUsedHours,
-                              int cardReaderUsedDay, long timeToCashinFull, long timeToCashinService,
-                              long timeToPrinterPaperOut, long timeToPrinterService) {
+    public TerminalStats(@NonNull String terminalId, @NonNull String agentId, int systemUpTime,
+                         int upTime, float paysPerHour, float billsPerPay, int cardReaderUsedHours,
+                         int cardReaderUsedDay, long timeToCashinFull, long timeToCashinService,
+                         long timeToPrinterPaperOut, long timeToPrinterService) {
         mTerminalId = terminalId;
         mAgentId = agentId;
         mSystemUpTime = systemUpTime;

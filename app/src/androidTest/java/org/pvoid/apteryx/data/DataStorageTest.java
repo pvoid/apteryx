@@ -30,8 +30,8 @@ import org.mockito.Mockito;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
-import org.pvoid.apteryx.data.terminals.TerminalStatistics;
-import org.pvoid.apteryx.data.terminals.TerminalStatus;
+import org.pvoid.apteryx.data.terminals.TerminalState;
+import org.pvoid.apteryx.data.terminals.TerminalStats;
 import org.pvoid.apteryx.data.terminals.TerminalType;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -693,7 +693,7 @@ public class DataStorageTest {
 
     @Test
     public void storeTerminalStatusesCheck() throws Exception {
-        TerminalStatus[] statuses = new TerminalStatus[2];
+        TerminalState[] statuses = new TerminalState[2];
         DataStorage storage = new DataStorage(Robolectric.application);
         storage = Mockito.spy(storage);
         storage.storeTerminalStatuses(statuses);
@@ -704,8 +704,8 @@ public class DataStorageTest {
     }
 
     @Test
-    public void storeTerminalStatusesImpl() throws Exception {
-        TerminalStatus status = Mockito.mock(TerminalStatus.class);
+    public void storeTerminalStatusesImplCheck() throws Exception {
+        TerminalState status = Mockito.mock(TerminalState.class);
         Mockito.when(status.getId()).thenReturn("ID0");
         Mockito.when(status.getAgentId()).thenReturn("AGENT_ID0");
         Mockito.when(status.getLastActivity()).thenReturn(10000l);
@@ -720,13 +720,13 @@ public class DataStorageTest {
         Mockito.when(status.getDoorOpenCount()).thenReturn(30);
         Mockito.when(status.getEvent()).thenReturn(15);
         Mockito.when(status.getEventText()).thenReturn("EVENT0");
-        TerminalStatus failStatus = Mockito.mock(TerminalStatus.class);
+        TerminalState failStatus = Mockito.mock(TerminalState.class);
         RuntimeException ex = new RuntimeException("Booo!");
         Mockito.when(failStatus.getId()).thenThrow(ex);
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatusesImpl(new TerminalStatus[]{status, failStatus});
+            storage.storeTerminalStatusesImpl(new TerminalState[]{status, failStatus});
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -736,7 +736,7 @@ public class DataStorageTest {
         cursor.close();
         db.close();
 
-        storage.storeTerminalStatusesImpl(new TerminalStatus[] {status, null});
+        storage.storeTerminalStatusesImpl(new TerminalState[] {status, null});
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_state", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -762,8 +762,80 @@ public class DataStorageTest {
     }
 
     @Test
+    public void getTerminalStatusesImplCheck() throws Exception {
+        DataStorage storage = new DataStorage(Robolectric.application);
+        ContentValues values = new ContentValues();
+
+        SQLiteDatabase db = storage.getWritableDatabase();
+        values.put("id", "ID0");
+        values.put("agent_id", "AGENT_ID0");
+        values.put("last_activity", 1000l);
+        values.put("last_payment", 5000l);
+        values.put("machine_status", 500);
+        values.put("note_error", "NOTE_ERROR0");
+        values.put("printer_error", "PRINTER_ERROR0");
+        values.put("signal_level", "LEVEL0");
+        values.put("sim_balance", 2.4f);
+        values.put("door_alarm", 10);
+        values.put("door_open", 15);
+        values.put("event", 30);
+        values.put("event_text", "EVENT_TEXT0");
+        db.replace("terminals_state", null, values);
+        values.put("id", "ID1");
+        values.put("agent_id", "AGENT_ID1");
+        values.put("last_activity", 1001l);
+        values.put("last_payment", 5001l);
+        values.put("machine_status", 501);
+        values.put("note_error", "NOTE_ERROR1");
+        values.put("printer_error", "PRINTER_ERROR1");
+        values.put("signal_level", "LEVEL1");
+        values.put("sim_balance", 5.4f);
+        values.put("door_alarm", 11);
+        values.put("door_open", 16);
+        values.put("event", 31);
+        values.put("event_text", "EVENT_TEXT1");
+        db.replace("terminals_state", null, values);
+        db.close();
+
+        TerminalState statuses[] = storage.getTerminalStatusesImpl();
+        Assert.assertNotNull(statuses);
+        Assert.assertEquals(2, statuses.length);
+        TerminalState status = statuses[0];
+        Assert.assertNotNull(status);
+        Assert.assertEquals("ID0", status.getId());
+        Assert.assertEquals("AGENT_ID0", status.getAgentId());
+        Assert.assertEquals(1000l, status.getLastActivity());
+        Assert.assertEquals(5000l, status.getLastPayment());
+        Assert.assertEquals(500, status.getMachineStatus());
+        Assert.assertEquals("NOTE_ERROR0", status.getNoteError());
+        Assert.assertEquals("PRINTER_ERROR0", status.getPrinterError());
+        Assert.assertEquals("LEVEL0", status.getSignalLevel());
+        Assert.assertEquals(2.4f, status.getSimBalance(), 0);
+        Assert.assertEquals(10, status.getDoorAlarmCount());
+        Assert.assertEquals(15, status.getDoorOpenCount());
+        Assert.assertEquals(30, status.getEvent());
+        Assert.assertEquals("EVENT_TEXT0", status.getEventText());
+
+        status = statuses[1];
+        Assert.assertNotNull(status);
+        Assert.assertEquals("ID1", status.getId());
+        Assert.assertEquals("AGENT_ID1", status.getAgentId());
+        Assert.assertEquals(1001l, status.getLastActivity());
+        Assert.assertEquals(5001l, status.getLastPayment());
+        Assert.assertEquals(501, status.getMachineStatus());
+        Assert.assertEquals("NOTE_ERROR1", status.getNoteError());
+        Assert.assertEquals("PRINTER_ERROR1", status.getPrinterError());
+        Assert.assertEquals("LEVEL1", status.getSignalLevel());
+        Assert.assertEquals(5.4f, status.getSimBalance(), 0);
+        Assert.assertEquals(11, status.getDoorAlarmCount());
+        Assert.assertEquals(16, status.getDoorOpenCount());
+        Assert.assertEquals(31, status.getEvent());
+        Assert.assertEquals("EVENT_TEXT1", status.getEventText());
+    }
+
+    @Test
     public void storeTerminalStatsCheck() throws Exception {
-        TerminalStatistics[] stats = new TerminalStatistics[2];
+        TerminalStats[] stats = new TerminalStats[2];
         DataStorage storage = new DataStorage(Robolectric.application);
         storage = Mockito.spy(storage);
         storage.storeTerminalStatistics(stats);
@@ -775,7 +847,7 @@ public class DataStorageTest {
 
     @Test
     public void storeTerminalStatsImpl() throws Exception {
-        TerminalStatistics stat = Mockito.mock(TerminalStatistics.class);
+        TerminalStats stat = Mockito.mock(TerminalStats.class);
         Mockito.when(stat.getTerminalId()).thenReturn("TERMINAL_ID0");
         Mockito.when(stat.getAgentId()).thenReturn("AGENT_ID0");
         Mockito.when(stat.getSystemUpTime()).thenReturn(10000);
@@ -788,13 +860,13 @@ public class DataStorageTest {
         Mockito.when(stat.getTimeToCashinService()).thenReturn(800l);
         Mockito.when(stat.getTimeToPrinterPaperOut()).thenReturn(5000l);
         Mockito.when(stat.getTimeToPrinterService()).thenReturn(300l);
-        TerminalStatistics failStat = Mockito.mock(TerminalStatistics.class);
+        TerminalStats failStat = Mockito.mock(TerminalStats.class);
         RuntimeException ex = new RuntimeException("Booo!");
         Mockito.when(failStat.getTerminalId()).thenThrow(ex);
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatisticsImpl(new TerminalStatistics[]{stat, failStat});
+            storage.storeTerminalStatisticsImpl(new TerminalStats[]{stat, failStat});
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -804,7 +876,7 @@ public class DataStorageTest {
         cursor.close();
         db.close();
 
-        storage.storeTerminalStatisticsImpl(new TerminalStatistics[]{stat, null});
+        storage.storeTerminalStatisticsImpl(new TerminalStats[]{stat, null});
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_stat", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -825,5 +897,70 @@ public class DataStorageTest {
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
         db.close();
+    }
+
+    @Test
+    public void getTerminalStatisticsImplCheck() throws Exception {
+        DataStorage storage = new DataStorage(Robolectric.application);
+        ContentValues values = new ContentValues();
+
+        SQLiteDatabase db = storage.getWritableDatabase();
+        values.put("terminal_id", "TERMINAL_ID0");
+        values.put("agent_id", "AGENT_ID0");
+        values.put("system_up_time", 1000);
+        values.put("up_time", 2000);
+        values.put("pays_per_hour", 2.4f);
+        values.put("bills_per_pay", 5.8f);
+        values.put("card_reader_used_hours", 300);
+        values.put("card_reader_used_day", 450);
+        values.put("time_to_cachin_full", 1000l);
+        values.put("time_to_cachin_service", 2000l);
+        values.put("time_to_printer_out", 1500l);
+        values.put("time_to_printer_service", 2500l);
+        db.replace("terminals_stat", null, values);
+        values.put("terminal_id", "TERMINAL_ID1");
+        values.put("agent_id", "AGENT_ID1");
+        values.put("system_up_time", 1001);
+        values.put("up_time", 2001);
+        values.put("pays_per_hour", 3.2f);
+        values.put("bills_per_pay", 6.1f);
+        values.put("card_reader_used_hours", 301);
+        values.put("card_reader_used_day", 451);
+        values.put("time_to_cachin_full", 1001l);
+        values.put("time_to_cachin_service", 2001l);
+        values.put("time_to_printer_out", 1501l);
+        values.put("time_to_printer_service", 2501l);
+        db.replace("terminals_stat", null, values);
+        db.close();
+
+        TerminalStats stats[] = storage.getTerminalStatisticsImpl();
+        Assert.assertNotNull(stats);
+        Assert.assertEquals(2, stats.length);
+        TerminalStats stat = stats[0];
+        Assert.assertEquals("TERMINAL_ID0", stat.getTerminalId());
+        Assert.assertEquals("AGENT_ID0", stat.getAgentId());
+        Assert.assertEquals(1000, stat.getSystemUpTime());
+        Assert.assertEquals(2000, stat.getUpTime());
+        Assert.assertEquals(2.4f, stat.getPaysPerHour(), 0);
+        Assert.assertEquals(5.8f, stat.getBillsPerPay(), 0);
+        Assert.assertEquals(300, stat.getCardReaderUsedHours());
+        Assert.assertEquals(450, stat.getCardReaderUsedDay());
+        Assert.assertEquals(1000l, stat.getTimeToCashinFull());
+        Assert.assertEquals(2000l, stat.getTimeToCashinService());
+        Assert.assertEquals(1500l, stat.getTimeToPrinterPaperOut());
+        Assert.assertEquals(2500l, stat.getTimeToPrinterService());
+        stat = stats[1];
+        Assert.assertEquals("TERMINAL_ID1", stat.getTerminalId());
+        Assert.assertEquals("AGENT_ID1", stat.getAgentId());
+        Assert.assertEquals(1001, stat.getSystemUpTime());
+        Assert.assertEquals(2001, stat.getUpTime());
+        Assert.assertEquals(3.2f, stat.getPaysPerHour(), 0);
+        Assert.assertEquals(6.1f, stat.getBillsPerPay(), 0);
+        Assert.assertEquals(301, stat.getCardReaderUsedHours());
+        Assert.assertEquals(451, stat.getCardReaderUsedDay());
+        Assert.assertEquals(1001l, stat.getTimeToCashinFull());
+        Assert.assertEquals(2001l, stat.getTimeToCashinService());
+        Assert.assertEquals(1501l, stat.getTimeToPrinterPaperOut());
+        Assert.assertEquals(2501l, stat.getTimeToPrinterService());
     }
 }

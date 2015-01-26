@@ -20,7 +20,7 @@ package org.pvoid.apteryx.data.terminals;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class TerminalStatus {
+public class TerminalState {
     @NonNull private final String mId; // trmId – идентификатор терминала;
     @NonNull private final String mAgentId; // agtId – идентификатор агента;
     private long mLastActivity; // lastActivityTime – время последней активности (время последнего ping, отправленного с данного терминала);
@@ -37,11 +37,11 @@ public class TerminalStatus {
     private String mEventText; // wdtEventText – описание бита состояния терминала (атрибут возвращается, если wdtEvent не равен 0). См. Приложение К.
 
 
-    public TerminalStatus(@NonNull String id, @NonNull String agentId, long lastActivity,
-                          long lastPayment, int machineStatus, String noteError,
-                          @Nullable String printerError, @Nullable String cardReaderStatus,
-                          @Nullable String signalLevel, float simBalance, int doorAlarmCount,
-                          int doorOpenCount, int event, String eventText) {
+    public TerminalState(@NonNull String id, @NonNull String agentId, long lastActivity,
+                         long lastPayment, int machineStatus, String noteError,
+                         @Nullable String printerError, @Nullable String cardReaderStatus,
+                         @Nullable String signalLevel, float simBalance, int doorAlarmCount,
+                         int doorOpenCount, int event, String eventText) {
         mId = id;
         mAgentId = agentId;
         mLastActivity = lastActivity;

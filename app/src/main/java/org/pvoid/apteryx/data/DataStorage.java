@@ -33,8 +33,8 @@ import android.support.v4.util.Pair;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
-import org.pvoid.apteryx.data.terminals.TerminalStatistics;
-import org.pvoid.apteryx.data.terminals.TerminalStatus;
+import org.pvoid.apteryx.data.terminals.TerminalState;
+import org.pvoid.apteryx.data.terminals.TerminalStats;
 import org.pvoid.apteryx.data.terminals.TerminalType;
 
 import java.util.concurrent.CountDownLatch;
@@ -50,8 +50,8 @@ import java.util.concurrent.TimeoutException;
     /* package */ static final String DB_NAME = "apteryx";
     /* package */ static final int DB_VERSION = 1;
 
-    private static interface Persons {
-        static final String TABLE_NAME = "persons";
+    private static interface PersonsTable {
+        static final String NAME = "persons";
         static final String COLUMN_LOGIN = "login";
         static final String COLUMN_PASSWORD = "password";
         static final String COLUMN_TERMINAL = "terminal";
@@ -72,8 +72,8 @@ import java.util.concurrent.TimeoutException;
         static final int COLUMN_VERIFIED_INDEX = 6;
     }
 
-    private static interface Agents {
-        static final String TABLE_NAME = "agents";
+    private static interface AgentsTable {
+        static final String NAME = "agents";
         static final String COLUMN_AGENT_ID = "agent_id";
         static final String COLUMN_PARENT_ID = "parent_id";
         static final String COLUMN_PERSON_LOGIN = "person_login";
@@ -103,8 +103,8 @@ import java.util.concurrent.TimeoutException;
         static final int COLUMN_TAX_REGNUM_INDEX = 10;
     }
 
-    private static interface Terminals {
-        static final String TABLE_NAME = "terminals";
+    private static interface TerminalsTable {
+        static final String NAME = "terminals";
         static final String COLUMN_ID = "id";
         static final String COLUMN_TYPE = "type";
         static final String COLUMN_SERIAL = "serial";
@@ -136,8 +136,8 @@ import java.util.concurrent.TimeoutException;
         static final int COLUMN_PERSON_ID_INDEX = 11;
     }
 
-    private static interface TerminalsState {
-        static final String TABLE_NAME = "terminals_state";
+    private static interface TerminalsStateTable {
+        static final String NAME = "terminals_state";
         static final String COLUMN_TERMINAL_ID = "id";
         static final String COLUMN_AGENT_ID = "agent_id";
         static final String COLUMN_LAST_ACTIVITY = "last_activity";
@@ -174,8 +174,8 @@ import java.util.concurrent.TimeoutException;
         static final int COLUMN_EVENT_TEXT_INDEX = 13;
     }
 
-    private static interface TerminalStatistic {
-        static final String TABLE_NAME = "terminals_stat";
+    private static interface TerminalsStatsTable {
+        static final String NAME = "terminals_stat";
         static final String COLUMN_TERMINAL_ID = "terminal_id";
         static final String COLUMN_AGENT_ID = "agent_id";
         static final String COLUMN_SYSTEM_UPTIME = "system_up_time";
@@ -200,8 +200,8 @@ import java.util.concurrent.TimeoutException;
         static final int COLUMN_AGENT_ID_INDEX = 1;
         static final int COLUMN_SYSTEM_UPTIME_INDEX = 2;
         static final int COLUMN_UPTIME_INDEX = 3;
-        static final int COLUMN_PAY_PER_DAY_INDEX = 4;
-        static final int COLUMN_BILL_PER_DAY_INDEX = 5;
+        static final int COLUMN_PAY_PER_HR_INDEX = 4;
+        static final int COLUMN_BILL_PER_PAY_INDEX = 5;
         static final int COLUMN_CARD_READER_USED_HR_INDEX = 6;
         static final int COLUMN_CARD_READER_USED_DAY_INDEX = 7;
         static final int COLUMN_TIME_TO_CACHIN_FULL_INDEX = 8;
@@ -277,13 +277,13 @@ import java.util.concurrent.TimeoutException;
     }
 
     @Override
-    public void storeTerminalStatuses(@NonNull TerminalStatus[] statuses) {
+    public void storeTerminalStatuses(@NonNull TerminalState[] statuses) {
         Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATUS, statuses);
         mHandler.sendMessage(msg);
     }
 
     @Override
-    public void storeTerminalStatistics(@NonNull TerminalStatistics[] statistics) {
+    public void storeTerminalStatistics(@NonNull TerminalStats[] statistics) {
         Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATS, statistics);
         mHandler.sendMessage(msg);
     }
@@ -294,73 +294,73 @@ import java.util.concurrent.TimeoutException;
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + Persons.TABLE_NAME + "(" +
-                        Persons.COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        Persons.COLUMN_PASSWORD + " TEXT, " +
-                        Persons.COLUMN_TERMINAL + " TEXT, " +
-                        Persons.COLUMN_NAME + " TEXT," +
-                        Persons.COLUMN_AGENT_ID + " TEXT," +
-                        Persons.COLUMN_VERIFIED + " INTEGER, " +
-                        Persons.COLUMN_ENABLED + " INTEGER);"
+        db.execSQL("CREATE TABLE " + PersonsTable.NAME + "(" +
+                        PersonsTable.COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        PersonsTable.COLUMN_PASSWORD + " TEXT, " +
+                        PersonsTable.COLUMN_TERMINAL + " TEXT, " +
+                        PersonsTable.COLUMN_NAME + " TEXT," +
+                        PersonsTable.COLUMN_AGENT_ID + " TEXT," +
+                        PersonsTable.COLUMN_VERIFIED + " INTEGER, " +
+                        PersonsTable.COLUMN_ENABLED + " INTEGER);"
         );
-        db.execSQL("CREATE TABLE " + Agents.TABLE_NAME + "(" +
-                        Agents.COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        Agents.COLUMN_PARENT_ID + " TEXT, " +
-                        Agents.COLUMN_PERSON_LOGIN + " TEXT, " +
-                        Agents.COLUMN_INN + " TEXT, " +
-                        Agents.COLUMN_JUR_ADDRESS + " TEXT, " +
-                        Agents.COLUMN_PHYS_ADDRESS + " TEXT, " +
-                        Agents.COLUMN_NAME + " TEXT, " +
-                        Agents.COLUMN_CITY + " TEXT, " +
-                        Agents.COLUMN_FISCAL_MODE + " TEXT, " +
-                        Agents.COLUMN_KMM + " TEXT, " +
-                        Agents.COLUMN_TAX_REGNUM + " TEXT);"
+        db.execSQL("CREATE TABLE " + AgentsTable.NAME + "(" +
+                        AgentsTable.COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        AgentsTable.COLUMN_PARENT_ID + " TEXT, " +
+                        AgentsTable.COLUMN_PERSON_LOGIN + " TEXT, " +
+                        AgentsTable.COLUMN_INN + " TEXT, " +
+                        AgentsTable.COLUMN_JUR_ADDRESS + " TEXT, " +
+                        AgentsTable.COLUMN_PHYS_ADDRESS + " TEXT, " +
+                        AgentsTable.COLUMN_NAME + " TEXT, " +
+                        AgentsTable.COLUMN_CITY + " TEXT, " +
+                        AgentsTable.COLUMN_FISCAL_MODE + " TEXT, " +
+                        AgentsTable.COLUMN_KMM + " TEXT, " +
+                        AgentsTable.COLUMN_TAX_REGNUM + " TEXT);"
         );
-        db.execSQL("CREATE TABLE " + Terminals.TABLE_NAME + "(" +
-                        Terminals.COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        Terminals.COLUMN_TYPE + " INTEGER, " +
-                        Terminals.COLUMN_SERIAL + " TEXT, " +
-                        Terminals.COLUMN_NAME + " TEXT, " +
-                        Terminals.COLUMN_WHO + " TEXT, " +
-                        Terminals.COLUMN_WORK_TIME + " TEXT, " +
-                        Terminals.COLUMN_AGENT_ID + " TEXT, " +
-                        Terminals.COLUMN_CITY + " TEXT, " +
-                        Terminals.COLUMN_CITY_ID + " INTEGER, " +
-                        Terminals.COLUMN_DISPLAY_ADDRESS + " TEXT, " +
-                        Terminals.COLUMN_MAIN_ADDRESS + " TEXT, " +
-                        Terminals.COLUMN_PERSON_ID + " TEXT);"
-        );
-
-        db.execSQL("CREATE TABLE " + TerminalsState.TABLE_NAME + "(" +
-                TerminalsState.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                TerminalsState.COLUMN_AGENT_ID + " TEXT, " +
-                TerminalsState.COLUMN_LAST_ACTIVITY + " INTEGER, " +
-                TerminalsState.COLUMN_LAST_PAYMENT + " INTEGER, " +
-                TerminalsState.COLUMN_STATUS + " INTEGER, " +
-                TerminalsState.COLUMN_NOTE_ERROR + " TEXT, " +
-                TerminalsState.COLUMN_PRINTER_ERROR + " TEXT, " +
-                TerminalsState.COLUMN_CARD_READER_STATUS + " TEXT, " +
-                TerminalsState.COLUMN_SIGNAL_LEVEL + " TEXT, " +
-                TerminalsState.COLUMN_SIM_BALANCE + " REAL, " +
-                TerminalsState.COLUMN_DOOR_ALARM + " INTEGER, " +
-                TerminalsState.COLUMN_DOOR_OPEN + " INTEGER, " +
-                TerminalsState.COLUMN_EVENT + " INTEGER, " +
-                TerminalsState.COLUMN_EVENT_TEXT + " TEXT);"
+        db.execSQL("CREATE TABLE " + TerminalsTable.NAME + "(" +
+                        TerminalsTable.COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                        TerminalsTable.COLUMN_TYPE + " INTEGER, " +
+                        TerminalsTable.COLUMN_SERIAL + " TEXT, " +
+                        TerminalsTable.COLUMN_NAME + " TEXT, " +
+                        TerminalsTable.COLUMN_WHO + " TEXT, " +
+                        TerminalsTable.COLUMN_WORK_TIME + " TEXT, " +
+                        TerminalsTable.COLUMN_AGENT_ID + " TEXT, " +
+                        TerminalsTable.COLUMN_CITY + " TEXT, " +
+                        TerminalsTable.COLUMN_CITY_ID + " INTEGER, " +
+                        TerminalsTable.COLUMN_DISPLAY_ADDRESS + " TEXT, " +
+                        TerminalsTable.COLUMN_MAIN_ADDRESS + " TEXT, " +
+                        TerminalsTable.COLUMN_PERSON_ID + " TEXT);"
         );
 
-        db.execSQL("CREATE TABLE " + TerminalStatistic.TABLE_NAME + "(" +
-                TerminalStatistic.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                TerminalStatistic.COLUMN_AGENT_ID + " TEXT, " +
-                TerminalStatistic.COLUMN_SYSTEM_UPTIME + " INTEGER, " +
-                TerminalStatistic.COLUMN_UPTIME + " INTEGER, " +
-                TerminalStatistic.COLUMN_PAY_PER_HR + " REAL, " +
-                TerminalStatistic.COLUMN_BILL_PER_PAY + " REAL, " +
-                TerminalStatistic.COLUMN_CARD_READER_USED_HR + " INTEGER, " +
-                TerminalStatistic.COLUMN_CARD_READER_USED_DAY + " INTEGER, " +
-                TerminalStatistic.COLUMN_TIME_TO_CACHIN_FULL + " INTEGER, " +
-                TerminalStatistic.COLUMN_TIME_TO_CACHIN_SERVICE + " INTEGER, " +
-                TerminalStatistic.COLUMN_TIME_TO_PRINTER_OUT + " INTEGER, " +
-                TerminalStatistic.COLUMN_TIME_TO_PRINTER_SERVICE + " INTEGER);"
+        db.execSQL("CREATE TABLE " + TerminalsStateTable.NAME + "(" +
+                TerminalsStateTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                TerminalsStateTable.COLUMN_AGENT_ID + " TEXT, " +
+                TerminalsStateTable.COLUMN_LAST_ACTIVITY + " INTEGER, " +
+                TerminalsStateTable.COLUMN_LAST_PAYMENT + " INTEGER, " +
+                TerminalsStateTable.COLUMN_STATUS + " INTEGER, " +
+                TerminalsStateTable.COLUMN_NOTE_ERROR + " TEXT, " +
+                TerminalsStateTable.COLUMN_PRINTER_ERROR + " TEXT, " +
+                TerminalsStateTable.COLUMN_CARD_READER_STATUS + " TEXT, " +
+                TerminalsStateTable.COLUMN_SIGNAL_LEVEL + " TEXT, " +
+                TerminalsStateTable.COLUMN_SIM_BALANCE + " REAL, " +
+                TerminalsStateTable.COLUMN_DOOR_ALARM + " INTEGER, " +
+                TerminalsStateTable.COLUMN_DOOR_OPEN + " INTEGER, " +
+                TerminalsStateTable.COLUMN_EVENT + " INTEGER, " +
+                TerminalsStateTable.COLUMN_EVENT_TEXT + " TEXT);"
+        );
+
+        db.execSQL("CREATE TABLE " + TerminalsStatsTable.NAME + "(" +
+                TerminalsStatsTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                TerminalsStatsTable.COLUMN_AGENT_ID + " TEXT, " +
+                TerminalsStatsTable.COLUMN_SYSTEM_UPTIME + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_UPTIME + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_PAY_PER_HR + " REAL, " +
+                TerminalsStatsTable.COLUMN_BILL_PER_PAY + " REAL, " +
+                TerminalsStatsTable.COLUMN_CARD_READER_USED_HR + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_CARD_READER_USED_DAY + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_FULL + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_SERVICE + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_OUT + " INTEGER, " +
+                TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_SERVICE + " INTEGER);"
         );
     }
 
@@ -373,14 +373,14 @@ import java.util.concurrent.TimeoutException;
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            values.put(Persons.COLUMN_LOGIN, person.getLogin());
-            values.put(Persons.COLUMN_PASSWORD, person.getPasswordHash());
-            values.put(Persons.COLUMN_TERMINAL, person.getTerminal());
-            values.put(Persons.COLUMN_NAME, person.getName());
-            values.put(Persons.COLUMN_AGENT_ID, person.getAgentId());
-            values.put(Persons.COLUMN_ENABLED, person.isEnabled());
-            values.put(Persons.COLUMN_VERIFIED, person.isVerified());
-            db.replace(Persons.TABLE_NAME, null, values);
+            values.put(PersonsTable.COLUMN_LOGIN, person.getLogin());
+            values.put(PersonsTable.COLUMN_PASSWORD, person.getPasswordHash());
+            values.put(PersonsTable.COLUMN_TERMINAL, person.getTerminal());
+            values.put(PersonsTable.COLUMN_NAME, person.getName());
+            values.put(PersonsTable.COLUMN_AGENT_ID, person.getAgentId());
+            values.put(PersonsTable.COLUMN_ENABLED, person.isEnabled());
+            values.put(PersonsTable.COLUMN_VERIFIED, person.isVerified());
+            db.replace(PersonsTable.NAME, null, values);
         } finally {
             db.close();
         }
@@ -391,7 +391,7 @@ import java.util.concurrent.TimeoutException;
         SQLiteDatabase db = getReadableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            Cursor cursor = db.query(Persons.TABLE_NAME, Persons.ALL_COLUMNS, null, null, null, null, null);
+            Cursor cursor = db.query(PersonsTable.NAME, PersonsTable.ALL_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
                 return null;
             }
@@ -399,13 +399,13 @@ import java.util.concurrent.TimeoutException;
                 Person[] result = new Person[cursor.getCount()];
                 int index = 0;
                 while (cursor.moveToNext()) {
-                    result[index++] = new Person(cursor.getString(Persons.COLUMN_LOGIN_INDEX),
-                            cursor.getString(Persons.COLUMN_PASSWORD_INDEX),
-                            cursor.getString(Persons.COLUMN_TERMINAL_INDEX),
-                            cursor.getString(Persons.COLUMN_AGENT_ID_INDEX),
-                            cursor.getString(Persons.COLUMN_NAME_INDEX),
-                            cursor.getInt(Persons.COLUMN_ENABLED_INDEX) == 1,
-                            cursor.getInt(Persons.COLUMN_VERIFIED_INDEX) == 1);
+                    result[index++] = new Person(cursor.getString(PersonsTable.COLUMN_LOGIN_INDEX),
+                            cursor.getString(PersonsTable.COLUMN_PASSWORD_INDEX),
+                            cursor.getString(PersonsTable.COLUMN_TERMINAL_INDEX),
+                            cursor.getString(PersonsTable.COLUMN_AGENT_ID_INDEX),
+                            cursor.getString(PersonsTable.COLUMN_NAME_INDEX),
+                            cursor.getInt(PersonsTable.COLUMN_ENABLED_INDEX) == 1,
+                            cursor.getInt(PersonsTable.COLUMN_VERIFIED_INDEX) == 1);
                 }
                 return result;
             } finally {
@@ -427,18 +427,18 @@ import java.util.concurrent.TimeoutException;
                     continue;
                 }
                 values.clear();
-                values.put(Agents.COLUMN_AGENT_ID, agent.getId());
-                values.put(Agents.COLUMN_PARENT_ID, agent.getParentId());
-                values.put(Agents.COLUMN_INN, agent.getINN());
-                values.put(Agents.COLUMN_JUR_ADDRESS, agent.getJurAddress());
-                values.put(Agents.COLUMN_PHYS_ADDRESS, agent.getPhysAddress());
-                values.put(Agents.COLUMN_NAME, agent.getName());
-                values.put(Agents.COLUMN_CITY, agent.getCity());
-                values.put(Agents.COLUMN_FISCAL_MODE, agent.getFiscalMode());
-                values.put(Agents.COLUMN_KMM, agent.getKMM());
-                values.put(Agents.COLUMN_TAX_REGNUM, agent.getTaxRegnum());
-                values.put(Agents.COLUMN_PERSON_LOGIN, agent.getPersonLogin());
-                db.replace(Agents.TABLE_NAME, null, values);
+                values.put(AgentsTable.COLUMN_AGENT_ID, agent.getId());
+                values.put(AgentsTable.COLUMN_PARENT_ID, agent.getParentId());
+                values.put(AgentsTable.COLUMN_INN, agent.getINN());
+                values.put(AgentsTable.COLUMN_JUR_ADDRESS, agent.getJurAddress());
+                values.put(AgentsTable.COLUMN_PHYS_ADDRESS, agent.getPhysAddress());
+                values.put(AgentsTable.COLUMN_NAME, agent.getName());
+                values.put(AgentsTable.COLUMN_CITY, agent.getCity());
+                values.put(AgentsTable.COLUMN_FISCAL_MODE, agent.getFiscalMode());
+                values.put(AgentsTable.COLUMN_KMM, agent.getKMM());
+                values.put(AgentsTable.COLUMN_TAX_REGNUM, agent.getTaxRegnum());
+                values.put(AgentsTable.COLUMN_PERSON_LOGIN, agent.getPersonLogin());
+                db.replace(AgentsTable.NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -453,24 +453,24 @@ import java.util.concurrent.TimeoutException;
         Cursor cursor = null;
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            cursor = db.query(Agents.TABLE_NAME, Agents.ALL_COLUMNS, null, null, null,null, null);
+            cursor = db.query(AgentsTable.NAME, AgentsTable.ALL_COLUMNS, null, null, null,null, null);
             if (cursor == null) {
                 return null;
             }
             Agent[] result = new Agent[cursor.getCount()];
             int index = 0;
             while (cursor.moveToNext()) {
-                result[index++] = new Agent(cursor.getString(Agents.COLUMN_PERSON_LOGIN_INDEX),
-                        cursor.getString(Agents.COLUMN_AGENT_ID_INDEX),
-                        cursor.getString(Agents.COLUMN_PARENT_ID_INDEX),
-                        cursor.getString(Agents.COLUMN_INN_INDEX),
-                        cursor.getString(Agents.COLUMN_JUR_ADDRESS_INDEX),
-                        cursor.getString(Agents.COLUMN_PHYS_ADDRESS_INDEX),
-                        cursor.getString(Agents.COLUMN_NAME_INDEX),
-                        cursor.getString(Agents.COLUMN_CITY_INDEX),
-                        cursor.getString(Agents.COLUMN_FISCAL_MODE_INDEX),
-                        cursor.getString(Agents.COLUMN_KMM_INDEX),
-                        cursor.getString(Agents.COLUMN_TAX_REGNUM_INDEX));
+                result[index++] = new Agent(cursor.getString(AgentsTable.COLUMN_PERSON_LOGIN_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_AGENT_ID_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_PARENT_ID_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_INN_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_JUR_ADDRESS_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_PHYS_ADDRESS_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_NAME_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_CITY_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_FISCAL_MODE_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_KMM_INDEX),
+                        cursor.getString(AgentsTable.COLUMN_TAX_REGNUM_INDEX));
             }
             return result;
         } finally {
@@ -492,19 +492,19 @@ import java.util.concurrent.TimeoutException;
                     continue;
                 }
                 values.clear();
-                values.put(Terminals.COLUMN_ID, terminal.getId());
-                values.put(Terminals.COLUMN_TYPE, terminal.getType().id);
-                values.put(Terminals.COLUMN_SERIAL, terminal.getSerial());
-                values.put(Terminals.COLUMN_NAME, terminal.getDisplayName());
-                values.put(Terminals.COLUMN_WHO, terminal.getWhoAdded());
-                values.put(Terminals.COLUMN_WORK_TIME, terminal.getWorkTime());
-                values.put(Terminals.COLUMN_AGENT_ID, terminal.getAgentId());
-                values.put(Terminals.COLUMN_CITY, terminal.getCity());
-                values.put(Terminals.COLUMN_CITY_ID, terminal.getCityId());
-                values.put(Terminals.COLUMN_DISPLAY_ADDRESS, terminal.getDisplayAddress());
-                values.put(Terminals.COLUMN_MAIN_ADDRESS, terminal.getMainAddress());
-                values.put(Terminals.COLUMN_PERSON_ID, personId);
-                db.replace(Terminals.TABLE_NAME, null, values);
+                values.put(TerminalsTable.COLUMN_ID, terminal.getId());
+                values.put(TerminalsTable.COLUMN_TYPE, terminal.getType().id);
+                values.put(TerminalsTable.COLUMN_SERIAL, terminal.getSerial());
+                values.put(TerminalsTable.COLUMN_NAME, terminal.getDisplayName());
+                values.put(TerminalsTable.COLUMN_WHO, terminal.getWhoAdded());
+                values.put(TerminalsTable.COLUMN_WORK_TIME, terminal.getWorkTime());
+                values.put(TerminalsTable.COLUMN_AGENT_ID, terminal.getAgentId());
+                values.put(TerminalsTable.COLUMN_CITY, terminal.getCity());
+                values.put(TerminalsTable.COLUMN_CITY_ID, terminal.getCityId());
+                values.put(TerminalsTable.COLUMN_DISPLAY_ADDRESS, terminal.getDisplayAddress());
+                values.put(TerminalsTable.COLUMN_MAIN_ADDRESS, terminal.getMainAddress());
+                values.put(TerminalsTable.COLUMN_PERSON_ID, personId);
+                db.replace(TerminalsTable.NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -518,7 +518,7 @@ import java.util.concurrent.TimeoutException;
         SQLiteDatabase db = getReadableDatabase();
         //noinspection TryFinallyCanBeTryWithResources
         try {
-            Cursor cursor = db.query(Terminals.TABLE_NAME, Terminals.ALL_COLUMNS, null, null, null, null, null);
+            Cursor cursor = db.query(TerminalsTable.NAME, TerminalsTable.ALL_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
                 return null;
             }
@@ -526,18 +526,18 @@ import java.util.concurrent.TimeoutException;
                 Terminal result[] = new Terminal[cursor.getCount()];
                 int index = 0;
                 while (cursor.moveToNext()) {
-                    result[index] = new Terminal(cursor.getString(Terminals.COLUMN_ID_INDEX),
-                            cursor.getString(Terminals.COLUMN_AGENT_ID_INDEX),
-                            TerminalType.fromId(cursor.getInt(Terminals.COLUMN_TYPE_INDEX)),
-                            cursor.getString(Terminals.COLUMN_SERIAL_INDEX),
-                            cursor.getString(Terminals.COLUMN_NAME_INDEX),
-                            cursor.getString(Terminals.COLUMN_WHO_INDEX),
-                            cursor.getString(Terminals.COLUMN_WORK_TIME_INDEX));
-                    result[index].setAddress(cursor.getString(Terminals.COLUMN_DISPLAY_ADDRESS_INDEX),
-                            cursor.getString(Terminals.COLUMN_MAIN_ADDRESS_INDEX));
-                    result[index].setCity(cursor.getInt(Terminals.COLUMN_CITY_ID_INDEX),
-                            cursor.getString(Terminals.COLUMN_CITY_INDEX));
-                    result[index].setPersonId(cursor.getString(Terminals.COLUMN_PERSON_ID_INDEX));
+                    result[index] = new Terminal(cursor.getString(TerminalsTable.COLUMN_ID_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_AGENT_ID_INDEX),
+                            TerminalType.fromId(cursor.getInt(TerminalsTable.COLUMN_TYPE_INDEX)),
+                            cursor.getString(TerminalsTable.COLUMN_SERIAL_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_NAME_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_WHO_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_WORK_TIME_INDEX));
+                    result[index].setAddress(cursor.getString(TerminalsTable.COLUMN_DISPLAY_ADDRESS_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_MAIN_ADDRESS_INDEX));
+                    result[index].setCity(cursor.getInt(TerminalsTable.COLUMN_CITY_ID_INDEX),
+                            cursor.getString(TerminalsTable.COLUMN_CITY_INDEX));
+                    result[index].setPersonId(cursor.getString(TerminalsTable.COLUMN_PERSON_ID_INDEX));
                     ++index;
                 }
                 return result;
@@ -549,31 +549,31 @@ import java.util.concurrent.TimeoutException;
         }
     }
 
-    /* package */ void storeTerminalStatusesImpl(TerminalStatus[] statuses) {
+    /* package */ void storeTerminalStatusesImpl(TerminalState[] statuses) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            for (TerminalStatus status : statuses) {
+            for (TerminalState status : statuses) {
                 if (status == null) {
                     continue;
                 }
-                values.put(TerminalsState.COLUMN_TERMINAL_ID, status.getId());
-                values.put(TerminalsState.COLUMN_AGENT_ID, status.getAgentId());
-                values.put(TerminalsState.COLUMN_LAST_ACTIVITY, status.getLastActivity());
-                values.put(TerminalsState.COLUMN_LAST_PAYMENT, status.getLastPayment());
-                values.put(TerminalsState.COLUMN_STATUS, status.getMachineStatus());
-                values.put(TerminalsState.COLUMN_NOTE_ERROR, status.getNoteError());
-                values.put(TerminalsState.COLUMN_PRINTER_ERROR, status.getPrinterError());
-                values.put(TerminalsState.COLUMN_CARD_READER_STATUS, status.getCardReaderStatus());
-                values.put(TerminalsState.COLUMN_SIGNAL_LEVEL, status.getSignalLevel());
-                values.put(TerminalsState.COLUMN_SIM_BALANCE, status.getSimBalance());
-                values.put(TerminalsState.COLUMN_DOOR_ALARM, status.getDoorAlarmCount());
-                values.put(TerminalsState.COLUMN_DOOR_OPEN, status.getDoorOpenCount());
-                values.put(TerminalsState.COLUMN_EVENT, status.getEvent());
-                values.put(TerminalsState.COLUMN_EVENT_TEXT, status.getEventText());
-                db.replace(TerminalsState.TABLE_NAME, null, values);
+                values.put(TerminalsStateTable.COLUMN_TERMINAL_ID, status.getId());
+                values.put(TerminalsStateTable.COLUMN_AGENT_ID, status.getAgentId());
+                values.put(TerminalsStateTable.COLUMN_LAST_ACTIVITY, status.getLastActivity());
+                values.put(TerminalsStateTable.COLUMN_LAST_PAYMENT, status.getLastPayment());
+                values.put(TerminalsStateTable.COLUMN_STATUS, status.getMachineStatus());
+                values.put(TerminalsStateTable.COLUMN_NOTE_ERROR, status.getNoteError());
+                values.put(TerminalsStateTable.COLUMN_PRINTER_ERROR, status.getPrinterError());
+                values.put(TerminalsStateTable.COLUMN_CARD_READER_STATUS, status.getCardReaderStatus());
+                values.put(TerminalsStateTable.COLUMN_SIGNAL_LEVEL, status.getSignalLevel());
+                values.put(TerminalsStateTable.COLUMN_SIM_BALANCE, status.getSimBalance());
+                values.put(TerminalsStateTable.COLUMN_DOOR_ALARM, status.getDoorAlarmCount());
+                values.put(TerminalsStateTable.COLUMN_DOOR_OPEN, status.getDoorOpenCount());
+                values.put(TerminalsStateTable.COLUMN_EVENT, status.getEvent());
+                values.put(TerminalsStateTable.COLUMN_EVENT_TEXT, status.getEventText());
+                db.replace(TerminalsStateTable.NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -582,33 +582,102 @@ import java.util.concurrent.TimeoutException;
         }
     }
 
-    /* package */ void storeTerminalStatisticsImpl(TerminalStatistics[] stats) {
+    @Nullable
+    /* package */ TerminalState[] getTerminalStatusesImpl() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = null;
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            cursor = db.query(TerminalsStateTable.NAME, TerminalsStateTable.ALL_COLUMNS, null, null, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
+            TerminalState[] result = new TerminalState[cursor.getCount()];
+            for (int index = 0; cursor.moveToNext(); ++index) {
+                result[index] = new TerminalState(cursor.getString(TerminalsStateTable.COLUMN_TERMINAL_ID_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_AGENT_ID_INDEX),
+                        cursor.getLong(TerminalsStateTable.COLUMN_LAST_ACTIVITY_INDEX),
+                        cursor.getLong(TerminalsStateTable.COLUMN_LAST_PAYMENT_INDEX),
+                        cursor.getInt(TerminalsStateTable.COLUMN_STATUS_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_NOTE_ERROR_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_PRINTER_ERROR_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_CARD_READER_STATUS_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_SIGNAL_LEVEL_INDEX),
+                        cursor.getFloat(TerminalsStateTable.COLUMN_SIM_BALANCE_INDEX),
+                        cursor.getInt(TerminalsStateTable.COLUMN_DOOR_ALARM_INDEX),
+                        cursor.getInt(TerminalsStateTable.COLUMN_DOOR_OPEN_INDEX),
+                        cursor.getInt(TerminalsStateTable.COLUMN_EVENT_INDEX),
+                        cursor.getString(TerminalsStateTable.COLUMN_EVENT_TEXT_INDEX));
+            }
+            return result;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+
+    /* package */ void storeTerminalStatisticsImpl(TerminalStats[] stats) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
-            for (TerminalStatistics stat : stats) {
+            for (TerminalStats stat : stats) {
                 if (stat == null) {
                     continue;
                 }
-                values.put(TerminalStatistic.COLUMN_TERMINAL_ID, stat.getTerminalId());
-                values.put(TerminalStatistic.COLUMN_AGENT_ID, stat.getAgentId());
-                values.put(TerminalStatistic.COLUMN_SYSTEM_UPTIME, stat.getSystemUpTime());
-                values.put(TerminalStatistic.COLUMN_UPTIME, stat.getUpTime());
-                values.put(TerminalStatistic.COLUMN_PAY_PER_HR, stat.getPaysPerHour());
-                values.put(TerminalStatistic.COLUMN_BILL_PER_PAY, stat.getBillsPerPay());
-                values.put(TerminalStatistic.COLUMN_CARD_READER_USED_HR, stat.getCardReaderUsedHours());
-                values.put(TerminalStatistic.COLUMN_CARD_READER_USED_DAY, stat.getCardReaderUsedDay());
-                values.put(TerminalStatistic.COLUMN_TIME_TO_CACHIN_FULL, stat.getTimeToCashinFull());
-                values.put(TerminalStatistic.COLUMN_TIME_TO_CACHIN_SERVICE, stat.getTimeToCashinService());
-                values.put(TerminalStatistic.COLUMN_TIME_TO_PRINTER_OUT, stat.getTimeToPrinterPaperOut());
-                values.put(TerminalStatistic.COLUMN_TIME_TO_PRINTER_SERVICE, stat.getTimeToPrinterService());
-                db.replace(TerminalStatistic.TABLE_NAME, null, values);
+                values.put(TerminalsStatsTable.COLUMN_TERMINAL_ID, stat.getTerminalId());
+                values.put(TerminalsStatsTable.COLUMN_AGENT_ID, stat.getAgentId());
+                values.put(TerminalsStatsTable.COLUMN_SYSTEM_UPTIME, stat.getSystemUpTime());
+                values.put(TerminalsStatsTable.COLUMN_UPTIME, stat.getUpTime());
+                values.put(TerminalsStatsTable.COLUMN_PAY_PER_HR, stat.getPaysPerHour());
+                values.put(TerminalsStatsTable.COLUMN_BILL_PER_PAY, stat.getBillsPerPay());
+                values.put(TerminalsStatsTable.COLUMN_CARD_READER_USED_HR, stat.getCardReaderUsedHours());
+                values.put(TerminalsStatsTable.COLUMN_CARD_READER_USED_DAY, stat.getCardReaderUsedDay());
+                values.put(TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_FULL, stat.getTimeToCashinFull());
+                values.put(TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_SERVICE, stat.getTimeToCashinService());
+                values.put(TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_OUT, stat.getTimeToPrinterPaperOut());
+                values.put(TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_SERVICE, stat.getTimeToPrinterService());
+                db.replace(TerminalsStatsTable.NAME, null, values);
             }
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+            db.close();
+        }
+    }
+
+    @Nullable
+    /* package */ TerminalStats[] getTerminalStatisticsImpl() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TerminalsStatsTable.NAME, TerminalsStatsTable.ALL_COLUMNS, null, null, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
+            TerminalStats result[] = new TerminalStats[cursor.getCount()];
+            for (int index = 0; cursor.moveToNext(); ++index) {
+                result[index] = new TerminalStats(cursor.getString(TerminalsStatsTable.COLUMN_TERMINAL_ID_INDEX),
+                        cursor.getString(TerminalsStatsTable.COLUMN_AGENT_ID_INDEX),
+                        cursor.getInt(TerminalsStatsTable.COLUMN_SYSTEM_UPTIME_INDEX),
+                        cursor.getInt(TerminalsStatsTable.COLUMN_UPTIME_INDEX),
+                        cursor.getFloat(TerminalsStatsTable.COLUMN_PAY_PER_HR_INDEX),
+                        cursor.getFloat(TerminalsStatsTable.COLUMN_BILL_PER_PAY_INDEX),
+                        cursor.getInt(TerminalsStatsTable.COLUMN_CARD_READER_USED_HR_INDEX),
+                        cursor.getInt(TerminalsStatsTable.COLUMN_CARD_READER_USED_DAY_INDEX),
+                        cursor.getLong(TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_FULL_INDEX),
+                        cursor.getLong(TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_SERVICE_INDEX),
+                        cursor.getLong(TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_OUT_INDEX),
+                        cursor.getLong(TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_SERVICE_INDEX));
+            }
+            return result;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
             db.close();
         }
     }
@@ -658,12 +727,12 @@ import java.util.concurrent.TimeoutException;
                     break;
                 case MSG_STORE_TERMINAL_STATUS:
                     if (msg.obj != null) {
-                        storeTerminalStatusesImpl((TerminalStatus[]) msg.obj);
+                        storeTerminalStatusesImpl((TerminalState[]) msg.obj);
                     }
                     break;
                 case MSG_STORE_TERMINAL_STATS:
                     if (msg.obj != null) {
-                        storeTerminalStatisticsImpl((TerminalStatistics[]) msg.obj);
+                        storeTerminalStatisticsImpl((TerminalStats[]) msg.obj);
                     }
                     break;
             }
