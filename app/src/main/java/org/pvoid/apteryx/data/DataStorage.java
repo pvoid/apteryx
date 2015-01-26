@@ -216,8 +216,8 @@ import java.util.concurrent.TimeoutException;
     private static final int MSG_STORE_TERMINALS = 4;
     private static final int MSG_GET_TERMINALS = 5;
     private static final int MSG_GET_AGENTS = 6;
-    private static final int MSG_STORE_TERMINAL_STATUS = 7;
-    private static final int MSG_GET_TERMINAL_STATUS = 8;
+    private static final int MSG_STORE_TERMINAL_STATES = 7;
+    private static final int MSG_GET_TERMINAL_STATES = 8;
     private static final int MSG_STORE_TERMINAL_STATS = 9;
     private static final int MSG_GET_TERMINAL_STATS = 10;
 
@@ -277,13 +277,31 @@ import java.util.concurrent.TimeoutException;
     }
 
     @Override
-    public void storeTerminalStatuses(@NonNull TerminalState[] statuses) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATUS, statuses);
+    public void storeTerminalStates(@NonNull TerminalState[] statuses) {
+        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATES, statuses);
         mHandler.sendMessage(msg);
     }
 
+    @Nullable
     @Override
-    public void storeTerminalStatistics(@NonNull TerminalStats[] statistics) {
+    public TerminalState[] getTerminalStates()  throws ExecutionException, InterruptedException {
+        ResultFuture<TerminalState> future = new ResultFuture<>();
+        Message msg = mHandler.obtainMessage(MSG_GET_TERMINAL_STATES, future);
+        mHandler.sendMessage(msg);
+        return future.get();
+    }
+
+    @Nullable
+    @Override
+    public TerminalStats[] getTerminalStats()  throws ExecutionException, InterruptedException {
+        ResultFuture<TerminalStats> future = new ResultFuture<>();
+        Message msg = mHandler.obtainMessage(MSG_GET_TERMINAL_STATS, future);
+        mHandler.sendMessage(msg);
+        return future.get();
+    }
+
+    @Override
+    public void storeTerminalStats(@NonNull TerminalStats[] statistics) {
         Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATS, statistics);
         mHandler.sendMessage(msg);
     }
@@ -549,7 +567,7 @@ import java.util.concurrent.TimeoutException;
         }
     }
 
-    /* package */ void storeTerminalStatusesImpl(TerminalState[] statuses) {
+    /* package */ void storeTerminalStatesImpl(TerminalState[] statuses) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
@@ -583,7 +601,7 @@ import java.util.concurrent.TimeoutException;
     }
 
     @Nullable
-    /* package */ TerminalState[] getTerminalStatusesImpl() {
+    /* package */ TerminalState[] getTerminalStatesImpl() {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = null;
         //noinspection TryFinallyCanBeTryWithResources
@@ -618,7 +636,7 @@ import java.util.concurrent.TimeoutException;
         }
     }
 
-    /* package */ void storeTerminalStatisticsImpl(TerminalStats[] stats) {
+    /* package */ void storeTerminalStatsImpl(TerminalStats[] stats) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
@@ -650,9 +668,10 @@ import java.util.concurrent.TimeoutException;
     }
 
     @Nullable
-    /* package */ TerminalStats[] getTerminalStatisticsImpl() {
+    /* package */ TerminalStats[] getTerminalStatsImpl() {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = null;
+        //noinspection TryFinallyCanBeTryWithResources
         try {
             cursor = db.query(TerminalsStatsTable.NAME, TerminalsStatsTable.ALL_COLUMNS, null, null, null, null, null);
             if (cursor == null) {
@@ -725,16 +744,30 @@ import java.util.concurrent.TimeoutException;
                         ((ResultFuture<Agent>) msg.obj).setResult(getAgentsImpl());
                     }
                     break;
-                case MSG_STORE_TERMINAL_STATUS:
+                case MSG_STORE_TERMINAL_STATES:
                     if (msg.obj != null) {
-                        storeTerminalStatusesImpl((TerminalState[]) msg.obj);
+                        storeTerminalStatesImpl((TerminalState[]) msg.obj);
                     }
                     break;
+                case MSG_GET_TERMINAL_STATES: {
+                    if (msg.obj != null) {
+                        //noinspection unchecked
+                        ((ResultFuture<TerminalState>) msg.obj).setResult(getTerminalStatesImpl());
+                    }
+                    break;
+                }
                 case MSG_STORE_TERMINAL_STATS:
                     if (msg.obj != null) {
-                        storeTerminalStatisticsImpl((TerminalStats[]) msg.obj);
+                        storeTerminalStatsImpl((TerminalStats[]) msg.obj);
                     }
                     break;
+                case MSG_GET_TERMINAL_STATS: {
+                    if (msg.obj != null) {
+                        //noinspection unchecked
+                        ((ResultFuture<TerminalStats>) msg.obj).setResult(getTerminalStatsImpl());
+                    }
+                    break;
+                }
             }
         }
     }

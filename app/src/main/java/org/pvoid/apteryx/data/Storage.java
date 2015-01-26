@@ -35,6 +35,8 @@ public interface Storage {
     @Nullable Agent[] getAgents() throws ExecutionException, InterruptedException;
     void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
     @Nullable Terminal[] getTerminals() throws ExecutionException, InterruptedException;
-    void storeTerminalStatuses(@NonNull TerminalState[] statuses);
-    void storeTerminalStatistics(@NonNull TerminalStats[] statistics);
+    void storeTerminalStates(@NonNull TerminalState[] statuses);
+    @Nullable TerminalState[] getTerminalStates() throws ExecutionException, InterruptedException;
+    void storeTerminalStats(@NonNull TerminalStats[] statistics);
+    @Nullable TerminalStats[] getTerminalStats() throws ExecutionException, InterruptedException;
 }

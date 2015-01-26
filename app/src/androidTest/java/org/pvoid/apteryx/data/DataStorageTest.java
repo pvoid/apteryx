@@ -696,7 +696,7 @@ public class DataStorageTest {
         TerminalState[] statuses = new TerminalState[2];
         DataStorage storage = new DataStorage(Robolectric.application);
         storage = Mockito.spy(storage);
-        storage.storeTerminalStatuses(statuses);
+        storage.storeTerminalStates(statuses);
         Mockito.verify(storage, Mockito.never()).getWritableDatabase();
         Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
         ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
@@ -726,7 +726,7 @@ public class DataStorageTest {
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatusesImpl(new TerminalState[]{status, failStatus});
+            storage.storeTerminalStatesImpl(new TerminalState[]{status, failStatus});
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -736,7 +736,7 @@ public class DataStorageTest {
         cursor.close();
         db.close();
 
-        storage.storeTerminalStatusesImpl(new TerminalState[] {status, null});
+        storage.storeTerminalStatesImpl(new TerminalState[]{status, null});
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_state", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -797,7 +797,7 @@ public class DataStorageTest {
         db.replace("terminals_state", null, values);
         db.close();
 
-        TerminalState statuses[] = storage.getTerminalStatusesImpl();
+        TerminalState statuses[] = storage.getTerminalStatesImpl();
         Assert.assertNotNull(statuses);
         Assert.assertEquals(2, statuses.length);
         TerminalState status = statuses[0];
@@ -838,7 +838,7 @@ public class DataStorageTest {
         TerminalStats[] stats = new TerminalStats[2];
         DataStorage storage = new DataStorage(Robolectric.application);
         storage = Mockito.spy(storage);
-        storage.storeTerminalStatistics(stats);
+        storage.storeTerminalStats(stats);
         Mockito.verify(storage, Mockito.never()).getWritableDatabase();
         Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
         ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
@@ -866,7 +866,7 @@ public class DataStorageTest {
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatisticsImpl(new TerminalStats[]{stat, failStat});
+            storage.storeTerminalStatsImpl(new TerminalStats[]{stat, failStat});
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -876,7 +876,7 @@ public class DataStorageTest {
         cursor.close();
         db.close();
 
-        storage.storeTerminalStatisticsImpl(new TerminalStats[]{stat, null});
+        storage.storeTerminalStatsImpl(new TerminalStats[]{stat, null});
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_stat", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -933,7 +933,7 @@ public class DataStorageTest {
         db.replace("terminals_stat", null, values);
         db.close();
 
-        TerminalStats stats[] = storage.getTerminalStatisticsImpl();
+        TerminalStats stats[] = storage.getTerminalStatsImpl();
         Assert.assertNotNull(stats);
         Assert.assertEquals(2, stats.length);
         TerminalStats stat = stats[0];
