@@ -27,26 +27,26 @@ import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
-public class GetAgentsCommandTest {
+public class GetTerminalsStatusCommandTest {
     @Test
     public void commandCheck() throws Exception {
-        GetAgentsCommand command = new GetAgentsCommand();
-        Assert.assertEquals("getAgents", command.getName());
+        GetTerminalsStatusCommand command = new GetTerminalsStatusCommand();
+        Assert.assertEquals("getTerminalsStatus", command.getName());
         Assert.assertNull(command.getParams());
         Assert.assertFalse(command.isAsync());
     }
 
     @Test
     public void storeCheck() throws Exception {
-        GetAgentsCommand command = new GetAgentsCommand();
+        GetTerminalsStatusCommand command = new GetTerminalsStatusCommand();
         Assert.assertEquals(0, command.describeContents());
         Parcel parcel = Parcel.obtain();
         command.writeToParcel(parcel, 0);
         int position = parcel.dataPosition();
         parcel.setDataPosition(0);
-        GetAgentsCommand.CREATOR.createFromParcel(parcel);
+        GetTerminalsStatusCommand.CREATOR.createFromParcel(parcel);
         Assert.assertEquals(position, parcel.dataPosition());
-        GetAgentsCommand[] commands = GetAgentsCommand.CREATOR.newArray(5);
+        GetTerminalsStatusCommand[] commands = GetTerminalsStatusCommand.CREATOR.newArray(5);
         Assert.assertNotNull(commands);
         Assert.assertEquals(5, commands.length);
     }

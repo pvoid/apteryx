@@ -61,10 +61,8 @@ public class GetTerminalsResult extends Result {
                     final String id = row.getAttribute(ATTR_ID);
                     final String agentId = row.getAttribute(ATTR_AGENT_ID);
                     final String typeId = row.getAttribute(ATTR_TYPE_ID);
-                    final String serial = row.getAttribute(ATTR_SERIAL);
                     final String displayName = row.getAttribute(ATTR_DISPLAY);
-                    if (id == null || agentId == null || typeId == null
-                            || serial == null || displayName == null) {
+                    if (id == null || agentId == null || typeId == null || displayName == null) {
                         continue;
                     }
                     if (terminals == null) {
@@ -72,7 +70,8 @@ public class GetTerminalsResult extends Result {
                     }
 
                     Terminal terminal = new Terminal(id, agentId, TerminalType.fromString(typeId),
-                            serial, displayName, row.getAttribute(ATTR_WHO), row.getAttribute(ATTR_WORK_TIME));
+                            row.getAttribute(ATTR_SERIAL), displayName, row.getAttribute(ATTR_WHO),
+                            row.getAttribute(ATTR_WORK_TIME));
                     final String city = row.getAttribute(ATTR_CITY);
                     final String cityId = row.getAttribute(ATTR_CITY_ID);
                     if (!TextUtils.isEmpty(city) && !TextUtils.isEmpty(cityId)) {

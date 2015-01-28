@@ -37,7 +37,7 @@ public class Terminal {
 
     @NonNull private final String mId;
     @NonNull private final TerminalType mType;
-    @NonNull private final String mSerial;
+    @Nullable private final String mSerial;
     @NonNull private final String mDisplayName;
     @Nullable private final String mWhoAdded;
     @Nullable private final String mWorkTime;
@@ -50,7 +50,7 @@ public class Terminal {
 
     @Nullable private String mPersonId;
 
-    public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @NonNull String serial,
+    public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @Nullable String serial,
                     @NonNull String displayName, @Nullable String whoAdded,
                     @Nullable String workTime) {
         mId = id;
@@ -101,7 +101,7 @@ public class Terminal {
         return mType;
     }
 
-    @NonNull
+    @Nullable
     public String getSerial() {
         return mSerial;
     }
