@@ -21,10 +21,12 @@ import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
 import org.pvoid.apteryx.net.commands.GetAgentsCommand;
 import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
+import org.pvoid.apteryx.net.commands.GetTerminalsStatusCommand;
 import org.pvoid.apteryx.net.results.GetAgentInfoResult;
 import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.net.results.GetTerminalsResult;
+import org.pvoid.apteryx.net.results.GetTerminalsStatusResult;
 import org.pvoid.apteryx.net.results.ResultFactory;
 
 import dagger.Module;
@@ -40,6 +42,7 @@ public class NetworkModule {
         factories.register(GetAgentsCommand.NAME, new GetAgentsResult.Factory());
         factories.register(GetPersonInfoCommand.NAME, new GetPersonInfoResult.Factory());
         factories.register(GetTerminalsCommand.NAME, new GetTerminalsResult.Factory());
+        factories.register(GetTerminalsStatusCommand.NAME, new GetTerminalsStatusResult.Factory());
 
         return factories;
     }

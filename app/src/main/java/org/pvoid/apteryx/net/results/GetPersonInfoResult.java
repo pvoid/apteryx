@@ -36,7 +36,7 @@ public class GetPersonInfoResult extends Result {
     @Nullable private final String mAgentId;
     private final boolean mIsEnabled;
 
-    public GetPersonInfoResult(@NonNull ResponseTag root) {
+    /*package*/ GetPersonInfoResult(@NonNull ResponseTag root) {
         super(root);
         String id = null;
         String login = null;

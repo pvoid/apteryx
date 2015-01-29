@@ -21,24 +21,47 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public class TerminalState {
-    @NonNull private final String mId; // trmId – идентификатор терминала;
-    @NonNull private final String mAgentId; // agtId – идентификатор агента;
-    private long mLastActivity; // lastActivityTime – время последней активности (время последнего ping, отправленного с данного терминала);
-    private long mLastPayment; // lastPaymentTime – время и дата последнего отправленного с терминала платежа;
-    private int mMachineStatus; // machineStatus – набор флагов состояния терминала. Подробнее о флагах см.
-    @Nullable private String mNoteError; // noteErrorId – текствовое описание ошибки купюроприемника;
-    @Nullable private String mPrinterError; // printerErrorId – текстовое описание ошибки принтера;
-    @Nullable private String mCardReaderStatus; // CardReaderStatus – состояние работы картридера;
-    @Nullable private String mSignalLevel; // signalLevel – уровень сигнала;
-    private float mSimBalance; // simProviderBalance – баланс на SIM-карте;
-    private int mDoorAlarmCount; // wdtDoorAlarmCount – счетчик тревог двери;
-    private int mDoorOpenCount; // wdtDoorOpenCount – счетчик открытий двери;
-    private int mEvent; // атрибут содержит в зашифрованном побитовом виде информацию о стостоянии терминала (питании, закрытии двери, состоянии батареи UPS и пр.);
-    private String mEventText; // wdtEventText – описание бита состояния терминала (атрибут возвращается, если wdtEvent не равен 0). См. Приложение К.
+
+    public static final int FLAG_STATE_ASO_MONITOR_DISABLED = 0x00001; // Монитор АСО выключен
+    public static final int FLAG_STATE_ASO_APP_MODIFIED     = 0x00004; // Модифицировано приложение АСО
+    public static final int FLAG_STATE_UPDATING_FILES       = 0x00010; // Терминал проверяет и обновляет файлы
+    public static final int FLAG_STATE_UPDATING_ADVERTS     = 0x00020; // Терминал проверяет и обновляет рекламный плейлист
+    public static final int FLAG_STATE_UPDATING_PROVIDERS   = 0x00040; // Терминал обновляет список провайдеров
+    public static final int FLAG_STATE_UPDATING_NUMBERS     = 0x00080; // Терминал обновляет номерные емкости
+    public static final int FLAG_STATE_UPDATING_CONFIGS     = 0x00100; // Терминал обновляет конфигурацию
+    public static final int FLAG_STATE_PROXY                = 0x00400; // Автомат работает через прокси-сервер
+    public static final int FLAG_STATE_DANGEROUS_SOFTWARE   = 0x00800; // Обнаружено стороннее ПО, которое может вызвать сбой модемного соединения
+    public static final int FLAG_STATE_LOCAL_NETWORK        = 0x01000; // Автомат работает в локальной сети
+    public static final int FLAG_STATE_DUAL_DISPLAY         = 0x02000; // Автомат оснащен вторым монитором
+    public static final int FLAG_STATE_STOPED_BY_SERVER     = 0x04000; // Остановлен по сигналу сервера или из-за отсутствия денег на счету агента
+    public static final int FLAG_STATE_HDD_WARNINGS         = 0x08000; // Проблемы с жестким диском
+    public static final int FLAG_STATE_INFO_ERRORS          = 0x10000; // Отсутствуют или неверно заполнены один или несколько реквизитов для терминала
+    public static final int FLAG_STATE_NOTE_ABSENT          = 0x20000; // C автомата был снят купюроприемник
+    public static final int FLAG_STATE_PAPER_WARNING        = 0x40000; // В принтере скоро закончится бумага
+    public static final int FLAG_STATE_GUARD_TIMER          = 0x80000; // Работает сторожевой таймер
+    public static final int FLAG_STATE_HARDWARE_ABSENT      = 0x100000; // Автомат остановлен из-за того, что при старте не обнаружено оборудование (купюроприемник или принтер)
+    public static final int FLAG_STATE_DOWNLOADING_UPDATES  = 0x200000; // Автомат загружает с сервера обновление приложения
+    public static final int FLAG_STATE_UI_CONFIG_ERROR      = 0x400000; // Автомат остановлен из-за ошибки в конфигурации интерфейса
+    public static final int FLAG_STATE_HARDWARE_ERROR       = 0x800000; // Автомат остановлен из-за ошибок купюроприемника или принтера
+
+    @NonNull private final String mId;
+    @NonNull private final String mAgentId;
+    private long mLastActivity;
+    private long mLastPayment;
+    private int mMachineStatus;
+    @Nullable private String mNoteError;
+    @Nullable private String mPrinterError;
+    @Nullable private String mCardReaderStatus;
+    @Nullable private String mSignalLevel;
+    private float mSimBalance;
+    private int mDoorAlarmCount;
+    private int mDoorOpenCount;
+    private int mEvent;
+    private String mEventText;
 
 
     public TerminalState(@NonNull String id, @NonNull String agentId, long lastActivity,
-                         long lastPayment, int machineStatus, String noteError,
+                         long lastPayment, int machineStatus, @Nullable String noteError,
                          @Nullable String printerError, @Nullable String cardReaderStatus,
                          @Nullable String signalLevel, float simBalance, int doorAlarmCount,
                          int doorOpenCount, int event, String eventText) {
