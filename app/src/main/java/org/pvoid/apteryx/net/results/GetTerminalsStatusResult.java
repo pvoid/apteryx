@@ -47,6 +47,8 @@ public class GetTerminalsStatusResult extends Result {
     private static final String ATTR_EVENT = "wdtEvent";
     private static final String ATTR_EVENT_TEXT = "wdtEventText";
 
+    @Nullable private final TerminalState[] mStates;
+
     /*package*/ GetTerminalsStatusResult(@NonNull ResponseTag root) {
         super(root);
         ResponseTag row;
@@ -58,37 +60,14 @@ public class GetTerminalsStatusResult extends Result {
                 }
                 final String agentId = row.getAttribute(ATTR_AGENT_ID);
                 final String terminalId = row.getAttribute(ATTR_TERMINAL_ID);
-                float simBalance = -1.f;
-                int doorAlarm = -1;
-                int doorOpen = -1;
-                int event = -1;
                 if (TextUtils.isEmpty(agentId) || TextUtils.isEmpty(terminalId)) {
                     continue;
                 }
 
-                try {
-                    doorAlarm = Integer.parseInt(row.getAttribute(ATTR_DOOR_ALARM));
-                } catch (NumberFormatException e) {
-                    // nope
-                }
-
-                try {
-                    doorOpen = Integer.parseInt(row.getAttribute(ATTR_DOOR_OPEN));
-                } catch (NumberFormatException e) {
-                    // nope
-                }
-
-                try {
-                    event = Integer.parseInt(row.getAttribute(ATTR_EVENT));
-                } catch (NumberFormatException e) {
-                    // nope
-                }
-
-                try {
-                    simBalance = Float.parseFloat(row.getAttribute(ATTR_SIM_BALANCE));
-                } catch (NumberFormatException e) {
-                    // nope
-                }
+                int doorAlarm = parseInt(row.getAttribute(ATTR_DOOR_ALARM), -1);
+                int doorOpen = parseInt(row.getAttribute(ATTR_DOOR_OPEN), -1);
+                int event = parseInt(row.getAttribute(ATTR_EVENT), -1);
+                float simBalance = parseFloat(row.getAttribute(ATTR_SIM_BALANCE), -1.f);
 
                 if (states == null) {
                     states = new ArrayList<>();
@@ -106,6 +85,12 @@ public class GetTerminalsStatusResult extends Result {
             }
         } catch (ResponseTag.TagReadException e) {
             LogHelper.error("Network", "Error while reading getTerminals result: %1$s", e.getMessage());
+        }
+
+        if (states == null) {
+            mStates = null;
+        } else {
+            mStates = states.toArray(new TerminalState[states.size()]);
         }
     }
 
@@ -139,6 +124,33 @@ public class GetTerminalsStatusResult extends Result {
             }
         }
         return -1;
+    }
+
+    private static int parseInt(@Nullable String value, int defaultValue) {
+        if (!TextUtils.isEmpty(value)) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                // nope
+            }
+        }
+        return defaultValue;
+    }
+
+    private static float parseFloat(@Nullable String value, float defaultValue) {
+        if (!TextUtils.isEmpty(value)) {
+            try {
+                return Float.parseFloat(value);
+            } catch (NumberFormatException e) {
+                // nope
+            }
+        }
+        return defaultValue;
+    }
+
+    @Nullable
+    public TerminalState[] getStates() {
+        return mStates;
     }
 
     public static class Factory implements ResultFactory {

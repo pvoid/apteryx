@@ -46,7 +46,7 @@ public abstract class Result {
     private final int mResult;
     private final int mStatus;
 
-    public Result(@NonNull ResponseTag root) {
+    protected Result(@NonNull ResponseTag root) {
         mName = root.getName();
         mQueueId = getIntAttribute(root, ATTR_QUEUQ_ID);
         mResult = getIntAttribute(root, ATTR_RESULT);
