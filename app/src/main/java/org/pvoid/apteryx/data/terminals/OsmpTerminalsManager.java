@@ -33,13 +33,18 @@ import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
 import org.pvoid.apteryx.net.ResultReceiver;
 import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
+import org.pvoid.apteryx.net.commands.GetTerminalsStatisticalDataCommand;
+import org.pvoid.apteryx.net.commands.GetTerminalsStatusCommand;
 import org.pvoid.apteryx.net.results.GetTerminalsResult;
+import org.pvoid.apteryx.net.results.GetTerminalsStatisticalDataResult;
+import org.pvoid.apteryx.net.results.GetTerminalsStatusResult;
+import org.pvoid.apteryx.util.ArrayUtils;
 import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.SearchComparator;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,8 +53,11 @@ import java.util.concurrent.locks.ReentrantLock;
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
     private final ReentrantLock mLock = new ReentrantLock();
-    @GuardedBy("mLock")
-    private final Map<String, Map<String, Terminal>> mTerminals = new HashMap<>();
+    // TODO: use normal tree with indexes
+    @GuardedBy("mLock") private final Map<String, Terminal> mTerminalsById = new HashMap<>();
+    @GuardedBy("mLock") private Terminal[] mTerminalsByAgent;
+    private final TerminalByAgentComparator mCompareByAgent = new TerminalByAgentComparator();
+    private final TerminalByAgentSearchComparator mSearchByAgent = new TerminalByAgentSearchComparator();
 
     public OsmpTerminalsManager(@NonNull Context context, @NonNull Storage storage) {
         mContext = context.getApplicationContext();
@@ -58,13 +66,30 @@ import java.util.concurrent.locks.ReentrantLock;
         try {
             Terminal[] terminals = mStorage.getTerminals();
             if (terminals != null) {
-                for (Terminal terminal : terminals) {
-                    Map<String, Terminal> t = mTerminals.get(terminal.getPersonId());
-                    if (t == null) {
-                        t = new HashMap<>();
-                        mTerminals.put(terminal.getPersonId(), t);
+                mTerminalsByAgent = new Terminal[terminals.length];
+                for (int index = 0; index < terminals.length; ++index) {
+                    Terminal terminal = terminals[index];
+                    mTerminalsById.put(terminal.getId(), terminal);
+                    mTerminalsByAgent[index] = terminal;
+                }
+                Arrays.sort(mTerminalsByAgent, mCompareByAgent);
+            }
+            TerminalState states[] = mStorage.getTerminalStates();
+            if (states != null) {
+                for (TerminalState state : states) {
+                    Terminal terminal = mTerminalsById.get(state.getId());
+                    if (terminal != null) {
+                        terminal.setState(state);
                     }
-                    t.put(terminal.getId(), terminal);
+                }
+            }
+            TerminalStats stats[] = mStorage.getTerminalStats();
+            if (stats != null) {
+                for (TerminalStats stat : stats) {
+                    Terminal terminal = mTerminalsById.get(stat.getTerminalId());
+                    if (terminal != null) {
+                        terminal.setStats(stat);
+                    }
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -72,46 +97,69 @@ import java.util.concurrent.locks.ReentrantLock;
         }
     }
 
-    @Override
-    public void store(@NonNull String person, @NonNull Terminal... terminals) {
+    private void storeTerminals(@NonNull String person, @NonNull Terminal... terminals) {
         mLock.lock();
         try {
-            Map<String, Terminal> t = mTerminals.get(person);
-            if (t == null) {
-                t = new HashMap<>();
-                mTerminals.put(person, t);
-            }
             for (Terminal terminal : terminals) {
-                t.put(terminal.getId(), terminal);
+                mTerminalsById.put(terminal.getId(), terminal);
             }
+            Terminal[] t = new Terminal[mTerminalsByAgent.length + terminals.length];
+            System.arraycopy(mTerminalsByAgent, 0, t, 0, mTerminalsByAgent.length);
+            System.arraycopy(terminals, 0, t, mTerminalsByAgent.length, terminals.length);
+            mTerminalsByAgent = t;
+            Arrays.sort(mTerminalsByAgent, mCompareByAgent);
         } finally {
             mLock.unlock();
         }
         mStorage.storeTerminals(person, terminals);
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
-        lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+    }
+
+    private void storeStates(@NonNull TerminalState... states) {
+        mLock.lock();
+        try {
+            for (TerminalState state : states) {
+                Terminal terminal = mTerminalsById.get(state.getId());
+                if (terminal != null) {
+                    terminal.setState(state);
+                }
+            }
+        } finally {
+            mLock.unlock();
+        }
+        mStorage.storeTerminalStates(states);
+    }
+
+    private void storeStats(@NonNull TerminalStats... stats) {
+        mLock.lock();
+        try {
+            for (TerminalStats stat : stats) {
+                Terminal terminal = mTerminalsById.get(stat.getTerminalId());
+                if (terminal != null) {
+                    terminal.setStats(stat);
+                }
+            }
+        } finally {
+            mLock.unlock();
+        }
+        mStorage.storeTerminalStats(stats);
     }
 
     @Override
     @NonNull
-    public Terminal[] getTerminals(@NonNull String person, @Nullable String agentId) {
+    public Terminal[] getTerminals(@Nullable String agentId) {
+        if (TextUtils.isEmpty(agentId)) {
+            return mTerminalsByAgent;
+        }
         mLock.lock();
         try {
-            Map<String, Terminal> t = mTerminals.get(person);
-            Collection<Terminal> terminals;
-            if (t == null || (terminals = t.values()) == null) {
+            int start = ArrayUtils.binarySearchLeft(mTerminalsByAgent, agentId, mSearchByAgent);
+            if (start == -1) {
                 return new Terminal[0];
             }
-            if (TextUtils.isEmpty(agentId)) {
-                return terminals.toArray(new Terminal[terminals.size()]);
-            }
-            List<Terminal> result = new ArrayList<>(terminals.size());
-            for (Terminal terminal : terminals) {
-                if (TextUtils.equals(agentId, terminal.getAgentId())) {
-                    result.add(terminal);
-                }
-            }
-            return result.toArray(new Terminal[result.size()]);
+            int end = ArrayUtils.binarySearchRight(mTerminalsByAgent, agentId, mSearchByAgent);
+            Terminal result[] = new Terminal[end - start + 1];
+            System.arraycopy(mTerminalsByAgent, start, result, 0, result.length);
+            return result;
         } finally {
             mLock.unlock();
         }
@@ -121,6 +169,8 @@ import java.util.concurrent.locks.ReentrantLock;
     public void sync(@NonNull Person person) {
         OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Terminals).add(new GetTerminalsCommand(true));
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
             NetworkService.executeRequest(mContext, request, new TerminalsResultReceiver(person));
@@ -137,18 +187,59 @@ import java.util.concurrent.locks.ReentrantLock;
 
         @Override
         public void onResponse(@NonNull OsmpResponse response) {
+            boolean notify = false;
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Terminals);
             if (results != null) {
                 GetTerminalsResult terminalsResult = results.get(GetTerminalsCommand.NAME);
                 if (terminalsResult != null && terminalsResult.getTerminals() != null) {
-                    store(mPersonLogin, terminalsResult.getTerminals());
+                    storeTerminals(mPersonLogin, terminalsResult.getTerminals());
+                    notify = true;
                 }
+            }
+            results = response.getInterface(OsmpInterface.Reports);
+            if (results != null) {
+                GetTerminalsStatusResult statusResult = results.get(GetTerminalsStatusCommand.NAME);
+                if (statusResult != null && statusResult.getStates() != null) {
+                    storeStates(statusResult.getStates());
+                }
+                GetTerminalsStatisticalDataResult statsResult = results.get(GetTerminalsStatisticalDataCommand.NAME);
+                if (statsResult != null && statsResult.getStats() != null) {
+                    storeStats(statsResult.getStats());
+                }
+            }
+
+            if (notify) {
+                LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+                lbm.sendBroadcast(new Intent(ACTION_CHANGED));
             }
         }
 
         @Override
         public void onError() {
 
+        }
+    }
+
+    private static class TerminalByAgentComparator implements Comparator<Terminal> {
+        @Override
+        public int compare(Terminal left, Terminal right) {
+            if (left == right) {
+                return 0;
+            }
+            if (left == null) {
+                return -1;
+            } else if (right == null) {
+                return 1;
+            }
+
+            return left.getAgentId().compareTo(right.getAgentId());
+        }
+    }
+
+    private static class TerminalByAgentSearchComparator implements SearchComparator<String, Terminal> {
+        @Override
+        public int compare(String needle, Terminal value) {
+            return needle.compareTo(value.getAgentId());
         }
     }
 }

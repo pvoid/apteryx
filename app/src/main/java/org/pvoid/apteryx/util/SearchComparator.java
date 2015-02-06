@@ -15,18 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.data.terminals;
+package org.pvoid.apteryx.util;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
-import org.pvoid.apteryx.data.persons.Person;
-
-public interface TerminalsManager {
-
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_PERSONS_CHANGED";
-
-//    void store(@NonNull String person, @NonNull Terminal... terminals);
-    void sync(@NonNull Person person);
-    @NonNull Terminal[] getTerminals(@Nullable String agentId);
+public interface SearchComparator<N, T> {
+    int compare(N needle, T value);
 }

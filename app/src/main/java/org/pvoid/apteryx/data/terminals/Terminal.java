@@ -50,6 +50,9 @@ public class Terminal {
 
     @Nullable private String mPersonId;
 
+    @Nullable private TerminalState mState;
+    @Nullable private TerminalStats mStats;
+
     public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @Nullable String serial,
                     @NonNull String displayName, @Nullable String whoAdded,
                     @Nullable String workTime) {
@@ -133,5 +136,23 @@ public class Terminal {
 
     public void setPersonId(@Nullable String personId) {
         mPersonId = personId;
+    }
+
+    @Nullable
+    public TerminalState getState() {
+        return mState;
+    }
+
+    @Nullable
+    public TerminalStats getStats() {
+        return mStats;
+    }
+
+    public void setState(@Nullable TerminalState state) {
+        mState = state;
+    }
+
+    public void setStats(@Nullable TerminalStats stats) {
+        mStats = stats;
     }
 }

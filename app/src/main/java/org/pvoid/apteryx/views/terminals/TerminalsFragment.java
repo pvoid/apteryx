@@ -113,7 +113,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         View accountError = root.findViewById(R.id.empty_account_error);
 
         if (agent != null && agent.getPersonLogin() !=  null && mAdapter != null) {
-            mAdapter.setTerminals(terminalsManager.getTerminals(agent.getPersonLogin(), agent.getId()));
+            mAdapter.setTerminals(terminalsManager.getTerminals(agent.getId()));
             recyclerView.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
         } else {
