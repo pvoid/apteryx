@@ -42,27 +42,27 @@
         <item name="android:layout_alignParentRight">true</item>
     </style>
 
-    <style name="DrawerContentBase">
+    <style name="Drawer.ContentBase">
         <item name="android:background">@color/drawer_background</item>
     </style>
 
-    <style name="DrawerContent" parent="DrawerContentBase">
+    <style name="Drawer.Content" parent="Drawer.ContentBase">
         <item name="android:layout_toLeftOf">@id/drawer_shadow</item>
         <item name="android:layout_alignParentLeft">true</item>
     </style>
 
-    <style name="CurrentAccount">
+    <style name="Drawer.Account" parent="">
         <item name="android:paddingLeft">10dp</item>
         <item name="android:paddingRight">10dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
-    <style name="CurrentAccount.Text" parent="">
+    <style name="Drawer.Account.Text" parent="">
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">middle</item>
     </style>
 
-    <style name="CurrentAccount.Image" parent="">
+    <style name="Drawer.Account.Image" parent="">
         <item name="android:layout_alignParentTop">true</item>
         <item name="android:layout_alignParentRight">true</item>
         <item name="android:layout_alignParentBottom">true</item>
@@ -71,16 +71,24 @@
         <item name="android:layout_marginLeft">10dp</item>
     </style>
 
-    <style name="CurrentAccount.Name" parent="CurrentAccount.Text">
+    <style name="Drawer.Account.Name" parent="Drawer.Account.Text">
         <item name="android:layout_marginTop">5dp</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="CurrentAccount.Login" parent="CurrentAccount.Text">
+    <style name="Drawer.Account.Login" parent="Drawer.Account.Text">
         <item name="android:gravity">center_vertical</item>
         <item name="android:layout_alignParentBottom">true</item>
         <item name="android:layout_alignWithParentIfMissing">true</item>
+    </style>
+
+    <style name="Drawer.Agent" parent="">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
     </style>
 
     <style name="TerminalCard" parent="CardView.Light">

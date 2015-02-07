@@ -18,9 +18,14 @@
 package org.pvoid.apteryx.views;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
+import android.text.style.TextAppearanceSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +44,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
     private final LayoutInflater mInflater;
     @Nullable private Person mCurrentAccount;
     @Nullable private Agent[] mAgents;
+    @Nullable private int mSelectedPosition;
     @Nullable private OnAccountSwitcherClickedListener mSwitcherClickedListener;
     @Nullable private OnAgentSelectedListener mOnAgentSelectedListener;
 
@@ -61,6 +67,22 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
         mCurrentAccount = currentAccount;
         mAgents = agents;
         notifyDataSetChanged();
+    }
+
+    public void setCurrentAgent(@Nullable Agent agent) {
+        if (agent == null || mAgents == null) {
+            mSelectedPosition = -1;
+            notifyDataSetChanged();
+            return;
+        }
+
+        for (int index = 0; index < mAgents.length; ++index) {
+            if (agent.equals(mAgents[index])) {
+                mSelectedPosition = index;
+                notifyDataSetChanged();
+                return;
+            }
+        }
     }
 
     @Override
@@ -90,7 +112,15 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
                 --position;
                 AgentViewHolder agentHoder = (AgentViewHolder) holder;
                 if (mAgents != null) {
-                    agentHoder.title.setText(mAgents[position].getName());
+                    final Agent agent = mAgents[position];
+
+                    CharSequence text = agent.getName();
+                    if (text != null && position == mSelectedPosition) {
+                        SpannableString t = new SpannableString(text);
+                        t.setSpan(new StyleSpan(Typeface.BOLD), 0, t.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                        text = t;
+                    }
+                    agentHoder.title.setText(text);
                     agentHoder.position = position;
                 }
                 break;
@@ -157,8 +187,11 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
         @Override
         public void onClick(View v) {
+            if (mAgents == null) {
+                return;
+            }
             OnAgentSelectedListener listener = mOnAgentSelectedListener;
-            if (listener != null && mAgents != null) {
+            if (listener != null) {
                 listener.onAgentSelected(mAgents[position]);
             }
         }

@@ -45,6 +45,7 @@ import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.settings.SettingsManager;
+import org.pvoid.apteryx.views.terminals.filters.BaseTerminalsFilter;
 
 import dagger.ObjectGraph;
 
@@ -60,6 +61,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
         mAdapter = new TerminalsAdapter(inflater.getContext());
+        mAdapter.setFilter(new BaseTerminalsFilter());
         recyclerView.setAdapter(mAdapter);
         View button = root.findViewById(R.id.add_account_button);
         button.setOnClickListener(this);

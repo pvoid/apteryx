@@ -94,12 +94,13 @@ public class DrawerFragment extends Fragment implements DialogInterface.OnClickL
         super.onStart();
 
         updateFragment();
+        updateCurrentAgent();
 
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getActivity());
         IntentFilter filter = new IntentFilter();
         filter.addAction(PersonsManager.ACTION_PERSONS_CHANGED);
         filter.addAction(PersonsManager.ACTION_CURRENT_PERSON_CHANGED);
-        filter.addAction(PersonsManager.ACTION_AGENTS_CHANGED);
+        filter.addAction(PersonsManager.ACTION_CURRENT_AGENT_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
     }
 
@@ -118,6 +119,13 @@ public class DrawerFragment extends Fragment implements DialogInterface.OnClickL
                 agents = mPersonsManager.getAgents(person.getLogin());
             }
             mDrawerAdapter.setCurrentAccount(person, agents);
+        }
+    }
+
+    private void updateCurrentAgent() {
+        if (mDrawerAdapter != null && mPersonsManager != null) {
+            Agent agent = mPersonsManager.getCurrentAgent();
+            mDrawerAdapter.setCurrentAgent(agent);
         }
     }
 
@@ -177,8 +185,8 @@ public class DrawerFragment extends Fragment implements DialogInterface.OnClickL
                 case PersonsManager.ACTION_CURRENT_PERSON_CHANGED:
                     updateFragment();
                     break;
-                case PersonsManager.ACTION_AGENTS_CHANGED:
-//                    fillAgents();
+                case PersonsManager.ACTION_CURRENT_AGENT_CHANGED:
+                    updateCurrentAgent();
                     break;
             }
         }

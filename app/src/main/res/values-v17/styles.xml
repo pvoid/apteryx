@@ -20,7 +20,7 @@
         <item name="android:layout_alignParentEnd">true</item>
     </style>
 
-    <style name="DrawerContent" parent="DrawerContentBase">
+    <style name="DrawerContent" parent="Drawer.ContentBase">
         <item name="android:layout_toStartOf">@id/drawer_shadow</item>
         <item name="android:layout_alignParentStart">true</item>
     </style>

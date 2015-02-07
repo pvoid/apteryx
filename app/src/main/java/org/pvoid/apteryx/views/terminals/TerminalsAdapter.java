@@ -19,6 +19,7 @@ package org.pvoid.apteryx.views.terminals;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -28,18 +29,31 @@ import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.views.terminals.filters.TerminalsFilter;
 
 public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.ViewHolder> {
 
     private final LayoutInflater mInflater;
-    private Terminal[] mTerminals;
+    @Nullable private Terminal[] mTerminals;
+    @Nullable private TerminalsFilter mFilter;
 
     public TerminalsAdapter(@NonNull Context context) {
         mInflater = LayoutInflater.from(context);
     }
 
-    public void setTerminals(Terminal[] terminals) {
+    public void setTerminals(@Nullable Terminal[] terminals) {
         mTerminals = terminals;
+        if (mFilter != null && mTerminals != null) {
+            mFilter.fill(mTerminals);
+        }
+        notifyDataSetChanged();
+    }
+
+    public void setFilter(@Nullable TerminalsFilter filter) {
+        mFilter = filter;
+        if (mTerminals != null && mFilter != null) {
+            mFilter.fill(mTerminals);
+        }
         notifyDataSetChanged();
     }
 
@@ -52,12 +66,24 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
 
     @Override
     public void onBindViewHolder(TerminalsAdapter.ViewHolder holder, int position) {
-        holder.title.setText(mTerminals[position].getDisplayName());
-        holder.address.setText(mTerminals[position].getDisplayAddress());
+        Terminal terminal = null;
+        if (mFilter != null) {
+            terminal = mFilter.getAt(position);
+        } else if (mTerminals != null) {
+            terminal = mTerminals[position];
+        }
+
+        if (terminal != null) {
+            holder.title.setText(terminal.getDisplayName());
+            holder.address.setText(terminal.getDisplayAddress());
+        }
     }
 
     @Override
     public int getItemCount() {
+        if (mFilter != null) {
+            return mFilter.count();
+        }
         return mTerminals == null ? 0 : mTerminals.length;
     }
 

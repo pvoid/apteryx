@@ -24,24 +24,24 @@
     android:orientation="vertical">
     <RelativeLayout
         android:id="@+id/account_switcher"
-        style="@style/CurrentAccount"
+        style="@style/Drawer.Account"
         android:layout_width="match_parent"
         android:layout_height="@dimen/current_account_height">
         <ImageView
             android:id="@+id/current_account_arrow"
-            style="@style/CurrentAccount.Image"
+            style="@style/Drawer.Account.Image"
             android:layout_width="wrap_content"
             android:layout_height="0dp"/>
         <TextView
             android:id="@+id/current_account_name"
-            style="@style/CurrentAccount.Name"
+            style="@style/Drawer.Account.Name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/current_account_arrow"
             tools:text="Some account name"/>
         <TextView
             android:id="@+id/current_account_login"
-            style="@style/CurrentAccount.Login"
+            style="@style/Drawer.Account.Login"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_below="@id/current_account_name"
