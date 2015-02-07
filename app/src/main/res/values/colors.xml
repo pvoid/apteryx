@@ -18,4 +18,8 @@
   <color name="actionbar_primary">#03a9f4</color>
   <color name="actionbar_primary_dark">#0277bd</color>
   <color name="drawer_background">#eceff1</color>
+  <color name="card_date_color">#aaaaaa</color>
+  <color name="refresh_progress_color_1">#4fc3f7</color>
+  <color name="refresh_progress_color_2">#bf360c</color>
+  <color name="refresh_progress_color_3">#33691e</color>
 </resources>

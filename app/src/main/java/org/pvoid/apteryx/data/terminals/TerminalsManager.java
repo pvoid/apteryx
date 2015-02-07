@@ -23,8 +23,9 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.persons.Person;
 
 public interface TerminalsManager {
-    public static final String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_PERSONS_CHANGED";
+    String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.ACTION_PERSONS_CHANGED";
 
+    void syncFull(@NonNull Person person);
     void sync(@NonNull Person person);
     @NonNull Terminal[] getTerminals(@Nullable String agentId);
 }

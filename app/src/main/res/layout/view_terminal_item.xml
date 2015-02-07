@@ -25,11 +25,22 @@
     <RelativeLayout
         android:layout_width="match_parent"
         style="@style/TerminalCard.Container">
+
+        <TextView
+            android:id="@+id/terminal_last_activity"
+            style="@style/TerminalCard.Date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="3 hours ago"/>
+
         <TextView
             android:id="@+id/terminal_title"
             style="@style/TerminalCard.Title"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@id/terminal_last_activity"
+            android:layout_alignWithParentIfMissing="true"
             tools:text="Terminal name"/>
         <TextView
             android:id="@+id/terminal_address"
@@ -38,6 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/terminal_title"
             tools:text="Terminal Address"/>
+
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>

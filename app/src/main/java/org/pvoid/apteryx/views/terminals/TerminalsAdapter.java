@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,10 @@ import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.views.terminals.filters.TerminalsFilter;
+
+import java.text.SimpleDateFormat;
 
 public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.ViewHolder> {
 
@@ -74,8 +78,7 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
         }
 
         if (terminal != null) {
-            holder.title.setText(terminal.getDisplayName());
-            holder.address.setText(terminal.getDisplayAddress());
+            holder.bind(terminal);
         }
     }
 
@@ -90,12 +93,37 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final TextView title;
         public final TextView address;
+        public final TextView lastActivity;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.terminal_title);
             address = (TextView) itemView.findViewById(R.id.terminal_address);
+            lastActivity = (TextView) itemView.findViewById(R.id.terminal_last_activity);
+        }
 
+        void bind(@NonNull Terminal terminal) {
+            title.setText(terminal.getDisplayName());
+            address.setText(terminal.getDisplayAddress());
+            bindState(terminal.getState());
+        }
+
+        void bindState(@Nullable TerminalState state) {
+            if (state == null) {
+                lastActivity.setVisibility(View.GONE);
+                return;
+            }
+
+            if (state.getLastActivity() != 0) {
+                CharSequence str = DateUtils.getRelativeTimeSpanString(state.getLastActivity(),
+                        System.currentTimeMillis(), DateUtils.WEEK_IN_MILLIS,
+                        DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_ALL |
+                        DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_24HOUR);
+                lastActivity.setText(str);
+                lastActivity.setVisibility(View.VISIBLE);
+            } else {
+                lastActivity.setVisibility(View.GONE);
+            }
         }
     }
 }

@@ -111,4 +111,12 @@
         <item name="android:ellipsize">middle</item>
         <item name="android:layout_marginTop">4dp</item>
     </style>
+
+    <style name="TerminalCard.Date" parent="">
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">middle</item>
+        <item name="android:textColor">@color/card_date_color</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_alignParentTop">true</item>
+    </style>
 </resources>

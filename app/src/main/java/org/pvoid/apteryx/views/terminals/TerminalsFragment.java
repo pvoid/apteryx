@@ -17,6 +17,7 @@
 
 package org.pvoid.apteryx.views.terminals;
 
+import android.app.Activity;
 import android.app.Application;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
@@ -27,6 +28,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -38,18 +40,18 @@ import android.widget.TextView;
 
 import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.BuildConfig;
+import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.accounts.AddAccountActivity;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
-import org.pvoid.apteryx.settings.SettingsManager;
 import org.pvoid.apteryx.views.terminals.filters.BaseTerminalsFilter;
 
 import dagger.ObjectGraph;
 
-public class TerminalsFragment extends Fragment implements View.OnClickListener {
+public class TerminalsFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     @Nullable private TerminalsAdapter mAdapter;
     @NonNull private final LocalReceiver mReceiver = new LocalReceiver();
@@ -58,6 +60,10 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_terminals, container, false);
+        SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
+        refreshLayout.setOnRefreshListener(this);
+        refreshLayout.setColorSchemeResources(R.color.refresh_progress_color_1,
+                R.color.refresh_progress_color_2, R.color.refresh_progress_color_3);
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
         mAdapter = new TerminalsAdapter(inflater.getContext());
@@ -111,17 +117,26 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         final TerminalsManager terminalsManager = graph.get(TerminalsManager.class);
         final PersonsManager personsManager = graph.get(PersonsManager.class);
         final Agent agent = personsManager.getCurrentAgent();
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
+        SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
         View accountError = root.findViewById(R.id.empty_account_error);
 
         if (agent != null && agent.getPersonLogin() !=  null && mAdapter != null) {
             mAdapter.setTerminals(terminalsManager.getTerminals(agent.getId()));
-            recyclerView.setVisibility(View.VISIBLE);
+            refreshLayout.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
         } else {
-            recyclerView.setVisibility(View.INVISIBLE);
+            refreshLayout.setVisibility(View.INVISIBLE);
             accountError.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void stopRefreshAnimation() {
+        final View root = getView();
+        if (root == null) {
+            return;
+        }
+        SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
+        refreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -133,6 +148,23 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
         }
     }
 
+    @Override
+    public void onRefresh() {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        final ObjectGraph graph = ((GraphHolder) activity.getApplication()).getGraph();
+        final TerminalsManager manager = graph.get(TerminalsManager.class);
+        final PersonsManager personsManager = graph.get(PersonsManager.class);
+        Person person = personsManager.getCurrentPerson();
+        if (person != null) {
+            manager.sync(person);
+        } else {
+            stopRefreshAnimation();
+        }
+    }
+
     private class LocalReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -140,8 +172,10 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener 
                 return;
             }
             switch (intent.getAction()) {
-                case PersonsManager.ACTION_CURRENT_AGENT_CHANGED:
                 case TerminalsManager.ACTION_CHANGED:
+                    stopRefreshAnimation();
+                    // fall throe
+                case PersonsManager.ACTION_CURRENT_AGENT_CHANGED:
                     refillAdapter();
                     break;
             }

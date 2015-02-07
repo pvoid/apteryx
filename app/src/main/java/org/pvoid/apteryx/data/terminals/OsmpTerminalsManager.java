@@ -166,22 +166,33 @@ import java.util.concurrent.locks.ReentrantLock;
     }
 
     @Override
-    public void sync(@NonNull Person person) {
+    public void syncFull(@NonNull Person person) {
         OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Terminals).add(new GetTerminalsCommand(true));
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
-            NetworkService.executeRequest(mContext, request, new TerminalsResultReceiver(person));
+            NetworkService.executeRequest(mContext, request, new TerminalsListReceiver(person));
         }
     }
 
-    private class TerminalsResultReceiver implements ResultReceiver {
+    @Override
+    public void sync(@NonNull Person person) {
+        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
+        OsmpRequest request = builder.create();
+        if (request != null) {
+            NetworkService.executeRequest(mContext, request, new TerminalsStateReceiver());
+        }
+    }
+
+    private class TerminalsListReceiver implements ResultReceiver {
 
         private final String mPersonLogin;
 
-        TerminalsResultReceiver(@NonNull Person person) {
+        TerminalsListReceiver(@NonNull Person person) {
             mPersonLogin = person.getLogin();
         }
 
@@ -211,6 +222,35 @@ import java.util.concurrent.locks.ReentrantLock;
             if (notify) {
                 LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
                 lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+            }
+        }
+
+        @Override
+        public void onError() {
+
+        }
+    }
+
+    private class TerminalsStateReceiver implements ResultReceiver {
+        @Override
+        public void onResponse(@NonNull OsmpResponse response) {
+            OsmpResponse.Results results = response.getInterface(OsmpInterface.Reports);
+            if (results != null) {
+                boolean notify = false;
+                GetTerminalsStatusResult statusResult = results.get(GetTerminalsStatusCommand.NAME);
+                if (statusResult != null && statusResult.getStates() != null) {
+                    storeStates(statusResult.getStates());
+                    notify = true;
+                }
+                GetTerminalsStatisticalDataResult statsResult = results.get(GetTerminalsStatisticalDataCommand.NAME);
+                if (statsResult != null && statsResult.getStats() != null) {
+                    storeStats(statsResult.getStats());
+                    notify = true;
+                }
+                if (notify) {
+                    LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+                    lbm.sendBroadcast(new Intent(ACTION_CHANGED));
+                }
             }
         }
 

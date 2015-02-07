@@ -304,7 +304,7 @@ import java.util.concurrent.locks.ReentrantLock;
                 mLock.unlock();
             }
             mStorage.storePerson(person);
-            mTerminalsManager.sync(person);
+            mTerminalsManager.syncFull(person);
             notifyVerifyResult(true, person);
 
             results = response.getInterface(OsmpInterface.Agents);

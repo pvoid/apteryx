@@ -20,12 +20,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/terminals_list"
-        android:orientation="vertical"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/terminals_refresh_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:visibility="invisible"/>
+        android:layout_height="match_parent">
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/terminals_list"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:visibility="invisible"/>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
     <LinearLayout
         android:id="@+id/empty_account_error"
         android:layout_width="wrap_content"
