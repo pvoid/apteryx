@@ -32,9 +32,11 @@ import org.pvoid.apteryx.net.OsmpInterface;
 import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
 import org.pvoid.apteryx.net.ResultReceiver;
+import org.pvoid.apteryx.net.commands.GetTerminalsCashCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsStatisticalDataCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsStatusCommand;
+import org.pvoid.apteryx.net.results.GetTerminalsCashResult;
 import org.pvoid.apteryx.net.results.GetTerminalsResult;
 import org.pvoid.apteryx.net.results.GetTerminalsStatisticalDataResult;
 import org.pvoid.apteryx.net.results.GetTerminalsStatusResult;
@@ -46,7 +48,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 /* package */ class OsmpTerminalsManager implements TerminalsManager {
@@ -92,7 +93,16 @@ import java.util.concurrent.locks.ReentrantLock;
                     }
                 }
             }
-        } catch (InterruptedException | ExecutionException e) {
+            TerminalCash cashes[] = mStorage.getTerminalsCash();
+            if (cashes != null) {
+                for (TerminalCash cash :cashes) {
+                    Terminal terminal = mTerminalsById.get(cash.getTerminalId());
+                    if (terminal != null) {
+                        terminal.setCash(cash);
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
             LogHelper.error("TerminalsManager", "Filling terminals list failed: %1$s", e.getMessage());
         }
     }
@@ -144,6 +154,21 @@ import java.util.concurrent.locks.ReentrantLock;
         mStorage.storeTerminalStats(stats);
     }
 
+    private void storeCash(@NonNull TerminalCash... cashs) {
+        mLock.lock();
+        try {
+            for (TerminalCash cash : cashs) {
+                Terminal terminal = mTerminalsById.get(cash.getTerminalId());
+                if (terminal != null) {
+                    terminal.setCash(cash);
+                }
+            }
+        } finally {
+            mLock.unlock();
+        }
+        mStorage.storeTerminalsCash(cashs);
+    }
+
     @Override
     @NonNull
     public Terminal[] getTerminals(@Nullable String agentId) {
@@ -171,6 +196,7 @@ import java.util.concurrent.locks.ReentrantLock;
         builder.getInterface(OsmpInterface.Terminals).add(new GetTerminalsCommand(true));
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
             NetworkService.executeRequest(mContext, request, new TerminalsListReceiver(person));
@@ -182,6 +208,7 @@ import java.util.concurrent.locks.ReentrantLock;
         OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
         builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
+        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
             NetworkService.executeRequest(mContext, request, new TerminalsStateReceiver());
@@ -217,6 +244,10 @@ import java.util.concurrent.locks.ReentrantLock;
                 if (statsResult != null && statsResult.getStats() != null) {
                     storeStats(statsResult.getStats());
                 }
+                GetTerminalsCashResult cashResult = results.get(GetTerminalsCashCommand.NAME);
+                if (cashResult != null && cashResult.getCash() != null) {
+                    storeCash(cashResult.getCash());
+                }
             }
 
             if (notify) {
@@ -245,6 +276,11 @@ import java.util.concurrent.locks.ReentrantLock;
                 GetTerminalsStatisticalDataResult statsResult = results.get(GetTerminalsStatisticalDataCommand.NAME);
                 if (statsResult != null && statsResult.getStats() != null) {
                     storeStats(statsResult.getStats());
+                    notify = true;
+                }
+                GetTerminalsCashResult cashResult = results.get(GetTerminalsCashCommand.NAME);
+                if (cashResult != null && cashResult.getCash() != null) {
+                    storeCash(cashResult.getCash());
                     notify = true;
                 }
                 if (notify) {

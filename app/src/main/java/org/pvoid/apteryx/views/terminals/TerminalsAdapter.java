@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableStringBuilder;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalCash;
 import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.views.terminals.filters.TerminalsFilter;
 
@@ -94,18 +96,36 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
         public final TextView title;
         public final TextView address;
         public final TextView lastActivity;
+        public final TextView cash;
 
         ViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.terminal_title);
             address = (TextView) itemView.findViewById(R.id.terminal_address);
             lastActivity = (TextView) itemView.findViewById(R.id.terminal_last_activity);
+            cash = (TextView) itemView.findViewById(R.id.terminals_cash);
         }
 
         void bind(@NonNull Terminal terminal) {
             title.setText(terminal.getDisplayName());
             address.setText(terminal.getDisplayAddress());
             bindState(terminal.getState());
+            bindCash(terminal.getCash());
+        }
+
+        void bindCash(@Nullable TerminalCash terminalCash) {
+            if (terminalCash == null) {
+                cash.setText("-");
+                return;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (TerminalCash.CashItem item : terminalCash.getCash()) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                sb.append(item.getAmmount()).append(' ').append(item.getCurrency().getCodeName());
+            }
+            cash.setText(sb);
         }
 
         void bindState(@Nullable TerminalState state) {

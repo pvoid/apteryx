@@ -17,18 +17,8 @@
 
 package org.pvoid.apteryx.net;
 
-import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
-import org.pvoid.apteryx.net.commands.GetAgentsCommand;
-import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
-import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
-import org.pvoid.apteryx.net.commands.GetTerminalsStatisticalDataCommand;
-import org.pvoid.apteryx.net.commands.GetTerminalsStatusCommand;
-import org.pvoid.apteryx.net.results.GetAgentInfoResult;
-import org.pvoid.apteryx.net.results.GetAgentsResult;
-import org.pvoid.apteryx.net.results.GetPersonInfoResult;
-import org.pvoid.apteryx.net.results.GetTerminalsResult;
-import org.pvoid.apteryx.net.results.GetTerminalsStatisticalDataResult;
-import org.pvoid.apteryx.net.results.GetTerminalsStatusResult;
+import org.pvoid.apteryx.net.commands.*;
+import org.pvoid.apteryx.net.results.*;
 
 import dagger.Module;
 import dagger.Provides;
@@ -45,6 +35,7 @@ public class NetworkModule {
         factories.register(GetTerminalsCommand.NAME, new GetTerminalsResult.Factory());
         factories.register(GetTerminalsStatusCommand.NAME, new GetTerminalsStatusResult.Factory());
         factories.register(GetTerminalsStatisticalDataCommand.NAME, new GetTerminalsStatisticalDataResult.Factory());
+        factories.register(GetTerminalsCashCommand.NAME, new GetTerminalsCashResult.Factory());
 
         return factories;
     }

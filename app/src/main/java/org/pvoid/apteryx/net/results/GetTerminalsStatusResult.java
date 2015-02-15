@@ -23,6 +23,7 @@ import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.StringUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,10 +65,10 @@ public class GetTerminalsStatusResult extends Result {
                     continue;
                 }
 
-                int doorAlarm = parseInt(row.getAttribute(ATTR_DOOR_ALARM), -1);
-                int doorOpen = parseInt(row.getAttribute(ATTR_DOOR_OPEN), -1);
-                int event = parseInt(row.getAttribute(ATTR_EVENT), -1);
-                float simBalance = parseFloat(row.getAttribute(ATTR_SIM_BALANCE), -1.f);
+                int doorAlarm = StringUtils.parseInt(row.getAttribute(ATTR_DOOR_ALARM), -1);
+                int doorOpen = StringUtils.parseInt(row.getAttribute(ATTR_DOOR_OPEN), -1);
+                int event = StringUtils.parseInt(row.getAttribute(ATTR_EVENT), -1);
+                float simBalance = StringUtils.parseFloat(row.getAttribute(ATTR_SIM_BALANCE), -1.f);
 
                 if (states == null) {
                     states = new ArrayList<>();
@@ -124,28 +125,6 @@ public class GetTerminalsStatusResult extends Result {
             }
         }
         return -1;
-    }
-
-    private static int parseInt(@Nullable String value, int defaultValue) {
-        if (!TextUtils.isEmpty(value)) {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                // nope
-            }
-        }
-        return defaultValue;
-    }
-
-    private static float parseFloat(@Nullable String value, float defaultValue) {
-        if (!TextUtils.isEmpty(value)) {
-            try {
-                return Float.parseFloat(value);
-            } catch (NumberFormatException e) {
-                // nope
-            }
-        }
-        return defaultValue;
     }
 
     @Nullable

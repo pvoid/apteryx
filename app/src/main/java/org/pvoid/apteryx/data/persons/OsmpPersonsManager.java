@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -91,7 +90,7 @@ import java.util.concurrent.locks.ReentrantLock;
                     a.add(agent);
                 }
             }
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException e) {
             LogHelper.error(TAG, "Can't fill persons list: %1$s", e.getMessage());
         }
 
@@ -278,7 +277,7 @@ import java.util.concurrent.locks.ReentrantLock;
         public void onResponse(@NonNull OsmpResponse response) {
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Persons);
             if (results == null) {
-                LogHelper.error(TAG, "Error while verifying account. Can't get <agents> session.");
+                LogHelper.error(TAG, "Error while verifying account. Can't get <agents> list.");
                 notifyVerifyResult(false, null);
                 return;
             }

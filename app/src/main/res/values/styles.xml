@@ -95,7 +95,8 @@
     </style>
 
     <style name="TerminalCard.Container" parent="">
-        <item name="android:layout_height">@dimen/terminal_card_height</item>
+        <item name="android:minHeight">@dimen/terminal_card_height</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">@dimen/card_padding</item>
     </style>
 
@@ -110,6 +111,7 @@
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">middle</item>
         <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">14dp</item>
     </style>
 
     <style name="TerminalCard.Date" parent="">
@@ -117,6 +119,11 @@
         <item name="android:ellipsize">middle</item>
         <item name="android:textColor">@color/card_date_color</item>
         <item name="android:layout_alignParentRight">true</item>
+    </style>
+
+    <style name="TerminalCard.Date.Activity">
         <item name="android:layout_alignParentTop">true</item>
     </style>
+
+    <style name="TerminalCard.Date.Payment"/>
 </resources>

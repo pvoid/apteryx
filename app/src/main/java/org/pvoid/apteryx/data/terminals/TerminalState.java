@@ -142,4 +142,20 @@ public class TerminalState {
     public String getEventText() {
         return mEventText;
     }
+
+    public boolean hasErrors() {
+        return
+            (mMachineStatus & FLAG_STATE_STOPED_BY_SERVER) != 0 ||
+            (mMachineStatus & FLAG_STATE_HARDWARE_ABSENT) != 0 ||
+            (mMachineStatus & FLAG_STATE_HARDWARE_ERROR) != 0 ||
+            (mMachineStatus & FLAG_STATE_UI_CONFIG_ERROR) != 0;
+    }
+
+    public boolean hasWarnings() {
+        return
+            (mMachineStatus & FLAG_STATE_DANGEROUS_SOFTWARE) != 0 ||
+            (mMachineStatus & FLAG_STATE_HDD_WARNINGS) != 0 ||
+            (mMachineStatus & FLAG_STATE_NOTE_ABSENT) != 0 ||
+            (mMachineStatus & FLAG_STATE_PAPER_WARNING) != 0;
+    }
 }

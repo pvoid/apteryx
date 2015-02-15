@@ -52,6 +52,7 @@ public class Terminal {
 
     @Nullable private TerminalState mState;
     @Nullable private TerminalStats mStats;
+    @Nullable private TerminalCash mCash;
 
     public Terminal(@NonNull String id, @NonNull String agentId, @NonNull TerminalType type, @Nullable String serial,
                     @NonNull String displayName, @Nullable String whoAdded,
@@ -154,5 +155,14 @@ public class Terminal {
 
     public void setStats(@Nullable TerminalStats stats) {
         mStats = stats;
+    }
+
+    @Nullable
+    public TerminalCash getCash() {
+        return mCash;
+    }
+
+    public void setCash(@Nullable TerminalCash cash) {
+        mCash = cash;
     }
 }

@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalCash;
 import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.data.terminals.TerminalStats;
 
@@ -30,13 +31,15 @@ import java.util.concurrent.ExecutionException;
 
 public interface Storage {
     void storePerson(@NonNull Person person);
-    @Nullable Person[] getPersons() throws ExecutionException, InterruptedException;
+    @Nullable Person[] getPersons() throws InterruptedException;
     void storeAgents(@NonNull Agent... agents);
-    @Nullable Agent[] getAgents() throws ExecutionException, InterruptedException;
+    @Nullable Agent[] getAgents() throws InterruptedException;
     void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
-    @Nullable Terminal[] getTerminals() throws ExecutionException, InterruptedException;
+    @Nullable Terminal[] getTerminals() throws InterruptedException;
     void storeTerminalStates(@NonNull TerminalState[] statuses);
-    @Nullable TerminalState[] getTerminalStates() throws ExecutionException, InterruptedException;
+    @Nullable TerminalState[] getTerminalStates() throws InterruptedException;
     void storeTerminalStats(@NonNull TerminalStats[] statistics);
-    @Nullable TerminalStats[] getTerminalStats() throws ExecutionException, InterruptedException;
+    @Nullable TerminalStats[] getTerminalStats() throws InterruptedException;
+    void storeTerminalsCash(@NonNull TerminalCash[] cash);
+    @Nullable TerminalCash[] getTerminalsCash() throws InterruptedException;
 }

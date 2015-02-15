@@ -23,6 +23,7 @@ import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.terminals.TerminalStats;
 import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,16 +61,16 @@ public class GetTerminalsStatisticalDataResult extends Result {
                     continue;
                 }
                 TerminalStats stat = new TerminalStats(terminalId, agentId,
-                        parseInt(row.getAttribute(ATTR_SYSTEM_UPTIME), 0),
-                        parseInt(row.getAttribute(ATTR_UPTIME), 0),
-                        parseFloat(row.getAttribute(ATTR_PAYS_PER_HOUR), 0),
-                        parseFloat(row.getAttribute(ATTR_BILLS_PER_PAY), 0),
-                        parseInt(row.getAttribute(ATTR_CARD_READER_USED_HR), 0),
-                        parseInt(row.getAttribute(ATTR_CARD_READER_USED_DAY), 0),
-                        parseLong(row.getAttribute(ATTR_TIME_TO_CASHIN_FULL), 0),
-                        parseLong(row.getAttribute(ATTR_TIME_TO_CASHIN_SERVICE), 0),
-                        parseLong(row.getAttribute(ATTR_TIME_TO_PRINTER_PAPER_OUT), 0),
-                        parseLong(row.getAttribute(ATTR_TIME_TO_PRINTER_SERVICE), 0)
+                        StringUtils.parseInt(row.getAttribute(ATTR_SYSTEM_UPTIME), 0),
+                        StringUtils.parseInt(row.getAttribute(ATTR_UPTIME), 0),
+                        StringUtils.parseFloat(row.getAttribute(ATTR_PAYS_PER_HOUR), 0),
+                        StringUtils.parseFloat(row.getAttribute(ATTR_BILLS_PER_PAY), 0),
+                        StringUtils.parseInt(row.getAttribute(ATTR_CARD_READER_USED_HR), 0),
+                        StringUtils.parseInt(row.getAttribute(ATTR_CARD_READER_USED_DAY), 0),
+                        StringUtils.parseLong(row.getAttribute(ATTR_TIME_TO_CASHIN_FULL), 0),
+                        StringUtils.parseLong(row.getAttribute(ATTR_TIME_TO_CASHIN_SERVICE), 0),
+                        StringUtils.parseLong(row.getAttribute(ATTR_TIME_TO_PRINTER_PAPER_OUT), 0),
+                        StringUtils.parseLong(row.getAttribute(ATTR_TIME_TO_PRINTER_SERVICE), 0)
                 );
 
                 if (stats == null) {
@@ -91,30 +92,6 @@ public class GetTerminalsStatisticalDataResult extends Result {
     @Nullable
     public TerminalStats[] getStats() {
         return mStats;
-    }
-
-    private float parseFloat(@Nullable String value, float defaultValue) {
-        try {
-            return Float.parseFloat(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    private int parseInt(@Nullable String value, int defaultValue) {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    private long parseLong(@Nullable String value, long defaultValue) {
-        try {
-            return Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
     }
 
     public static class Factory implements ResultFactory {
