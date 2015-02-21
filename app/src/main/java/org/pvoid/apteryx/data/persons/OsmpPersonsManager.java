@@ -69,31 +69,26 @@ import java.util.concurrent.locks.ReentrantLock;
         mStorage = storage;
         mTerminalsManager = terminalsManager;
         mContext = context.getApplicationContext();
-        try {
-            Person[] persons = storage.getPersons();
-            if (persons != null && persons.length > 0) {
-                mPersonsList = new Person[persons.length];
-                for (int index = 0; index < persons.length; ++index) {
-                    Person person = persons[index];
-                    mPersons.put(person.getLogin(), person);
-                    mPersonsList[index] = person;
-                }
+        Person[] persons = storage.getPersons();
+        if (persons != null && persons.length > 0) {
+            mPersonsList = new Person[persons.length];
+            for (int index = 0; index < persons.length; ++index) {
+                Person person = persons[index];
+                mPersons.put(person.getLogin(), person);
+                mPersonsList[index] = person;
             }
-            Agent[] agents = storage.getAgents();
-            if (agents != null && agents.length > 0) {
-                for (Agent agent : agents) {
-                    List<Agent> a = mAgents.get(agent.getPersonLogin());
-                    if (a == null) {
-                        a = new ArrayList<>();
-                        mAgents.put(agent.getPersonLogin(), a);
-                    }
-                    a.add(agent);
-                }
-            }
-        } catch (InterruptedException e) {
-            LogHelper.error(TAG, "Can't fill persons list: %1$s", e.getMessage());
         }
-
+        Agent[] agents = storage.getAgents();
+        if (agents != null && agents.length > 0) {
+            for (Agent agent : agents) {
+                List<Agent> a = mAgents.get(agent.getPersonLogin());
+                if (a == null) {
+                    a = new ArrayList<>();
+                    mAgents.put(agent.getPersonLogin(), a);
+                }
+                a.add(agent);
+            }
+        }
         notifyPersonsChanged();
     }
 

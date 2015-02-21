@@ -19,6 +19,7 @@ package org.pvoid.apteryx.data.terminals;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 public class TerminalState {
 
@@ -44,13 +45,17 @@ public class TerminalState {
     public static final int FLAG_STATE_UI_CONFIG_ERROR      = 0x400000; // Автомат остановлен из-за ошибки в конфигурации интерфейса
     public static final int FLAG_STATE_HARDWARE_ERROR       = 0x800000; // Автомат остановлен из-за ошибок купюроприемника или принтера
 
+    private static final String STATE_OK = "OK";
+
     @NonNull private final String mId;
     @NonNull private final String mAgentId;
     private long mLastActivity;
     private long mLastPayment;
     private int mMachineStatus;
     @Nullable private String mNoteError;
+    private boolean mHasNoteError;
     @Nullable private String mPrinterError;
+    private boolean mHasPrinterError;
     @Nullable private String mCardReaderStatus;
     @Nullable private String mSignalLevel;
     private float mSimBalance;
@@ -71,7 +76,9 @@ public class TerminalState {
         mLastPayment = lastPayment;
         mMachineStatus = machineStatus;
         mNoteError = noteError;
+        mHasNoteError = !TextUtils.isEmpty(noteError) && !TextUtils.equals(STATE_OK, noteError);
         mPrinterError = printerError;
+        mHasPrinterError = !TextUtils.isEmpty(printerError) && !TextUtils.equals(STATE_OK, printerError);
         mCardReaderStatus = cardReaderStatus;
         mSignalLevel = signalLevel;
         mSimBalance = simBalance;
@@ -148,7 +155,8 @@ public class TerminalState {
             (mMachineStatus & FLAG_STATE_STOPED_BY_SERVER) != 0 ||
             (mMachineStatus & FLAG_STATE_HARDWARE_ABSENT) != 0 ||
             (mMachineStatus & FLAG_STATE_HARDWARE_ERROR) != 0 ||
-            (mMachineStatus & FLAG_STATE_UI_CONFIG_ERROR) != 0;
+            (mMachineStatus & FLAG_STATE_UI_CONFIG_ERROR) != 0 ||
+            mHasNoteError || mHasPrinterError;
     }
 
     public boolean hasWarnings() {
@@ -157,5 +165,16 @@ public class TerminalState {
             (mMachineStatus & FLAG_STATE_HDD_WARNINGS) != 0 ||
             (mMachineStatus & FLAG_STATE_NOTE_ABSENT) != 0 ||
             (mMachineStatus & FLAG_STATE_PAPER_WARNING) != 0;
+    }
+
+    @Nullable
+    public String getMessage() {
+        if (mHasNoteError) {
+            return mNoteError;
+        }
+        if (mHasPrinterError) {
+            return mPrinterError;
+        }
+        return null;
     }
 }

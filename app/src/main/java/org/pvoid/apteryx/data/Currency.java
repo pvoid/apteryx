@@ -20,21 +20,21 @@ package org.pvoid.apteryx.data;
 import android.support.annotation.Nullable;
 
 public enum Currency {
-    RUR(643, "Ꝑ", 100),
-    USD(840, "$", 100),
-    EUR(978, "€", 100),
-    UAH(980, "₴", 100),
-    GEL(981, "GEL", 100),
-    TJS(972, "TJS", 100);
+    RUR(643, "Ꝑ", 0),
+    USD(840, "$", 2),
+    EUR(978, "€", 2),
+    UAH(980, "₴", 2),
+    GEL(981, "GEL", 2),
+    TJS(972, "TJS", 2);
 
     private final int mCode;
     private final String mCodeName;
-    private final int mCapacity;
+    private final int mFractionDigits;
 
-    Currency(int code, String codeName, int capacity) {
+    Currency(int code, String codeName, int fractionDigits) {
         mCode = code;
         mCodeName = codeName;
-        mCapacity = capacity;
+        mFractionDigits = fractionDigits;
     }
 
     public int getCode() {
@@ -45,8 +45,8 @@ public enum Currency {
         return mCodeName;
     }
 
-    public int getCapacity() {
-        return mCapacity;
+    public int getmFractionDigits() {
+        return mFractionDigits;
     }
 
     @Nullable

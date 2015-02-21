@@ -31,15 +31,15 @@ import java.util.concurrent.ExecutionException;
 
 public interface Storage {
     void storePerson(@NonNull Person person);
-    @Nullable Person[] getPersons() throws InterruptedException;
+    @Nullable Person[] getPersons();
     void storeAgents(@NonNull Agent... agents);
-    @Nullable Agent[] getAgents() throws InterruptedException;
+    @Nullable Agent[] getAgents();
     void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals);
-    @Nullable Terminal[] getTerminals() throws InterruptedException;
+    @Nullable Terminal[] getTerminals();
     void storeTerminalStates(@NonNull TerminalState[] statuses);
-    @Nullable TerminalState[] getTerminalStates() throws InterruptedException;
+    @Nullable TerminalState[] getTerminalStates();
     void storeTerminalStats(@NonNull TerminalStats[] statistics);
-    @Nullable TerminalStats[] getTerminalStats() throws InterruptedException;
+    @Nullable TerminalStats[] getTerminalStats();
     void storeTerminalsCash(@NonNull TerminalCash[] cash);
-    @Nullable TerminalCash[] getTerminalsCash() throws InterruptedException;
+    @Nullable TerminalCash[] getTerminalsCash();
 }

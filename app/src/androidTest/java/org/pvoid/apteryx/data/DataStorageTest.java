@@ -20,32 +20,35 @@ package org.pvoid.apteryx.data;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
 
-import org.fest.reflect.core.Reflection;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalCash;
 import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.data.terminals.TerminalStats;
 import org.pvoid.apteryx.data.terminals.TerminalType;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowHandler;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
 public class DataStorageTest {
     @Test
-    public void tableCreateCheck() throws Exception {
-        DataStorage storage = new DataStorage(Robolectric.application);
-        Assert.assertEquals(DataStorage.DB_NAME, storage.getDatabaseName());
-        SQLiteDatabase db = storage.getReadableDatabase();
+    public void helperCheck() throws Exception {
+        DataStorage.DbHelper helper = new DataStorage.DbHelper(Robolectric.application);
+        Assert.assertEquals(DataStorage.DB_NAME, helper.getDatabaseName());
+        SQLiteDatabase db = helper.getReadableDatabase();
         Assert.assertEquals(DataStorage.DB_VERSION, db.getVersion());
 
         Cursor cursor = db.rawQuery("pragma table_info(persons)", null);
@@ -236,6 +239,19 @@ public class DataStorageTest {
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
 
+        cursor = db.rawQuery("pragma table_info(terminals_cash)", null);
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("terminal_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("agent_id", cursor.getString(1));
+        Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("cash", cursor.getString(1));
+        Assert.assertEquals("BLOB", cursor.getString(2));
+        Assert.assertFalse(cursor.moveToNext());
+        cursor.close();
+
         db.close();
     }
 
@@ -250,27 +266,9 @@ public class DataStorageTest {
         Mockito.when(person.getAgentId()).thenReturn(null);
         Mockito.when(person.isVerified()).thenReturn(false);
         Mockito.when(person.isEnabled()).thenReturn(true);
-        storage = Mockito.spy(storage);
         storage.storePerson(person);
-        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
-        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
-        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
-        Assert.assertTrue(shadowHandler.hasMessages(1, person));
-    }
-
-    @Test
-    public void storePersonImplCheck() throws Exception {
-        DataStorage storage = new DataStorage(Robolectric.application);
-        Person person = Mockito.mock(Person.class);
-        Mockito.when(person.getLogin()).thenReturn("LOGIN");
-        Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD");
-        Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
-        Mockito.when(person.getName()).thenReturn(null);
-        Mockito.when(person.getAgentId()).thenReturn(null);
-        Mockito.when(person.isVerified()).thenReturn(false);
-        Mockito.when(person.isEnabled()).thenReturn(true);
-        storage.storePersonImpl(person);
         SQLiteDatabase db = storage.getReadableDatabase();
+        Assert.assertNotNull(db);
         Cursor cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
         Assert.assertEquals(1, cursor.getCount());
@@ -283,14 +281,12 @@ public class DataStorageTest {
         Assert.assertEquals(0, cursor.getInt(5));
         Assert.assertEquals(1, cursor.getInt(6));
         cursor.close();
-        db.close();
 
         Mockito.when(person.getName()).thenReturn("NAME");
         Mockito.when(person.getAgentId()).thenReturn("AGENT");
         Mockito.when(person.isVerified()).thenReturn(true);
         Mockito.when(person.isEnabled()).thenReturn(false);
-        storage.storePersonImpl(person);
-        db = storage.getReadableDatabase();
+        storage.storePerson(person);
         cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
         Assert.assertEquals(1, cursor.getCount());
@@ -303,7 +299,6 @@ public class DataStorageTest {
         Assert.assertEquals(1, cursor.getInt(5));
         Assert.assertEquals(0, cursor.getInt(6));
         cursor.close();
-        db.close();
 
         Mockito.when(person.getLogin()).thenReturn("LOGIN1");
         Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD1");
@@ -312,8 +307,7 @@ public class DataStorageTest {
         Mockito.when(person.getAgentId()).thenReturn("AGENT1");
         Mockito.when(person.isVerified()).thenReturn(true);
         Mockito.when(person.isEnabled()).thenReturn(true);
-        storage.storePersonImpl(person);
-        db = storage.getReadableDatabase();
+        storage.storePerson(person);
         cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
         Assert.assertEquals(2, cursor.getCount());
@@ -334,15 +328,14 @@ public class DataStorageTest {
         Assert.assertEquals(1, cursor.getInt(5));
         Assert.assertEquals(1, cursor.getInt(6));
         cursor.close();
-        db.close();
     }
 
     @Test
-    public void getPersonImplCheck() throws Exception {
+    public void getPersonsCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         ContentValues values = new ContentValues();
 
-        Person persons[] = storage.getPersonsImpl();
+        Person persons[] = storage.getPersons();
         Assert.assertNotNull(persons);
         Assert.assertEquals(0, persons.length);
 
@@ -364,9 +357,8 @@ public class DataStorageTest {
         values.put("enabled", true);
         values.put("verified", false);
         db.replace("persons", null, values);
-        db.close();
 
-        persons = storage.getPersonsImpl();
+        persons = storage.getPersons();
         Assert.assertNotNull(persons);
         Assert.assertEquals(2, persons.length);
         Assert.assertEquals("LOGIN0", persons[0].getLogin());
@@ -383,23 +375,10 @@ public class DataStorageTest {
         Assert.assertEquals("AGENT1", persons[1].getAgentId());
         Assert.assertEquals(true, persons[1].isEnabled());
         Assert.assertEquals(false, persons[1].isVerified());
-
     }
 
     @Test
     public void storeAgentsCheck() throws Exception {
-        Agent[] agents = new Agent[2];
-        DataStorage storage = new DataStorage(Robolectric.application);
-        storage = Mockito.spy(storage);
-        storage.storeAgents(agents);
-        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
-        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
-        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
-        Assert.assertTrue(shadowHandler.hasMessages(2, agents));
-    }
-
-    @Test
-    public void storeAgentsImplCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         Agent agent = Mockito.mock(Agent.class);
         Mockito.when(agent.getId()).thenReturn("ID");
@@ -415,17 +394,16 @@ public class DataStorageTest {
         Mockito.when(agent.getPersonLogin()).thenReturn("PERSON_LOGIN");
         Mockito.when(agent.isValid()).thenReturn(false);
         Agent agents[] = new Agent[] {agent, null};
-        storage.addAgentsImpl(agents);
+        storage.storeAgents(agents);
 
         SQLiteDatabase db = storage.getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from agents", null);
         Assert.assertNotNull(cursor);
         Assert.assertEquals(0, cursor.getCount());
         cursor.close();
-        db.close();
 
         Mockito.when(agent.isValid()).thenReturn(true);
-        storage.addAgentsImpl(agents);
+        storage.storeAgents(agents);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from agents", null);
         Assert.assertNotNull(cursor);
@@ -443,10 +421,9 @@ public class DataStorageTest {
         Assert.assertEquals("KMM", cursor.getString(9));
         Assert.assertEquals("TAX_REGNUM", cursor.getString(10));
         cursor.close();
-        db.close();
 
         Mockito.when(agent.getName()).thenReturn("NAME2");
-        storage.addAgentsImpl(agents);
+        storage.storeAgents(agents);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from agents", null);
         Assert.assertNotNull(cursor);
@@ -464,11 +441,10 @@ public class DataStorageTest {
         Assert.assertEquals("KMM", cursor.getString(9));
         Assert.assertEquals("TAX_REGNUM", cursor.getString(10));
         cursor.close();
-        db.close();
 
         Mockito.when(agent.getName()).thenReturn("NAME");
         Mockito.when(agent.getId()).thenReturn("ID2");
-        storage.addAgentsImpl(agents);
+        storage.storeAgents(agents);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from agents", null);
         Assert.assertNotNull(cursor);
@@ -498,15 +474,14 @@ public class DataStorageTest {
         Assert.assertEquals("KMM", cursor.getString(9));
         Assert.assertEquals("TAX_REGNUM", cursor.getString(10));
         cursor.close();
-        db.close();
     }
 
     @Test
-    public void getAgentsImplCheck() throws Exception {
+    public void getAgentsCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         ContentValues values = new ContentValues();
 
-        Agent[] agents = storage.getAgentsImpl();
+        Agent[] agents = storage.getAgents();
         Assert.assertNotNull(agents);
         Assert.assertEquals(0, agents.length);
 
@@ -523,9 +498,8 @@ public class DataStorageTest {
         values.put("kmm", "KMM0");
         values.put("tax_regnum", "TAX_REGNUM0");
         db.replace("agents", null, values);
-        db.close();
 
-        agents = storage.getAgentsImpl();
+        agents = storage.getAgents();
         Assert.assertNotNull(agents);
         Assert.assertEquals(1, agents.length);
         Assert.assertEquals("AGENT0", agents[0].getId());
@@ -543,19 +517,6 @@ public class DataStorageTest {
 
     @Test
     public void storeTerminalsCheck() throws Exception {
-        Terminal[] terminals = new Terminal[2];
-        DataStorage storage = new DataStorage(Robolectric.application);
-        storage = Mockito.spy(storage);
-        storage.storeTerminals("PERSON_ID", terminals);
-        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
-        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
-        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
-        Assert.assertTrue(shadowHandler.hasMessages(4));
-        // TODO: check message object
-    }
-
-    @Test
-    public void storeTerminalsImplCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         Terminal terminal = Mockito.mock(Terminal.class);
         Mockito.when(terminal.getId()).thenReturn("ID");
@@ -569,7 +530,7 @@ public class DataStorageTest {
         Mockito.when(terminal.getDisplayAddress()).thenReturn("DISPLAY_ADDRESS");
         Mockito.when(terminal.getCityId()).thenReturn(1000);
         Mockito.when(terminal.getCity()).thenReturn("CITY");
-        storage.addTerminalsImpl("PERSON_ID", new Terminal[] {terminal, null});
+        storage.storeTerminals("PERSON_ID", terminal, null);
 
         SQLiteDatabase db = storage.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM terminals", null);
@@ -589,10 +550,9 @@ public class DataStorageTest {
         Assert.assertEquals("MAIN_ADDRESS", cursor.getString(10));
         Assert.assertEquals("PERSON_ID", cursor.getString(11));
         cursor.close();
-        db.close();
 
         Mockito.when(terminal.getDisplayName()).thenReturn("DISPLAY_NAME2");
-        storage.addTerminalsImpl("PERSON_ID", new Terminal[] {terminal});
+        storage.storeTerminals("PERSON_ID", terminal);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("SELECT * FROM terminals", null);
         Assert.assertNotNull(cursor);
@@ -611,11 +571,10 @@ public class DataStorageTest {
         Assert.assertEquals("MAIN_ADDRESS", cursor.getString(10));
         Assert.assertEquals("PERSON_ID", cursor.getString(11));
         cursor.close();
-        db.close();
 
         Mockito.when(terminal.getId()).thenReturn("ID2");
         Mockito.when(terminal.getDisplayName()).thenReturn("DISPLAY_NAME3");
-        storage.addTerminalsImpl("PERSON_ID", new Terminal[] {terminal});
+        storage.storeTerminals("PERSON_ID", terminal);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("SELECT * FROM terminals", null);
         Assert.assertNotNull(cursor);
@@ -647,15 +606,14 @@ public class DataStorageTest {
         Assert.assertEquals("MAIN_ADDRESS", cursor.getString(10));
         Assert.assertEquals("PERSON_ID", cursor.getString(11));
         cursor.close();
-        db.close();
     }
 
     @Test
-    public void getTerminalsImplCheck() throws Exception {
+    public void getTerminalsCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         ContentValues values = new ContentValues();
 
-        Terminal terminals[] = storage.getTerminalsImpl();
+        Terminal terminals[] = storage.getTerminals();
         Assert.assertNotNull(terminals);
         Assert.assertEquals(0, terminals.length);
 
@@ -674,7 +632,7 @@ public class DataStorageTest {
         values.put("person_id", "PERSON0");
         db.replace("terminals", null, values);
 
-        terminals = storage.getTerminalsImpl();
+        terminals = storage.getTerminals();
         Assert.assertNotNull(terminals);
         Assert.assertEquals(1, terminals.length);
         Assert.assertEquals("ID0", terminals[0].getId());
@@ -693,18 +651,6 @@ public class DataStorageTest {
 
     @Test
     public void storeTerminalStatusesCheck() throws Exception {
-        TerminalState[] statuses = new TerminalState[2];
-        DataStorage storage = new DataStorage(Robolectric.application);
-        storage = Mockito.spy(storage);
-        storage.storeTerminalStates(statuses);
-        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
-        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
-        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
-        Assert.assertTrue(shadowHandler.hasMessages(7, statuses));
-    }
-
-    @Test
-    public void storeTerminalStatusesImplCheck() throws Exception {
         TerminalState status = Mockito.mock(TerminalState.class);
         Mockito.when(status.getId()).thenReturn("ID0");
         Mockito.when(status.getAgentId()).thenReturn("AGENT_ID0");
@@ -726,7 +672,7 @@ public class DataStorageTest {
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatesImpl(new TerminalState[]{status, failStatus});
+            storage.storeTerminalStates(status, failStatus);
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -734,9 +680,8 @@ public class DataStorageTest {
         Cursor cursor = db.rawQuery("select * from terminals_state", null);
         Assert.assertEquals(0, cursor.getCount());
         cursor.close();
-        db.close();
 
-        storage.storeTerminalStatesImpl(new TerminalState[]{status, null});
+        storage.storeTerminalStates(status, null);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_state", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -758,11 +703,10 @@ public class DataStorageTest {
         Assert.assertEquals("EVENT0", cursor.getString(13));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
-        db.close();
     }
 
     @Test
-    public void getTerminalStatusesImplCheck() throws Exception {
+    public void getTerminalStatusesCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         ContentValues values = new ContentValues();
 
@@ -795,9 +739,8 @@ public class DataStorageTest {
         values.put("event", 31);
         values.put("event_text", "EVENT_TEXT1");
         db.replace("terminals_state", null, values);
-        db.close();
 
-        TerminalState statuses[] = storage.getTerminalStatesImpl();
+        TerminalState statuses[] = storage.getTerminalStates();
         Assert.assertNotNull(statuses);
         Assert.assertEquals(2, statuses.length);
         TerminalState status = statuses[0];
@@ -835,18 +778,6 @@ public class DataStorageTest {
 
     @Test
     public void storeTerminalStatsCheck() throws Exception {
-        TerminalStats[] stats = new TerminalStats[2];
-        DataStorage storage = new DataStorage(Robolectric.application);
-        storage = Mockito.spy(storage);
-        storage.storeTerminalStats(stats);
-        Mockito.verify(storage, Mockito.never()).getWritableDatabase();
-        Handler handler = Reflection.field("mHandler").ofType(Handler.class).in(storage).get();
-        ShadowHandler shadowHandler = Robolectric.shadowOf(handler);
-        Assert.assertTrue(shadowHandler.hasMessages(9, stats));
-    }
-
-    @Test
-    public void storeTerminalStatsImpl() throws Exception {
         TerminalStats stat = Mockito.mock(TerminalStats.class);
         Mockito.when(stat.getTerminalId()).thenReturn("TERMINAL_ID0");
         Mockito.when(stat.getAgentId()).thenReturn("AGENT_ID0");
@@ -866,7 +797,7 @@ public class DataStorageTest {
 
         DataStorage storage = new DataStorage(Robolectric.application);
         try {
-            storage.storeTerminalStatsImpl(new TerminalStats[]{stat, failStat});
+            storage.storeTerminalStats(stat, failStat);
         } catch (RuntimeException e) {
             Assert.assertEquals(ex, e);
         }
@@ -874,9 +805,8 @@ public class DataStorageTest {
         Cursor cursor = db.rawQuery("select * from terminals_stat", null);
         Assert.assertEquals(0, cursor.getCount());
         cursor.close();
-        db.close();
 
-        storage.storeTerminalStatsImpl(new TerminalStats[]{stat, null});
+        storage.storeTerminalStats(stat, null);
         db = storage.getReadableDatabase();
         cursor = db.rawQuery("select * from terminals_stat", null);
         Assert.assertEquals(1, cursor.getCount());
@@ -896,11 +826,10 @@ public class DataStorageTest {
         Assert.assertEquals(300l, cursor.getLong(11));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
-        db.close();
     }
 
     @Test
-    public void getTerminalStatisticsImplCheck() throws Exception {
+    public void getTerminalStatisticsCheck() throws Exception {
         DataStorage storage = new DataStorage(Robolectric.application);
         ContentValues values = new ContentValues();
 
@@ -931,9 +860,8 @@ public class DataStorageTest {
         values.put("time_to_printer_out", 1501l);
         values.put("time_to_printer_service", 2501l);
         db.replace("terminals_stat", null, values);
-        db.close();
 
-        TerminalStats stats[] = storage.getTerminalStatsImpl();
+        TerminalStats stats[] = storage.getTerminalStats();
         Assert.assertNotNull(stats);
         Assert.assertEquals(2, stats.length);
         TerminalStats stat = stats[0];
@@ -962,5 +890,41 @@ public class DataStorageTest {
         Assert.assertEquals(2001l, stat.getTimeToCashinService());
         Assert.assertEquals(1501l, stat.getTimeToPrinterPaperOut());
         Assert.assertEquals(2501l, stat.getTimeToPrinterService());
+    }
+
+    @Test
+    public void storeTerminalsCashCheck() throws Exception {
+        TerminalCash cash = Mockito.mock(TerminalCash.class);
+        TerminalCash fail = Mockito.mock(TerminalCash.class);
+        Mockito.when(cash.getTerminalId()).thenReturn("TERMINAL0");
+        Mockito.when(cash.getAgentId()).thenReturn("AGENT0");
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                Object[] args = invocationOnMock.getArguments();
+                DataOutputStream out = (DataOutputStream) args[0];
+                out.write(new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+                return null;
+            }
+        }).when(cash).store(Mockito.any(DataOutputStream.class));
+        Mockito.doThrow(new IOException()).when(fail).store(Mockito.any(DataOutputStream.class));
+
+        DataStorage storage = new DataStorage(Robolectric.application);
+        storage.storeTerminalsCash(cash, null, fail);
+
+        SQLiteDatabase db = storage.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM terminals_cash", null);
+        Assert.assertEquals(1, cursor.getCount());
+        cursor.moveToFirst();
+        Assert.assertEquals("TERMINAL0", cursor.getString(0));
+        Assert.assertEquals("AGENT0", cursor.getString(1));
+        Assert.assertArrayEquals(new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, cursor.getBlob(2));
+        cursor.close();
+    }
+
+    @Test
+    public void getTerminalsCashCheck() throws Exception {
+        DataStorage storage = new DataStorage(Robolectric.application);
+
     }
 }

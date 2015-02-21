@@ -41,7 +41,6 @@ import org.pvoid.apteryx.net.results.GetTerminalsResult;
 import org.pvoid.apteryx.net.results.GetTerminalsStatisticalDataResult;
 import org.pvoid.apteryx.net.results.GetTerminalsStatusResult;
 import org.pvoid.apteryx.util.ArrayUtils;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.util.SearchComparator;
 
 import java.util.Arrays;
@@ -64,46 +63,42 @@ import java.util.concurrent.locks.ReentrantLock;
         mContext = context.getApplicationContext();
         mStorage = storage;
 
-        try {
-            Terminal[] terminals = mStorage.getTerminals();
-            if (terminals != null) {
-                mTerminalsByAgent = new Terminal[terminals.length];
-                for (int index = 0; index < terminals.length; ++index) {
-                    Terminal terminal = terminals[index];
-                    mTerminalsById.put(terminal.getId(), terminal);
-                    mTerminalsByAgent[index] = terminal;
-                }
-                Arrays.sort(mTerminalsByAgent, mCompareByAgent);
+        Terminal[] terminals = mStorage.getTerminals();
+        if (terminals != null) {
+            mTerminalsByAgent = new Terminal[terminals.length];
+            for (int index = 0; index < terminals.length; ++index) {
+                Terminal terminal = terminals[index];
+                mTerminalsById.put(terminal.getId(), terminal);
+                mTerminalsByAgent[index] = terminal;
             }
-            TerminalState states[] = mStorage.getTerminalStates();
-            if (states != null) {
-                for (TerminalState state : states) {
-                    Terminal terminal = mTerminalsById.get(state.getId());
-                    if (terminal != null) {
-                        terminal.setState(state);
-                    }
+            Arrays.sort(mTerminalsByAgent, mCompareByAgent);
+        }
+        TerminalState states[] = mStorage.getTerminalStates();
+        if (states != null) {
+            for (TerminalState state : states) {
+                Terminal terminal = mTerminalsById.get(state.getId());
+                if (terminal != null) {
+                    terminal.setState(state);
                 }
             }
-            TerminalStats stats[] = mStorage.getTerminalStats();
-            if (stats != null) {
-                for (TerminalStats stat : stats) {
-                    Terminal terminal = mTerminalsById.get(stat.getTerminalId());
-                    if (terminal != null) {
-                        terminal.setStats(stat);
-                    }
+        }
+        TerminalStats stats[] = mStorage.getTerminalStats();
+        if (stats != null) {
+            for (TerminalStats stat : stats) {
+                Terminal terminal = mTerminalsById.get(stat.getTerminalId());
+                if (terminal != null) {
+                    terminal.setStats(stat);
                 }
             }
-            TerminalCash cashes[] = mStorage.getTerminalsCash();
-            if (cashes != null) {
-                for (TerminalCash cash :cashes) {
-                    Terminal terminal = mTerminalsById.get(cash.getTerminalId());
-                    if (terminal != null) {
-                        terminal.setCash(cash);
-                    }
+        }
+        TerminalCash cashes[] = mStorage.getTerminalsCash();
+        if (cashes != null) {
+            for (TerminalCash cash :cashes) {
+                Terminal terminal = mTerminalsById.get(cash.getTerminalId());
+                if (terminal != null) {
+                    terminal.setCash(cash);
                 }
             }
-        } catch (InterruptedException e) {
-            LogHelper.error("TerminalsManager", "Filling terminals list failed: %1$s", e.getMessage());
         }
     }
 

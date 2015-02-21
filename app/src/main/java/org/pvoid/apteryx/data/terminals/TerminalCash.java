@@ -98,27 +98,26 @@ public class TerminalCash {
             mNotesGoByCount = in.readInt();
             mNotesGoBySum = in.readDouble();
             for (int size = in.readInt(); size > 0; --size) {
-                mNotes.add(in.readDouble(), in.readInt());
+                addNotes(in.readDouble(), in.readInt());
             }
             mCoinsGoByCount = in.readInt();
             for (int size = in.readInt(); size > 0; --size) {
-                mCoins.add(in.readDouble(), in.readInt());
+                addCoins(in.readDouble(), in.readInt());
             }
         }
 
-        public void addNotes(int face, int count) {
+        public void addNotes(double face, int count) {
             mNotes.add(face, count);
             mAmmount += face * count;
         }
 
         public void addNotesGoBy(double sum, int count) {
-            mAmmount += sum;
             mNotesGoBySum = sum;
             mNotesGoByCount = count;
         }
 
         public void addCoins(double face, int count) {
-            mCoins.add((int) (face * mCurrency.getCapacity()), count);
+            mCoins.add(face, count);
             mAmmount += face * count;
         }
 

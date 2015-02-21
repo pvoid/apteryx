@@ -55,16 +55,6 @@ public class OsmpPersonManagerTest {
         Mockito.verify(receiver, Mockito.times(1)).onReceive(Mockito.any(Context.class),
                 Mockito.eq(new Intent(PersonsManager.ACTION_PERSONS_CHANGED)));
 
-        Mockito.when(storage.getPersons()).thenThrow(new InterruptedException(""));
-        Mockito.reset(receiver);
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
-        persons = manager.getPersons();
-        Assert.assertNotNull(persons);
-        Assert.assertEquals(0, persons.length);
-        Assert.assertNull(manager.getAgents("ANY"));
-        Mockito.verify(receiver, Mockito.times(1)).onReceive(Mockito.any(Context.class),
-                Mockito.eq(new Intent(PersonsManager.ACTION_PERSONS_CHANGED)));
-
         Person sourcePersons[] = new Person[0];
         Agent sourceAgents[] = new Agent[0];
         Mockito.reset(storage, receiver);

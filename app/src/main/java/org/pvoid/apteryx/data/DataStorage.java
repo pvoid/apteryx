@@ -22,27 +22,22 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.util.Pair;
 
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.*;
 import org.pvoid.apteryx.util.LogHelper;
 
-import java.io.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
-/* package */ class DataStorage extends SQLiteOpenHelper implements Storage {
+
+/* package */ class DataStorage implements Storage {
 
     private static final String TAG = "Storage";
 
@@ -224,284 +219,59 @@ import java.util.concurrent.TimeoutException;
         int COLUMN_CASH_INDEX = 2;
     }
 
-    private static final int MSG_STORE_PERSON = 1;
-    private static final int MSG_ADD_AGENTS = 2;
-    private static final int MSG_GET_PERSONS = 3;
-    private static final int MSG_STORE_TERMINALS = 4;
-    private static final int MSG_GET_TERMINALS = 5;
-    private static final int MSG_GET_AGENTS = 6;
-    private static final int MSG_STORE_TERMINAL_STATES = 7;
-    private static final int MSG_GET_TERMINAL_STATES = 8;
-    private static final int MSG_STORE_TERMINAL_STATS = 9;
-    private static final int MSG_GET_TERMINAL_STATS = 10;
-    private static final int MSG_STORE_TERMINAL_CASH = 11;
-    private static final int MSG_GET_TERMINAL_CASH = 12;
-
-    private final HandlerThread mThread;
-    private final Handler mHandler;
+    @NonNull
+    private final DbHelper mHelper;
+    @Nullable
+    private volatile SQLiteDatabase mReadableDatabase;
+    @Nullable
+    private volatile SQLiteDatabase mWritableDatabase;
 
     /* package */ DataStorage(@NonNull Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
-        mThread = new HandlerThread("DbWorker");
-        mThread.start();
-        mHandler = new DbHandler(mThread.getLooper());
+        mHelper = new DbHelper(context);
     }
 
     @Override
     public void storePerson(@NonNull Person person) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_PERSON, person);
-        mHandler.sendMessage(msg);
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(PersonsTable.COLUMN_LOGIN, person.getLogin());
+        values.put(PersonsTable.COLUMN_PASSWORD, person.getPasswordHash());
+        values.put(PersonsTable.COLUMN_TERMINAL, person.getTerminal());
+        values.put(PersonsTable.COLUMN_NAME, person.getName());
+        values.put(PersonsTable.COLUMN_AGENT_ID, person.getAgentId());
+        values.put(PersonsTable.COLUMN_ENABLED, person.isEnabled());
+        values.put(PersonsTable.COLUMN_VERIFIED, person.isVerified());
+        db.replace(PersonsTable.NAME, null, values);
     }
 
     @Nullable
     @Override
-    public Person[] getPersons() throws InterruptedException {
-        ResultFuture<Person> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_PERSONS, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get persons list", e);
+    public Person[] getPersons() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(PersonsTable.NAME, PersonsTable.ALL_COLUMNS, null, null, null, null, null);
+        if (cursor == null) {
             return null;
+        }
+        try {
+            Person[] result = new Person[cursor.getCount()];
+            int index = 0;
+            while (cursor.moveToNext()) {
+                result[index++] = new Person(cursor.getString(PersonsTable.COLUMN_LOGIN_INDEX),
+                        cursor.getString(PersonsTable.COLUMN_PASSWORD_INDEX),
+                        cursor.getString(PersonsTable.COLUMN_TERMINAL_INDEX),
+                        cursor.getString(PersonsTable.COLUMN_AGENT_ID_INDEX),
+                        cursor.getString(PersonsTable.COLUMN_NAME_INDEX),
+                        cursor.getInt(PersonsTable.COLUMN_ENABLED_INDEX) == 1,
+                        cursor.getInt(PersonsTable.COLUMN_VERIFIED_INDEX) == 1);
+            }
+            return result;
+        } finally {
+            cursor.close();
         }
     }
 
     @Override
     public void storeAgents(@NonNull Agent... agents) {
-        Message msg = mHandler.obtainMessage(MSG_ADD_AGENTS, agents);
-        mHandler.sendMessage(msg);
-    }
-
-    @Nullable
-    @Override
-    public Agent[] getAgents() throws InterruptedException {
-        ResultFuture<Agent> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_AGENTS, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get agents list", e);
-            return null;
-        }
-    }
-
-    @Override
-    public void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINALS, new Pair<>(personId, terminals));
-        mHandler.sendMessage(msg);
-    }
-
-    @Nullable
-    @Override
-    public Terminal[] getTerminals() throws InterruptedException {
-        ResultFuture<Terminal> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_TERMINALS, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get terminals list", e);
-            return null;
-        }
-    }
-
-    @Override
-    public void storeTerminalStates(@NonNull TerminalState[] statuses) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATES, statuses);
-        mHandler.sendMessage(msg);
-    }
-
-    @Nullable
-    @Override
-    public TerminalState[] getTerminalStates()  throws InterruptedException {
-        ResultFuture<TerminalState> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_TERMINAL_STATES, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get terminals states list", e);
-            return null;
-        }
-    }
-
-    @Nullable
-    @Override
-    public TerminalStats[] getTerminalStats()  throws InterruptedException {
-        ResultFuture<TerminalStats> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_TERMINAL_STATS, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get terminals stats list", e);
-            return null;
-        }
-    }
-
-    @Override
-    public void storeTerminalsCash(@NonNull TerminalCash[] cash) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_CASH, cash);
-        mHandler.sendMessage(msg);
-    }
-
-    @Nullable
-    @Override
-    public TerminalCash[] getTerminalsCash() throws InterruptedException {
-        ResultFuture<TerminalCash> future = new ResultFuture<>();
-        Message msg = mHandler.obtainMessage(MSG_GET_TERMINAL_CASH, future);
-        mHandler.sendMessage(msg);
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            LogHelper.error("Storage", "Can't get terminals cash", e);
-            return null;
-        }
-    }
-
-    @Override
-    public void storeTerminalStats(@NonNull TerminalStats[] statistics) {
-        Message msg = mHandler.obtainMessage(MSG_STORE_TERMINAL_STATS, statistics);
-        mHandler.sendMessage(msg);
-    }
-
-    public void shutdown() {
-        mThread.quit();
-    }
-
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + PersonsTable.NAME + "(" +
-                        PersonsTable.COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        PersonsTable.COLUMN_PASSWORD + " TEXT, " +
-                        PersonsTable.COLUMN_TERMINAL + " TEXT, " +
-                        PersonsTable.COLUMN_NAME + " TEXT," +
-                        PersonsTable.COLUMN_AGENT_ID + " TEXT," +
-                        PersonsTable.COLUMN_VERIFIED + " INTEGER, " +
-                        PersonsTable.COLUMN_ENABLED + " INTEGER);"
-        );
-        db.execSQL("CREATE TABLE " + AgentsTable.NAME + "(" +
-                        AgentsTable.COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        AgentsTable.COLUMN_PARENT_ID + " TEXT, " +
-                        AgentsTable.COLUMN_PERSON_LOGIN + " TEXT, " +
-                        AgentsTable.COLUMN_INN + " TEXT, " +
-                        AgentsTable.COLUMN_JUR_ADDRESS + " TEXT, " +
-                        AgentsTable.COLUMN_PHYS_ADDRESS + " TEXT, " +
-                        AgentsTable.COLUMN_NAME + " TEXT, " +
-                        AgentsTable.COLUMN_CITY + " TEXT, " +
-                        AgentsTable.COLUMN_FISCAL_MODE + " TEXT, " +
-                        AgentsTable.COLUMN_KMM + " TEXT, " +
-                        AgentsTable.COLUMN_TAX_REGNUM + " TEXT);"
-        );
-        db.execSQL("CREATE TABLE " + TerminalsTable.NAME + "(" +
-                        TerminalsTable.COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                        TerminalsTable.COLUMN_TYPE + " INTEGER, " +
-                        TerminalsTable.COLUMN_SERIAL + " TEXT, " +
-                        TerminalsTable.COLUMN_NAME + " TEXT, " +
-                        TerminalsTable.COLUMN_WHO + " TEXT, " +
-                        TerminalsTable.COLUMN_WORK_TIME + " TEXT, " +
-                        TerminalsTable.COLUMN_AGENT_ID + " TEXT, " +
-                        TerminalsTable.COLUMN_CITY + " TEXT, " +
-                        TerminalsTable.COLUMN_CITY_ID + " INTEGER, " +
-                        TerminalsTable.COLUMN_DISPLAY_ADDRESS + " TEXT, " +
-                        TerminalsTable.COLUMN_MAIN_ADDRESS + " TEXT, " +
-                        TerminalsTable.COLUMN_PERSON_ID + " TEXT);"
-        );
-
-        db.execSQL("CREATE TABLE " + TerminalsStateTable.NAME + "(" +
-                    TerminalsStateTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                    TerminalsStateTable.COLUMN_AGENT_ID + " TEXT, " +
-                    TerminalsStateTable.COLUMN_LAST_ACTIVITY + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_LAST_PAYMENT + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_STATUS + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_NOTE_ERROR + " TEXT, " +
-                    TerminalsStateTable.COLUMN_PRINTER_ERROR + " TEXT, " +
-                    TerminalsStateTable.COLUMN_CARD_READER_STATUS + " TEXT, " +
-                    TerminalsStateTable.COLUMN_SIGNAL_LEVEL + " TEXT, " +
-                    TerminalsStateTable.COLUMN_SIM_BALANCE + " REAL, " +
-                    TerminalsStateTable.COLUMN_DOOR_ALARM + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_DOOR_OPEN + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_EVENT + " INTEGER, " +
-                    TerminalsStateTable.COLUMN_EVENT_TEXT + " TEXT);"
-        );
-
-        db.execSQL("CREATE TABLE " + TerminalsStatsTable.NAME + "(" +
-                    TerminalsStatsTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                    TerminalsStatsTable.COLUMN_AGENT_ID + " TEXT, " +
-                    TerminalsStatsTable.COLUMN_SYSTEM_UPTIME + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_UPTIME + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_PAY_PER_HR + " REAL, " +
-                    TerminalsStatsTable.COLUMN_BILL_PER_PAY + " REAL, " +
-                    TerminalsStatsTable.COLUMN_CARD_READER_USED_HR + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_CARD_READER_USED_DAY + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_FULL + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_SERVICE + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_OUT + " INTEGER, " +
-                    TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_SERVICE + " INTEGER);"
-        );
-
-        db.execSQL("CREATE TABLE " + TerminalsCashTable.NAME + "(" +
-                    TerminalsCashTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
-                    TerminalsCashTable.COLUMN_AGENT_ID + " TEXT, " +
-                    TerminalsCashTable.COLUMN_CASH + " BLOB);"
-        );
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-    }
-
-    /* package */ void storePersonImpl(@NonNull Person person) {
-        SQLiteDatabase db = getWritableDatabase();
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            ContentValues values = new ContentValues();
-            values.put(PersonsTable.COLUMN_LOGIN, person.getLogin());
-            values.put(PersonsTable.COLUMN_PASSWORD, person.getPasswordHash());
-            values.put(PersonsTable.COLUMN_TERMINAL, person.getTerminal());
-            values.put(PersonsTable.COLUMN_NAME, person.getName());
-            values.put(PersonsTable.COLUMN_AGENT_ID, person.getAgentId());
-            values.put(PersonsTable.COLUMN_ENABLED, person.isEnabled());
-            values.put(PersonsTable.COLUMN_VERIFIED, person.isVerified());
-            db.replace(PersonsTable.NAME, null, values);
-        } finally {
-            db.close();
-        }
-    }
-
-    @Nullable
-    /* package */ Person[] getPersonsImpl() {
-        SQLiteDatabase db = getReadableDatabase();
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            Cursor cursor = db.query(PersonsTable.NAME, PersonsTable.ALL_COLUMNS, null, null, null, null, null);
-            if (cursor == null) {
-                return null;
-            }
-            try {
-                Person[] result = new Person[cursor.getCount()];
-                int index = 0;
-                while (cursor.moveToNext()) {
-                    result[index++] = new Person(cursor.getString(PersonsTable.COLUMN_LOGIN_INDEX),
-                            cursor.getString(PersonsTable.COLUMN_PASSWORD_INDEX),
-                            cursor.getString(PersonsTable.COLUMN_TERMINAL_INDEX),
-                            cursor.getString(PersonsTable.COLUMN_AGENT_ID_INDEX),
-                            cursor.getString(PersonsTable.COLUMN_NAME_INDEX),
-                            cursor.getInt(PersonsTable.COLUMN_ENABLED_INDEX) == 1,
-                            cursor.getInt(PersonsTable.COLUMN_VERIFIED_INDEX) == 1);
-                }
-                return result;
-            } finally {
-                cursor.close();
-            }
-        } finally {
-            db.close();
-        }
-    }
-
-    /* package */ void addAgentsImpl(@NonNull Agent[] agents) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
@@ -528,20 +298,19 @@ import java.util.concurrent.TimeoutException;
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
-            db.close();
         }
     }
 
     @Nullable
-    /* package */ Agent[] getAgentsImpl() {
+    @Override
+    public Agent[] getAgents() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = null;
-        //noinspection TryFinallyCanBeTryWithResources
+        Cursor cursor = db.query(AgentsTable.NAME, AgentsTable.ALL_COLUMNS, null, null, null,null, null);
+        if (cursor == null) {
+            return null;
+        }
+
         try {
-            cursor = db.query(AgentsTable.NAME, AgentsTable.ALL_COLUMNS, null, null, null,null, null);
-            if (cursor == null) {
-                return null;
-            }
             Agent[] result = new Agent[cursor.getCount()];
             int index = 0;
             while (cursor.moveToNext()) {
@@ -559,17 +328,14 @@ import java.util.concurrent.TimeoutException;
             }
             return result;
         } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
+            cursor.close();
         }
     }
 
-    /* package */ void addTerminalsImpl(@NonNull String personId, @NonNull Terminal[] terminals) {
+    @Override
+    public void storeTerminals(@NonNull String personId, @NonNull Terminal... terminals) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
-        //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
             for (Terminal terminal : terminals) {
@@ -594,50 +360,45 @@ import java.util.concurrent.TimeoutException;
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
-            db.close();
         }
     }
 
     @Nullable
-    /* package */ Terminal[] getTerminalsImpl() {
+    @Override
+    public Terminal[] getTerminals() {
         SQLiteDatabase db = getReadableDatabase();
-        //noinspection TryFinallyCanBeTryWithResources
+        Cursor cursor = db.query(TerminalsTable.NAME, TerminalsTable.ALL_COLUMNS, null, null, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
         try {
-            Cursor cursor = db.query(TerminalsTable.NAME, TerminalsTable.ALL_COLUMNS, null, null, null, null, null);
-            if (cursor == null) {
-                return null;
+            Terminal result[] = new Terminal[cursor.getCount()];
+            int index = 0;
+            while (cursor.moveToNext()) {
+                result[index] = new Terminal(cursor.getString(TerminalsTable.COLUMN_ID_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_AGENT_ID_INDEX),
+                        TerminalType.fromId(cursor.getInt(TerminalsTable.COLUMN_TYPE_INDEX)),
+                        cursor.getString(TerminalsTable.COLUMN_SERIAL_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_NAME_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_WHO_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_WORK_TIME_INDEX));
+                result[index].setAddress(cursor.getString(TerminalsTable.COLUMN_DISPLAY_ADDRESS_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_MAIN_ADDRESS_INDEX));
+                result[index].setCity(cursor.getInt(TerminalsTable.COLUMN_CITY_ID_INDEX),
+                        cursor.getString(TerminalsTable.COLUMN_CITY_INDEX));
+                result[index].setPersonId(cursor.getString(TerminalsTable.COLUMN_PERSON_ID_INDEX));
+                ++index;
             }
-            try {
-                Terminal result[] = new Terminal[cursor.getCount()];
-                int index = 0;
-                while (cursor.moveToNext()) {
-                    result[index] = new Terminal(cursor.getString(TerminalsTable.COLUMN_ID_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_AGENT_ID_INDEX),
-                            TerminalType.fromId(cursor.getInt(TerminalsTable.COLUMN_TYPE_INDEX)),
-                            cursor.getString(TerminalsTable.COLUMN_SERIAL_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_NAME_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_WHO_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_WORK_TIME_INDEX));
-                    result[index].setAddress(cursor.getString(TerminalsTable.COLUMN_DISPLAY_ADDRESS_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_MAIN_ADDRESS_INDEX));
-                    result[index].setCity(cursor.getInt(TerminalsTable.COLUMN_CITY_ID_INDEX),
-                            cursor.getString(TerminalsTable.COLUMN_CITY_INDEX));
-                    result[index].setPersonId(cursor.getString(TerminalsTable.COLUMN_PERSON_ID_INDEX));
-                    ++index;
-                }
-                return result;
-            } finally {
-                cursor.close();
-            }
+            return result;
         } finally {
-            db.close();
+            cursor.close();
         }
     }
 
-    /* package */ void storeTerminalStatesImpl(TerminalState[] statuses) {
+    @Override
+    public void storeTerminalStates(@NonNull TerminalState... statuses) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
-        //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
             for (TerminalState status : statuses) {
@@ -663,20 +424,18 @@ import java.util.concurrent.TimeoutException;
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
-            db.close();
         }
     }
 
     @Nullable
-    /* package */ TerminalState[] getTerminalStatesImpl() {
+    @Override
+    public TerminalState[] getTerminalStates() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = null;
-        //noinspection TryFinallyCanBeTryWithResources
+        Cursor cursor = db.query(TerminalsStateTable.NAME, TerminalsStateTable.ALL_COLUMNS, null, null, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
         try {
-            cursor = db.query(TerminalsStateTable.NAME, TerminalsStateTable.ALL_COLUMNS, null, null, null, null, null);
-            if (cursor == null) {
-                return null;
-            }
             TerminalState[] result = new TerminalState[cursor.getCount()];
             for (int index = 0; cursor.moveToNext(); ++index) {
                 result[index] = new TerminalState(cursor.getString(TerminalsStateTable.COLUMN_TERMINAL_ID_INDEX),
@@ -696,14 +455,12 @@ import java.util.concurrent.TimeoutException;
             }
             return result;
         } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
+            cursor.close();
         }
     }
 
-    /* package */ void storeTerminalStatsImpl(TerminalStats[] stats) {
+    @Override
+    public void storeTerminalStats(@NonNull TerminalStats... stats) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         //noinspection TryFinallyCanBeTryWithResources
@@ -730,20 +487,18 @@ import java.util.concurrent.TimeoutException;
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
-            db.close();
         }
     }
 
     @Nullable
-    /* package */ TerminalStats[] getTerminalStatsImpl() {
+    @Override
+    public TerminalStats[] getTerminalStats() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = null;
-        //noinspection TryFinallyCanBeTryWithResources
+        Cursor cursor = db.query(TerminalsStatsTable.NAME, TerminalsStatsTable.ALL_COLUMNS, null, null, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
         try {
-            cursor = db.query(TerminalsStatsTable.NAME, TerminalsStatsTable.ALL_COLUMNS, null, null, null, null, null);
-            if (cursor == null) {
-                return null;
-            }
             TerminalStats result[] = new TerminalStats[cursor.getCount()];
             for (int index = 0; cursor.moveToNext(); ++index) {
                 result[index] = new TerminalStats(cursor.getString(TerminalsStatsTable.COLUMN_TERMINAL_ID_INDEX),
@@ -761,14 +516,12 @@ import java.util.concurrent.TimeoutException;
             }
             return result;
         } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
+            cursor.close();
         }
     }
 
-    /* package */ void storeTerminalsCashImpl(@NonNull TerminalCash[] cashes) {
+    @Override
+    public void storeTerminalsCash(@NonNull TerminalCash... cashes) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
@@ -788,25 +541,24 @@ import java.util.concurrent.TimeoutException;
                 values.put(TerminalsCashTable.COLUMN_TERMINAL_ID, cash.getTerminalId());
                 values.put(TerminalsCashTable.COLUMN_AGENT_ID, cash.getAgentId());
                 values.put(TerminalsCashTable.COLUMN_CASH, out.toByteArray());
+                db.replace(TerminalsCashTable.NAME, null, values);
                 out.reset();
             }
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
-            db.close();
         }
     }
 
     @Nullable
-    /* package */ TerminalCash[] getTerminalsCashImpl() {
+    @Override
+    public TerminalCash[] getTerminalsCash() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = null;
-        //noinspection TryFinallyCanBeTryWithResources
+        Cursor cursor = db.query(TerminalsCashTable.NAME, TerminalsCashTable.ALL_COLUMS, null, null, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
         try {
-            cursor = db.query(TerminalsCashTable.NAME, TerminalsCashTable.ALL_COLUMS, null, null, null, null, null);
-            if (cursor == null || cursor.getCount() == 0) {
-                return null;
-            }
             TerminalCash[] result = new TerminalCash[cursor.getCount()];
             int index = 0;
             while (cursor.moveToNext()) {
@@ -820,145 +572,128 @@ import java.util.concurrent.TimeoutException;
             }
             return result;
         } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
+            cursor.close();
         }
     }
 
-    private class DbHandler extends Handler {
-        public DbHandler(Looper looper) {
-            super(looper);
+    public void shutdown() {
+        synchronized (mHelper) {
+            mReadableDatabase = null;
+            mWritableDatabase = null;
         }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_STORE_PERSON: {
-                    if (msg.obj != null) {
-                        storePersonImpl((Person) msg.obj);
-                    }
-                    break;
-                }
-                case MSG_ADD_AGENTS: {
-                    if (msg.obj != null) {
-                        addAgentsImpl((Agent[]) msg.obj);
-                    }
-                    break;
-                }
-                case MSG_GET_PERSONS: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<Person>) msg.obj).setResult(getPersonsImpl());
-                    }
-                    break;
-                }
-                case MSG_STORE_TERMINALS: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        Pair<String, Terminal[]> data = (Pair<String, Terminal[]>) msg.obj;
-                        addTerminalsImpl(data.first, data.second);
-                    }
-                    break;
-                }
-                case MSG_GET_TERMINALS: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<Terminal>) msg.obj).setResult(getTerminalsImpl());
-                    }
-                    break;
-                }
-                case MSG_GET_AGENTS: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<Agent>) msg.obj).setResult(getAgentsImpl());
-                    }
-                    break;
-                }
-                case MSG_STORE_TERMINAL_STATES: {
-                    if (msg.obj != null) {
-                        storeTerminalStatesImpl((TerminalState[]) msg.obj);
-                    }
-                    break;
-                }
-                case MSG_GET_TERMINAL_STATES: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<TerminalState>) msg.obj).setResult(getTerminalStatesImpl());
-                    }
-                    break;
-                }
-                case MSG_STORE_TERMINAL_STATS: {
-                    if (msg.obj != null) {
-                        storeTerminalStatsImpl((TerminalStats[]) msg.obj);
-                    }
-                    break;
-                }
-                case MSG_GET_TERMINAL_STATS: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<TerminalStats>) msg.obj).setResult(getTerminalStatsImpl());
-                    }
-                    break;
-                }
-                case MSG_STORE_TERMINAL_CASH: {
-                    if (msg.obj != null) {
-                        storeTerminalsCashImpl((TerminalCash[]) msg.obj);
-                    }
-                    break;
-                }
-                case MSG_GET_TERMINAL_CASH: {
-                    if (msg.obj != null) {
-                        //noinspection unchecked
-                        ((ResultFuture<TerminalCash>) msg.obj).setResult(getTerminalsCashImpl());
-                    }
-                    break;
-                }
-            }
-        }
+        mHelper.close();
     }
 
-    private static class ResultFuture<T> implements Future<T[]> {
-
-        private final CountDownLatch mLatch = new CountDownLatch(1);
-        @Nullable private T[] mResult;
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return false;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return false;
-        }
-
-        public void setResult(@Nullable T[] result) {
-            mResult = result;
-            mLatch.countDown();
-        }
-
-        @Override
-        public boolean isDone() {
-            return false;
-        }
-
-        @Override
-        @Nullable
-        public T[] get() throws InterruptedException, ExecutionException {
-            mLatch.await();
-            return mResult;
-        }
-
-        @Override
-        @Nullable
-        public T[] get(long timeout, @NonNull TimeUnit unit) throws InterruptedException,
-                ExecutionException, TimeoutException {
-            if (mLatch.await(timeout, unit)) {
-                return mResult;
+    @NonNull
+    /* package */ SQLiteDatabase getReadableDatabase() {
+        if (mReadableDatabase == null) {
+            synchronized (mHelper) {
+                if (mReadableDatabase == null) {
+                    mReadableDatabase = mHelper.getReadableDatabase();
+                }
             }
-            throw new TimeoutException();
+        }
+        return mReadableDatabase;
+    }
+
+    @NonNull
+    /* package */ SQLiteDatabase getWritableDatabase() {
+        if (mWritableDatabase == null) {
+            synchronized (mHelper) {
+                if (mWritableDatabase == null) {
+                    mWritableDatabase = mHelper.getWritableDatabase();
+                }
+            }
+        }
+        return mWritableDatabase;
+    }
+
+    /* package */ static class DbHelper extends SQLiteOpenHelper {
+
+        /* package */ DbHelper(Context context) {
+            super(context, DB_NAME, null, DB_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL("CREATE TABLE " + PersonsTable.NAME + "(" +
+                            PersonsTable.COLUMN_LOGIN + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            PersonsTable.COLUMN_PASSWORD + " TEXT, " +
+                            PersonsTable.COLUMN_TERMINAL + " TEXT, " +
+                            PersonsTable.COLUMN_NAME + " TEXT," +
+                            PersonsTable.COLUMN_AGENT_ID + " TEXT," +
+                            PersonsTable.COLUMN_VERIFIED + " INTEGER, " +
+                            PersonsTable.COLUMN_ENABLED + " INTEGER);"
+            );
+            db.execSQL("CREATE TABLE " + AgentsTable.NAME + "(" +
+                            AgentsTable.COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            AgentsTable.COLUMN_PARENT_ID + " TEXT, " +
+                            AgentsTable.COLUMN_PERSON_LOGIN + " TEXT, " +
+                            AgentsTable.COLUMN_INN + " TEXT, " +
+                            AgentsTable.COLUMN_JUR_ADDRESS + " TEXT, " +
+                            AgentsTable.COLUMN_PHYS_ADDRESS + " TEXT, " +
+                            AgentsTable.COLUMN_NAME + " TEXT, " +
+                            AgentsTable.COLUMN_CITY + " TEXT, " +
+                            AgentsTable.COLUMN_FISCAL_MODE + " TEXT, " +
+                            AgentsTable.COLUMN_KMM + " TEXT, " +
+                            AgentsTable.COLUMN_TAX_REGNUM + " TEXT);"
+            );
+            db.execSQL("CREATE TABLE " + TerminalsTable.NAME + "(" +
+                            TerminalsTable.COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            TerminalsTable.COLUMN_TYPE + " INTEGER, " +
+                            TerminalsTable.COLUMN_SERIAL + " TEXT, " +
+                            TerminalsTable.COLUMN_NAME + " TEXT, " +
+                            TerminalsTable.COLUMN_WHO + " TEXT, " +
+                            TerminalsTable.COLUMN_WORK_TIME + " TEXT, " +
+                            TerminalsTable.COLUMN_AGENT_ID + " TEXT, " +
+                            TerminalsTable.COLUMN_CITY + " TEXT, " +
+                            TerminalsTable.COLUMN_CITY_ID + " INTEGER, " +
+                            TerminalsTable.COLUMN_DISPLAY_ADDRESS + " TEXT, " +
+                            TerminalsTable.COLUMN_MAIN_ADDRESS + " TEXT, " +
+                            TerminalsTable.COLUMN_PERSON_ID + " TEXT);"
+            );
+
+            db.execSQL("CREATE TABLE " + TerminalsStateTable.NAME + "(" +
+                            TerminalsStateTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            TerminalsStateTable.COLUMN_AGENT_ID + " TEXT, " +
+                            TerminalsStateTable.COLUMN_LAST_ACTIVITY + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_LAST_PAYMENT + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_STATUS + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_NOTE_ERROR + " TEXT, " +
+                            TerminalsStateTable.COLUMN_PRINTER_ERROR + " TEXT, " +
+                            TerminalsStateTable.COLUMN_CARD_READER_STATUS + " TEXT, " +
+                            TerminalsStateTable.COLUMN_SIGNAL_LEVEL + " TEXT, " +
+                            TerminalsStateTable.COLUMN_SIM_BALANCE + " REAL, " +
+                            TerminalsStateTable.COLUMN_DOOR_ALARM + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_DOOR_OPEN + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_EVENT + " INTEGER, " +
+                            TerminalsStateTable.COLUMN_EVENT_TEXT + " TEXT);"
+            );
+
+            db.execSQL("CREATE TABLE " + TerminalsStatsTable.NAME + "(" +
+                            TerminalsStatsTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            TerminalsStatsTable.COLUMN_AGENT_ID + " TEXT, " +
+                            TerminalsStatsTable.COLUMN_SYSTEM_UPTIME + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_UPTIME + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_PAY_PER_HR + " REAL, " +
+                            TerminalsStatsTable.COLUMN_BILL_PER_PAY + " REAL, " +
+                            TerminalsStatsTable.COLUMN_CARD_READER_USED_HR + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_CARD_READER_USED_DAY + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_FULL + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_TIME_TO_CACHIN_SERVICE + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_OUT + " INTEGER, " +
+                            TerminalsStatsTable.COLUMN_TIME_TO_PRINTER_SERVICE + " INTEGER);"
+            );
+
+            db.execSQL("CREATE TABLE " + TerminalsCashTable.NAME + "(" +
+                            TerminalsCashTable.COLUMN_TERMINAL_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +
+                            TerminalsCashTable.COLUMN_AGENT_ID + " TEXT, " +
+                            TerminalsCashTable.COLUMN_CASH + " BLOB);"
+            );
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         }
     }
 }
