@@ -84,11 +84,16 @@
     </style>
 
     <style name="Drawer.Agent" parent="">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="Drawer.Agent.Name" parent="">
         <item name="android:gravity">center_vertical</item>
         <item name="android:paddingLeft">20dp</item>
         <item name="android:paddingRight">10dp</item>
-        <item name="android:background">?attr/selectableItemBackground</item>
-        <item name="android:clickable">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">middle</item>
     </style>
 
     <style name="TerminalCard" parent="CardView.Light">
@@ -136,12 +141,12 @@
     </style>
 
     <style name="TerminalCard.Notification.Error">
-        <item name="android:background">#FF5722</item>
-        <item name="android:textColor">#fbe9e7</item>
+        <item name="android:background">@color/terminal_state_error_background</item>
+        <item name="android:textColor">@color/terminal_state_error_foreground</item>
     </style>
 
     <style name="TerminalCard.Notification.Warning">
-        <item name="android:background">#FFF59D</item>
-        <item name="android:textColor">#000</item>
+        <item name="android:background">@color/terminal_state_warn_background</item>
+        <item name="android:textColor">@color/terminal_state_warn_foreground</item>
     </style>
 </resources>

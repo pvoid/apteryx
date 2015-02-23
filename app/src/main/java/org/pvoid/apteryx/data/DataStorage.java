@@ -79,10 +79,13 @@ import java.io.IOException;
         String COLUMN_FISCAL_MODE = "fiscal_mode";
         String COLUMN_KMM = "kmm";
         String COLUMN_TAX_REGNUM = "tax_regnum";
+        String COLUMN_TERMINALS = "terminals_count";
+        String COLUMN_STATE = "state";
         String[] ALL_COLUMNS = new String[]{
             COLUMN_AGENT_ID, COLUMN_PARENT_ID, COLUMN_PERSON_LOGIN, COLUMN_INN,
             COLUMN_JUR_ADDRESS, COLUMN_PHYS_ADDRESS, COLUMN_NAME, COLUMN_CITY,
-            COLUMN_FISCAL_MODE, COLUMN_KMM, COLUMN_TAX_REGNUM
+            COLUMN_FISCAL_MODE, COLUMN_KMM, COLUMN_TAX_REGNUM, COLUMN_TERMINALS,
+            COLUMN_STATE
         };
         int COLUMN_AGENT_ID_INDEX = 0;
         int COLUMN_PARENT_ID_INDEX = 1;
@@ -95,6 +98,8 @@ import java.io.IOException;
         int COLUMN_FISCAL_MODE_INDEX = 8;
         int COLUMN_KMM_INDEX = 9;
         int COLUMN_TAX_REGNUM_INDEX = 10;
+        int COLUMN_TERMINALS_INDEX = 11;
+        int COLUMN_STATE_INDEX = 12;
     }
 
     private interface TerminalsTable {
@@ -274,7 +279,6 @@ import java.io.IOException;
     public void storeAgents(@NonNull Agent... agents) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
-        //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
             for (Agent agent : agents) {
@@ -293,6 +297,8 @@ import java.io.IOException;
                 values.put(AgentsTable.COLUMN_KMM, agent.getKMM());
                 values.put(AgentsTable.COLUMN_TAX_REGNUM, agent.getTaxRegnum());
                 values.put(AgentsTable.COLUMN_PERSON_LOGIN, agent.getPersonLogin());
+                values.put(AgentsTable.COLUMN_TERMINALS, agent.getTerminalsCount());
+                values.put(AgentsTable.COLUMN_STATE, agent.getState().code);
                 db.replace(AgentsTable.NAME, null, values);
             }
             db.setTransactionSuccessful();
@@ -324,7 +330,9 @@ import java.io.IOException;
                         cursor.getString(AgentsTable.COLUMN_CITY_INDEX),
                         cursor.getString(AgentsTable.COLUMN_FISCAL_MODE_INDEX),
                         cursor.getString(AgentsTable.COLUMN_KMM_INDEX),
-                        cursor.getString(AgentsTable.COLUMN_TAX_REGNUM_INDEX));
+                        cursor.getString(AgentsTable.COLUMN_TAX_REGNUM_INDEX),
+                        cursor.getInt(AgentsTable.COLUMN_TERMINALS_INDEX),
+                        Agent.State.fromCode(cursor.getInt(AgentsTable.COLUMN_STATE_INDEX)));
             }
             return result;
         } finally {
@@ -463,7 +471,6 @@ import java.io.IOException;
     public void storeTerminalStats(@NonNull TerminalStats... stats) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
-        //noinspection TryFinallyCanBeTryWithResources
         try {
             ContentValues values = new ContentValues();
             for (TerminalStats stat : stats) {
@@ -636,7 +643,10 @@ import java.io.IOException;
                             AgentsTable.COLUMN_CITY + " TEXT, " +
                             AgentsTable.COLUMN_FISCAL_MODE + " TEXT, " +
                             AgentsTable.COLUMN_KMM + " TEXT, " +
-                            AgentsTable.COLUMN_TAX_REGNUM + " TEXT);"
+                            AgentsTable.COLUMN_TAX_REGNUM + " TEXT, " +
+                            AgentsTable.COLUMN_TERMINALS + " INTEGER, " +
+                            AgentsTable.COLUMN_STATE + " INTEGER" +
+                            ");"
             );
             db.execSQL("CREATE TABLE " + TerminalsTable.NAME + "(" +
                             TerminalsTable.COLUMN_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +

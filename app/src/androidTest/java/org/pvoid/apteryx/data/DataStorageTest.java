@@ -38,8 +38,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Collection;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
@@ -50,7 +52,16 @@ public class DataStorageTest {
         Assert.assertEquals(DataStorage.DB_NAME, helper.getDatabaseName());
         SQLiteDatabase db = helper.getReadableDatabase();
         Assert.assertEquals(DataStorage.DB_VERSION, db.getVersion());
+        personsTableCheck(db);
+        agentsTableCheck(db);
+        terminalsTableCheck(db);
+        terminalsStatesTableCheck(db);
+        terminalsStatsTableCheck(db);
+        terminalsCashTableCheck(db);
+        db.close();
+    }
 
+    private void personsTableCheck(SQLiteDatabase db) {
         Cursor cursor = db.rawQuery("pragma table_info(persons)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("login", cursor.getString(1));
@@ -75,7 +86,10 @@ public class DataStorageTest {
         Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
+    }
 
+    private void agentsTableCheck(SQLiteDatabase db) {
+        Cursor cursor;
         cursor = db.rawQuery("pragma table_info(agents)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("agent_id", cursor.getString(1));
@@ -110,9 +124,18 @@ public class DataStorageTest {
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("tax_regnum", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("terminals_count", cursor.getString(1));
+        Assert.assertEquals("INTEGER", cursor.getString(2));
+        Assert.assertTrue(cursor.moveToNext());
+        Assert.assertEquals("state", cursor.getString(1));
+        Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
+    }
 
+    private void terminalsTableCheck(SQLiteDatabase db) {
+        Cursor cursor;
         cursor = db.rawQuery("pragma table_info(terminals)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("id", cursor.getString(1));
@@ -152,7 +175,10 @@ public class DataStorageTest {
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
+    }
 
+    private void terminalsStatesTableCheck(SQLiteDatabase db) {
+        Cursor cursor;
         cursor = db.rawQuery("pragma table_info(terminals_state)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("id", cursor.getString(1));
@@ -198,7 +224,10 @@ public class DataStorageTest {
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
+    }
 
+    private void terminalsStatsTableCheck(SQLiteDatabase db) {
+        Cursor cursor;
         cursor = db.rawQuery("pragma table_info(terminals_stat)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("terminal_id", cursor.getString(1));
@@ -238,7 +267,10 @@ public class DataStorageTest {
         Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
+    }
 
+    private void terminalsCashTableCheck(SQLiteDatabase db) {
+        Cursor cursor;
         cursor = db.rawQuery("pragma table_info(terminals_cash)", null);
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("terminal_id", cursor.getString(1));
@@ -251,8 +283,6 @@ public class DataStorageTest {
         Assert.assertEquals("BLOB", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
-
-        db.close();
     }
 
     @Test
@@ -924,7 +954,39 @@ public class DataStorageTest {
 
     @Test
     public void getTerminalsCashCheck() throws Exception {
-        DataStorage storage = new DataStorage(Robolectric.application);
+        TerminalCash cash = new TerminalCash("TERMINAL0", "AGENT0");
+        TerminalCash.CashItem item = new TerminalCash.CashItem(Currency.RUR);
+        item.addNotesGoBy(3000., 10);
+        item.addNotes(100., 5);
+        item.addNotes(5000., 2);
+        item.addCoinsGoBy(3);
+        item.addCoins(10., 2);
+        item.addCoins(1., 4);
+        item.addCoins(.50, 2);
+        cash.addCash(item);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        cash.store(new DataOutputStream(out));
 
+        DataStorage storage = new DataStorage(Robolectric.application);
+        SQLiteDatabase db = storage.getWritableDatabase();
+        ContentValues val = new ContentValues();
+        val.put("terminal_id", "TERMINAL0");
+        val.put("agent_id", "AGENT0");
+        val.put("cash", out.toByteArray());
+        db.replace("terminals_cash", null, val);
+
+        TerminalCash cashes[] = storage.getTerminalsCash();
+        Assert.assertNotNull(cashes);
+        Assert.assertEquals(1, cashes.length);
+        Assert.assertEquals("TERMINAL0", cashes[0].getTerminalId());
+        Assert.assertEquals("AGENT0", cashes[0].getAgentId());
+        Collection<TerminalCash.CashItem> items = cashes[0].getCash();
+        Assert.assertEquals(1, items.size());
+        item = items.iterator().next();
+        Assert.assertNotNull(item);
+        Assert.assertEquals(Currency.RUR, item.getCurrency());
+        Assert.assertEquals(3000, item.getNotesGoBySum(), 0);
+        Assert.assertEquals(10, item.getNotesGoByCount());
+        Assert.assertEquals(3, item.getCoinsGoByCount());
     }
 }

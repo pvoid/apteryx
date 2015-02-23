@@ -16,11 +16,20 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<TextView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/agent_name"
     style="@style/Drawer.Agent"
     android:layout_width="match_parent"
-    android:layout_height="?attr/listPreferredItemHeightSmall"
-    tools:text="Agent name"/>
+    android:layout_height="?attr/listPreferredItemHeightSmall">
+    <TextView
+        android:id="@+id/agent_name"
+        style="@style/Drawer.Agent.Name"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:text="Agent name"/>
+    <View
+        android:id="@+id/agent_error_mark"
+        android:layout_width="10dp"
+        android:layout_height="match_parent"/>
+</RelativeLayout>

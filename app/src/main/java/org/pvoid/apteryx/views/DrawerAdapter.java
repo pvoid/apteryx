@@ -18,6 +18,8 @@
 package org.pvoid.apteryx.views;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -35,6 +37,8 @@ import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 
+import java.util.Arrays;
+
 public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerViewHolder> {
 
     private static final int VIEW_TYPE_ACCOUNT = 0;
@@ -44,12 +48,18 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
     private final LayoutInflater mInflater;
     @Nullable private Person mCurrentAccount;
     @Nullable private Agent[] mAgents;
+    private int mAgentsCount = 0;
     @Nullable private int mSelectedPosition;
     @Nullable private OnAccountSwitcherClickedListener mSwitcherClickedListener;
     @Nullable private OnAgentSelectedListener mOnAgentSelectedListener;
+    private final int mColorError;
+    private final int mColorWarn;
 
     public DrawerAdapter(@NonNull Context context) {
         mInflater = LayoutInflater.from(context);
+        Resources resources = context.getResources();
+        mColorError = resources.getColor(R.color.terminal_state_error_background);
+        mColorWarn = resources.getColor(R.color.terminal_state_warn_background);
     }
 
     public void setSwitcherClickedListener(@Nullable OnAccountSwitcherClickedListener switcherClickedListener) {
@@ -65,7 +75,20 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
             return;
         }
         mCurrentAccount = currentAccount;
-        mAgents = agents;
+        if (agents != null) {
+            mAgents = new Agent[agents.length];
+            int index = 0;
+            for (Agent agent : agents) {
+                if (agent.getTerminalsCount() == 0) {
+                    continue;
+                }
+                mAgents[index++] = agent;
+            }
+            mAgentsCount = index;
+        } else {
+            mAgents = null;
+            mAgentsCount = 0;
+        }
         notifyDataSetChanged();
     }
 
@@ -76,7 +99,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
             return;
         }
 
-        for (int index = 0; index < mAgents.length; ++index) {
+        for (int index = 0; index < mAgentsCount; ++index) {
             if (agent.equals(mAgents[index])) {
                 mSelectedPosition = index;
                 notifyDataSetChanged();
@@ -122,6 +145,17 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
                     }
                     agentHoder.title.setText(text);
                     agentHoder.position = position;
+                    switch (agent.getState()) {
+                        case Error:
+                            agentHoder.errorMark.setBackgroundColor(mColorError);
+                            break;
+                        case Warn:
+                            agentHoder.errorMark.setBackgroundColor(mColorWarn);
+                            break;
+                        case Ok:
+                            agentHoder.errorMark.setBackgroundColor(Color.TRANSPARENT);
+                            break;
+                    }
                 }
                 break;
             }
@@ -131,11 +165,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     @Override
     public int getItemCount() {
-        int count = 1;
-        if (mAgents != null) {
-            count += mAgents.length;
-        }
-        return count;
+        return 1 + mAgentsCount;
     }
 
     @Override
@@ -177,12 +207,14 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
     private class AgentViewHolder extends DrawerViewHolder implements View.OnClickListener {
 
         @NonNull final TextView title;
+        @NonNull final View errorMark;
         int position = -1;
 
         public AgentViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             title = (TextView) itemView.findViewById(R.id.agent_name);
+            errorMark = itemView.findViewById(R.id.agent_error_mark);
         }
 
         @Override

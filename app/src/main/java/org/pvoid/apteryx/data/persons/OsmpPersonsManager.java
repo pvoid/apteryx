@@ -17,16 +17,22 @@
 
 package org.pvoid.apteryx.data.persons;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
+import dagger.ObjectGraph;
+import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.annotations.GuardedBy;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.agents.Agent;
+import org.pvoid.apteryx.data.terminals.Terminal;
+import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.net.NetworkService;
 import org.pvoid.apteryx.net.OsmpInterface;
@@ -42,6 +48,7 @@ import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +69,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
     @GuardedBy("mLock") @Nullable private Person mCurrentPerson = null;
     @GuardedBy("mLock") @Nullable private Agent mCurrentAgent = null;
-    @GuardedBy("mLock") @NonNull private Map<String, List<Agent>> mAgents = new HashMap<>();
+    @GuardedBy("mLock") @NonNull private Map<String, ArrayList<Agent>> mAgents = new HashMap<>();
 
     /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
                                      @NonNull TerminalsManager terminalsManager) {
@@ -81,7 +88,7 @@ import java.util.concurrent.locks.ReentrantLock;
         Agent[] agents = storage.getAgents();
         if (agents != null && agents.length > 0) {
             for (Agent agent : agents) {
-                List<Agent> a = mAgents.get(agent.getPersonLogin());
+                ArrayList<Agent> a = mAgents.get(agent.getPersonLogin());
                 if (a == null) {
                     a = new ArrayList<>();
                     mAgents.put(agent.getPersonLogin(), a);
@@ -90,6 +97,8 @@ import java.util.concurrent.locks.ReentrantLock;
             }
         }
         notifyPersonsChanged();
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
+        lbm.registerReceiver(new TerminalsChangesReceiver(), new IntentFilter(TerminalsManager.ACTION_CHANGED));
     }
 
     @Override
@@ -119,7 +128,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
         if (request != null) {
             NetworkService.executeRequest(mContext, request,
-                    new VerificatioResultReceiver());
+                    new VerificationResultReceiver());
         }
     }
 
@@ -266,7 +275,7 @@ import java.util.concurrent.locks.ReentrantLock;
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
-    private class VerificatioResultReceiver implements ResultReceiver {
+    private class VerificationResultReceiver implements ResultReceiver {
 
         @Override
         public void onResponse(@NonNull OsmpResponse response) {
@@ -306,7 +315,7 @@ import java.util.concurrent.locks.ReentrantLock;
                 return;
             }
 
-            List<Agent> agentsList = new ArrayList<>();
+            ArrayList<Agent> agentsList = new ArrayList<>();
             GetAgentInfoResult agentInfoResult = results.get(GetAgentInfoCommand.NAME);
             if (agentInfoResult != null && agentInfoResult.getAgentId() != null
                     && agentInfoResult.getAgentName() != null) {
@@ -340,6 +349,69 @@ import java.util.concurrent.locks.ReentrantLock;
         public void onError() {
             LogHelper.error(TAG, "Error while verifying account.");
             notifyVerifyResult(false, null);
+        }
+    }
+
+    private class TerminalsChangesReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ObjectGraph graph = ((ApteryxApplication) context.getApplicationContext()).getGraph();
+            TerminalsManager manager = graph.get(TerminalsManager.class);
+            final Terminal[] terminals = manager.getTerminals(null);
+            Map<String, Integer> counts = new HashMap<>();
+            Map<String, Agent.State> states = new HashMap<>();
+            for (Terminal terminal : terminals) {
+                final String agentId = terminal.getAgentId();
+                Integer count = counts.get(agentId);
+                if (count != null) {
+                    counts.put(agentId, ++count);
+                } else {
+                    counts.put(agentId, 1);
+                }
+
+                Agent.State state = states.get(agentId);
+                TerminalState st = terminal.getState();
+                if (st == null) {
+                    continue;
+                }
+                if (st.hasErrors()) {
+                    if (state != Agent.State.Error) {
+                        states.put(agentId, Agent.State.Error);
+                    }
+                } else if (st.hasWarnings()) {
+                    if (state != Agent.State.Error) {
+                        states.put(agentId, Agent.State.Warn);
+                    }
+                } else if (state == null) {
+                    states.put(agentId, Agent.State.Ok);
+                }
+            }
+            List<Agent> changed = new ArrayList<>();
+            mLock.lock();
+            try {
+                for (ArrayList<Agent> agents : mAgents.values()) {
+                    for (int index = 0; index < agents.size(); ++index) {
+                        final Agent agent = agents.get(index);
+                        final Integer count = counts.get(agent.getId());
+                        final Agent.State state = states.get(agent.getId());
+                        if (count == null) {
+                            continue;
+                        }
+                        if (count != agent.getTerminalsCount() || state != agent.getState()) {
+                            Agent newAgent = agent.cloneForState(count, state == null ? Agent.State.Ok : state);
+                            agents.set(index, newAgent);
+                            changed.add(newAgent);
+                        }
+                    }
+                }
+            } finally {
+                mLock.unlock();
+            }
+
+            if (!changed.isEmpty()) {
+                notifyPersonsChanged();
+                mStorage.storeAgents(changed.toArray(new Agent[changed.size()]));
+            }
         }
     }
 }

@@ -24,6 +24,28 @@ import android.text.TextUtils;
 import org.pvoid.apteryx.data.persons.Person;
 
 public class Agent {
+
+    public enum State {
+        Ok(0),
+        Warn(1),
+        Error(2);
+
+        public final int code;
+
+        State(int code) {
+            this.code = code;
+        }
+
+        public static State fromCode(int code) {
+            for (State state : values()) {
+                if (state.code == code) {
+                    return state;
+                }
+            }
+            return Ok;
+        }
+    }
+
     @NonNull private final String mId;
     @Nullable private final String mParentId;
     @Nullable private final String mPersonLogin;
@@ -35,18 +57,20 @@ public class Agent {
     @Nullable private final String mFiscalMode;
     @Nullable private final String mKMM;
     @Nullable private final String mTaxRegnum;
+    private int mTerminalsCount;
+    private State mState;
 
     public Agent(@NonNull String id, @Nullable String parentId, @Nullable String inn,
                  @Nullable String jurAddress, @Nullable String physAddress, @NonNull  String name,
                  @Nullable String city, @Nullable String fiscalMode, @Nullable String kmm,
                  @Nullable String taxRegnum) {
-        this(null, id, parentId, inn, jurAddress, physAddress, name, city, fiscalMode, kmm, taxRegnum);
+        this(null, id, parentId, inn, jurAddress, physAddress, name, city, fiscalMode, kmm, taxRegnum, 0, State.Ok);
     }
 
     public Agent(@Nullable String personLogin, @NonNull String id, @Nullable String parentId, @Nullable String inn,
                  @Nullable String jurAddress, @Nullable String physAddress, @NonNull  String name,
                  @Nullable String city, @Nullable String fiscalMode, @Nullable String kmm,
-                 @Nullable String taxRegnum) {
+                 @Nullable String taxRegnum, int terminalsCount, State state) {
         mId = id;
         mParentId = parentId;
         mINN = inn;
@@ -58,6 +82,8 @@ public class Agent {
         mKMM = kmm;
         mTaxRegnum = taxRegnum;
         mPersonLogin = personLogin;
+        mTerminalsCount = terminalsCount;
+        mState = state;
     }
 
     private Agent(@NonNull Agent src,
@@ -72,6 +98,8 @@ public class Agent {
         mFiscalMode = src.mFiscalMode;
         mKMM = src.mKMM;
         mTaxRegnum = src.mTaxRegnum;
+        mTerminalsCount = src.mTerminalsCount;
+        mState = src.mState;
         mPersonLogin = personLogin;
     }
 
@@ -130,6 +158,15 @@ public class Agent {
         return mPersonLogin;
     }
 
+    @NonNull
+    public State getState() {
+        return mState;
+    }
+
+    public int getTerminalsCount() {
+        return mTerminalsCount;
+    }
+
     @Override
     public int hashCode() {
         return mId.hashCode();
@@ -150,6 +187,12 @@ public class Agent {
     @NonNull
     public Agent cloneForPerson(@NonNull Person person) {
         return new Agent(this, person.getLogin());
+    }
+
+    @NonNull
+    public Agent cloneForState(int terminalsCount, @NonNull State state) {
+        return new Agent(mPersonLogin, mId, mParentId, mINN, mJurAddress, mPhysAddress, mName, mCity, mFiscalMode,
+                mKMM, mTaxRegnum, terminalsCount, state);
     }
 
     public boolean isValid() {

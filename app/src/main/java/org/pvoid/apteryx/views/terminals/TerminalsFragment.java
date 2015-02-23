@@ -122,6 +122,8 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
 
         if (agent != null && agent.getPersonLogin() !=  null && mAdapter != null) {
             mAdapter.setTerminals(terminalsManager.getTerminals(agent.getId()));
+            RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
+            recyclerView.scrollToPosition(0);
             refreshLayout.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
         } else {

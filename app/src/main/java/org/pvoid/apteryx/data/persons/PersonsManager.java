@@ -23,14 +23,14 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.agents.Agent;
 
 public interface PersonsManager {
-    public static final String ACTION_PERSON_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_PERSON_VERIFIED";
-    public static final String ACTION_PERSONS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_PERSONS_CHANGED";
-    public static final String ACTION_CURRENT_PERSON_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_PERSON_CHANGED";
-    public static final String ACTION_AGENTS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_AGENTS_CHANGED";
-    public static final String ACTION_CURRENT_AGENT_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_AGENT_CHANGED";
+    String ACTION_PERSON_VERIFIED = "org.pvoid.apteryx.data.persons.ACTION_PERSON_VERIFIED";
+    String ACTION_PERSONS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_PERSONS_CHANGED";
+    String ACTION_CURRENT_PERSON_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_PERSON_CHANGED";
+    String ACTION_AGENTS_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_AGENTS_CHANGED";
+    String ACTION_CURRENT_AGENT_CHANGED = "org.pvoid.apteryx.data.persons.ACTION_CURRENT_AGENT_CHANGED";
 
-    public static final String EXTRA_PERSON = "person";
-    public static final String EXTRA_STATE = "state";
+    String EXTRA_PERSON = "person";
+    String EXTRA_STATE = "state";
 
     boolean add(@NonNull Person person);
     void verify(@NonNull Person person);
