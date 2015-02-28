@@ -48,7 +48,6 @@ import org.pvoid.apteryx.net.results.GetPersonInfoResult;
 import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +62,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
-    @NonNull private final TerminalsManager mTerminalsManager;
     @NonNull private final Lock mLock = new ReentrantLock();
     @GuardedBy("mLock") @NonNull private final NavigableMap<String, Person> mPersons = new TreeMap<>();
     @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
@@ -71,10 +69,8 @@ import java.util.concurrent.locks.ReentrantLock;
     @GuardedBy("mLock") @Nullable private Agent mCurrentAgent = null;
     @GuardedBy("mLock") @NonNull private Map<String, ArrayList<Agent>> mAgents = new HashMap<>();
 
-    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
-                                     @NonNull TerminalsManager terminalsManager) {
+    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage) {
         mStorage = storage;
-        mTerminalsManager = terminalsManager;
         mContext = context.getApplicationContext();
         Person[] persons = storage.getPersons();
         if (persons != null && persons.length > 0) {
@@ -128,7 +124,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
         if (request != null) {
             NetworkService.executeRequest(mContext, request,
-                    new VerificationResultReceiver());
+                    new VerificationResultReceiver(person.getLogin()));
         }
     }
 
@@ -275,40 +271,58 @@ import java.util.concurrent.locks.ReentrantLock;
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
+    @Nullable
+    private Person updatePersonState(@NonNull String login, @NonNull Person.State state,
+                                   @Nullable String agentId, @Nullable String name) {
+        Person person = null;
+        mLock.lock();
+        try {
+            person = mPersons.get(login);
+            if (person == null) {
+                return null;
+            }
+            person = person.cloneWithState(agentId, name, state);
+            mPersons.put(person.getLogin(), person);
+            mPersonsList = null;
+        } finally {
+            mLock.unlock();
+        }
+        mStorage.storePerson(person);
+        notifyVerifyResult(state == Person.State.Valid, person);
+        return person;
+    }
+
     private class VerificationResultReceiver implements ResultReceiver {
+
+        @NonNull
+        private final String mLogin;
+
+        private VerificationResultReceiver(@NonNull String login) {
+            mLogin = login;
+        }
 
         @Override
         public void onResponse(@NonNull OsmpResponse response) {
+
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Persons);
-            if (results == null) {
-                LogHelper.error(TAG, "Error while verifying account. Can't get <agents> list.");
-                notifyVerifyResult(false, null);
+            if (response.getResult() != OsmpResponse.RESULT_OK || results == null) {
+                updatePersonState(mLogin, Person.State.Invalid, null, null);
                 return;
             }
-            GetPersonInfoResult info = results.get(GetPersonInfoCommand.NAME);
-            Person person = null;
-            mLock.lock();
-            try {
-                person = mPersons.get(info.getLogin());
-                if (person == null) {
-                    return;
-                }
-                final String name = info.getPersonName();
-                final String agentId = info.getAgentId();
 
-                if (name != null && agentId != null) {
-                    person = person.verify(agentId, name, person.isEnabled());
-                    mPersons.put(person.getLogin(), person);
-                    mPersonsList = null;
-                } else {
-                    LogHelper.error(TAG, "Account name is NULL");
-                }
-            } finally {
-                mLock.unlock();
+            GetPersonInfoResult info = results.get(GetPersonInfoCommand.NAME);
+            final String name = info.getPersonName();
+            final String agentId = info.getAgentId();
+
+            if (name == null || agentId == null) {
+                updatePersonState(mLogin, Person.State.Invalid, null, null);
+                return;
             }
-            mStorage.storePerson(person);
-            mTerminalsManager.syncFull(person);
-            notifyVerifyResult(true, person);
+
+            Person person = updatePersonState(mLogin, Person.State.Valid, agentId, name);
+            if (person == null) {
+                return;
+            }
 
             results = response.getInterface(OsmpInterface.Agents);
             if (results == null) {

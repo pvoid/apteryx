@@ -38,7 +38,7 @@ public class PersonsModule {
 
     @Provides
     @Singleton
-    public PersonsManager provideManager(Storage storage, TerminalsManager terminalsManager) {
-        return new OsmpPersonsManager(mContext, storage, terminalsManager);
+    public PersonsManager provideManager(Storage storage) {
+        return new OsmpPersonsManager(mContext, storage);
     }
 }

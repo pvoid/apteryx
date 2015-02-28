@@ -23,13 +23,35 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public class Person implements Parcelable {
+
+    public enum State {
+        Unchecked(0),
+        Invalid(1),
+        Blocked(2),
+        Valid(3);
+
+        public final int code;
+
+        State(int code) {
+            this.code = code;
+        }
+
+        public static State fromCode(int code) {
+            for (State state : values()) {
+                if (state.code == code) {
+                    return state;
+                }
+            }
+            return State.Unchecked;
+        }
+    }
+
     @NonNull private final String mLogin;
     @NonNull private final String mPasswordHash;
     @NonNull private final String mTerminal;
     @Nullable private final String mAgentId;
     @Nullable private final String mName;
-    private boolean mIsVerified;
-    private boolean mIsEnabled;
+    @NonNull private State mState;
 
     public Person(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal) {
         mLogin = login;
@@ -37,20 +59,17 @@ public class Person implements Parcelable {
         mTerminal = terminal;
         mAgentId = null;
         mName = null;
-        mIsEnabled = true;
-        mIsVerified = false;
+        mState = State.Unchecked;
     }
 
     public Person(@NonNull String login, @NonNull String passwordHash, @NonNull String terminal,
-                  @Nullable String agentId, @Nullable String name, boolean isEnabled,
-                  boolean isVerified) {
+                  @Nullable String agentId, @Nullable String name, @NonNull State state) {
         mLogin = login;
         mPasswordHash = passwordHash;
         mTerminal = terminal;
         mAgentId = agentId;
         mName = name;
-        mIsEnabled = isEnabled;
-        mIsVerified = isVerified;
+        mState = state;
     }
 
     private Person(@NonNull Parcel source) {
@@ -59,19 +78,17 @@ public class Person implements Parcelable {
         mTerminal = source.readString();
         mAgentId = source.readString();
         mName = source.readString();
-        mIsVerified = source.readByte() == 1;
-        mIsEnabled= source.readByte() == 1;
+        mState = State.fromCode(source.readInt());
     }
 
     private Person(@NonNull Person src, @Nullable String agentId, @Nullable String name,
-                   boolean isEnabled) {
+                   @NonNull State state) {
         mLogin = src.mLogin;
         mPasswordHash = src.mPasswordHash;
         mTerminal = src.mTerminal;
         mAgentId = agentId;
         mName = name;
-        mIsEnabled = isEnabled;
-        mIsVerified = true;
+        mState = state;
     }
 
     @NonNull
@@ -99,16 +116,14 @@ public class Person implements Parcelable {
         return mName;
     }
 
-    public boolean isVerified() {
-        return mIsVerified;
+    @NonNull
+    public State getState() {
+        return mState;
     }
 
-    public boolean isEnabled() {
-        return mIsEnabled;
-    }
-
-    public Person verify(@NonNull String agentId, @NonNull String name, boolean isEnabled) {
-        return new Person(this, agentId, name, isEnabled);
+    @NonNull
+    public Person cloneWithState(@Nullable String agentId, @Nullable String name, @NonNull State state) {
+        return new Person(this, agentId, name, state);
     }
 
     @Override
@@ -140,8 +155,7 @@ public class Person implements Parcelable {
         dest.writeString(mTerminal);
         dest.writeString(mAgentId);
         dest.writeString(mName);
-        dest.writeByte((byte) (mIsVerified ? 1 : 0));
-        dest.writeByte((byte) (mIsEnabled ? 1 : 0));
+        dest.writeInt(mState.code);
     }
 
     public static final Creator<Person> CREATOR = new Creator<Person>() {

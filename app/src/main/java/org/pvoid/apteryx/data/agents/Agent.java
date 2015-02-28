@@ -196,6 +196,6 @@ public class Agent {
     }
 
     public boolean isValid() {
-        return !TextUtils.isEmpty(mPersonLogin)  && !TextUtils.isEmpty(mId);
+        return !TextUtils.isEmpty(mPersonLogin) && !TextUtils.isEmpty(mId);
     }
 }

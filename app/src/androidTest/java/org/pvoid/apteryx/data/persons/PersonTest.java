@@ -36,23 +36,21 @@ public class PersonTest {
         Assert.assertEquals("TERMINAL", person.getTerminal());
         Assert.assertNull(person.getName());
         Assert.assertNull(person.getAgentId());
-        Assert.assertFalse(person.isVerified());
-        Assert.assertTrue(person.isEnabled());
+        Assert.assertEquals(Person.State.Unchecked, person.getState());
 
-        Person verified = person.verify("AGENT_ID", "NAME", false);
+        Person verified = person.cloneWithState("AGENT_ID", "NAME", Person.State.Valid);
         Assert.assertNotSame(person, verified);
         Assert.assertEquals("LOGIN", verified.getLogin());
         Assert.assertEquals("PASS_HASH", verified.getPasswordHash());
         Assert.assertEquals("TERMINAL", verified.getTerminal());
         Assert.assertEquals("AGENT_ID", verified.getAgentId());
         Assert.assertEquals("NAME", verified.getName());
-        Assert.assertTrue(verified.isVerified());
-        Assert.assertFalse(verified.isEnabled());
+        Assert.assertEquals(Person.State.Valid, verified.getState());
     }
 
     @Test
     public void storeCheck() throws Exception {
-        Person person = new Person("LOGIN", "PASS_HASH", "TERMINAL").verify("AGENT_ID", "NAME", false);
+        Person person = new Person("LOGIN", "PASS_HASH", "TERMINAL").cloneWithState("AGENT_ID", "NAME", Person.State.Invalid);
         Assert.assertEquals(0, person.describeContents());
         Parcel parcel = Parcel.obtain();
         person.writeToParcel(parcel, 0);
@@ -66,8 +64,7 @@ public class PersonTest {
         Assert.assertEquals(person.getTerminal(), restored.getTerminal());
         Assert.assertEquals(person.getAgentId(), restored.getAgentId());
         Assert.assertEquals(person.getName(), restored.getName());
-        Assert.assertEquals(person.isVerified(), restored.isVerified());
-        Assert.assertEquals(person.isEnabled(), restored.isEnabled());
+        Assert.assertEquals(person.getState(), restored.getState());
 
         person = new Person("LOGIN", "PASS_HASH", "TERMINAL");
         parcel = Parcel.obtain();
@@ -82,8 +79,7 @@ public class PersonTest {
         Assert.assertEquals(person.getTerminal(), restored.getTerminal());
         Assert.assertEquals(person.getAgentId(), restored.getAgentId());
         Assert.assertEquals(person.getName(), restored.getName());
-        Assert.assertEquals(person.isVerified(), restored.isVerified());
-        Assert.assertEquals(person.isEnabled(), restored.isEnabled());
+        Assert.assertEquals(person.getState(), restored.getState());
 
         Person persons[] = Person.CREATOR.newArray(5);
         Assert.assertNotNull(persons);
@@ -95,11 +91,22 @@ public class PersonTest {
         Person person = new Person("LOGIN", "PASS_HASH", "TERMINAL");
 
         Assert.assertEquals("LOGIN".hashCode(), person.hashCode());
+        //noinspection EqualsWithItself
         Assert.assertTrue(person.equals(person));
+        //noinspection ObjectEqualsNull
         Assert.assertFalse(person.equals(null));
+        //noinspection EqualsBetweenInconvertibleTypes
         Assert.assertFalse(person.equals("Some object"));
-        Assert.assertTrue(person.equals(person.verify("AGENT_ID", "NAME", false)));
+        Assert.assertTrue(person.equals(person.cloneWithState("AGENT_ID", "NAME", Person.State.Valid)));
         Assert.assertTrue(person.equals(new Person("LOGIN", "", "")));
         Assert.assertFalse(person.equals(new Person("LOGIN2", "PASS_HASH", "TERMINAL")));
+    }
+
+    public void stateCheck() throws Exception {
+        Assert.assertEquals(Person.State.Unchecked, Person.State.fromCode(Person.State.Unchecked.code));
+        Assert.assertEquals(Person.State.Blocked, Person.State.fromCode(Person.State.Blocked.code));
+        Assert.assertEquals(Person.State.Valid, Person.State.fromCode(Person.State.Valid.code));
+        Assert.assertEquals(Person.State.Invalid, Person.State.fromCode(Person.State.Invalid.code));
+        Assert.assertEquals(Person.State.Unchecked, Person.State.fromCode(Integer.MIN_VALUE));
     }
 }

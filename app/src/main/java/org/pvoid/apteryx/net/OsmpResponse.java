@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 public class OsmpResponse {
+
+    public static final int RESULT_OK = 0;
+
     private static final String ROOT_TAG_NAME = "response";
     private static final String ATTR_RESULT = "result";
     private static final String ATTR_RESULT_DESCRIPTION = "result-description";

@@ -79,10 +79,7 @@ public class DataStorageTest {
         Assert.assertEquals("agent_id", cursor.getString(1));
         Assert.assertEquals("TEXT", cursor.getString(2));
         Assert.assertTrue(cursor.moveToNext());
-        Assert.assertEquals("verified", cursor.getString(1));
-        Assert.assertEquals("INTEGER", cursor.getString(2));
-        Assert.assertTrue(cursor.moveToNext());
-        Assert.assertEquals("enabled", cursor.getString(1));
+        Assert.assertEquals("state", cursor.getString(1));
         Assert.assertEquals("INTEGER", cursor.getString(2));
         Assert.assertFalse(cursor.moveToNext());
         cursor.close();
@@ -294,8 +291,7 @@ public class DataStorageTest {
         Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
         Mockito.when(person.getName()).thenReturn(null);
         Mockito.when(person.getAgentId()).thenReturn(null);
-        Mockito.when(person.isVerified()).thenReturn(false);
-        Mockito.when(person.isEnabled()).thenReturn(true);
+        Mockito.when(person.getState()).thenReturn(Person.State.Blocked);
         storage.storePerson(person);
         SQLiteDatabase db = storage.getReadableDatabase();
         Assert.assertNotNull(db);
@@ -308,14 +304,12 @@ public class DataStorageTest {
         Assert.assertEquals("TERMINAL", cursor.getString(2));
         Assert.assertNull(cursor.getString(3));
         Assert.assertNull(cursor.getString(4));
-        Assert.assertEquals(0, cursor.getInt(5));
-        Assert.assertEquals(1, cursor.getInt(6));
+        Assert.assertEquals(Person.State.Blocked.code, cursor.getInt(5));
         cursor.close();
 
         Mockito.when(person.getName()).thenReturn("NAME");
         Mockito.when(person.getAgentId()).thenReturn("AGENT");
-        Mockito.when(person.isVerified()).thenReturn(true);
-        Mockito.when(person.isEnabled()).thenReturn(false);
+        Mockito.when(person.getState()).thenReturn(Person.State.Valid);
         storage.storePerson(person);
         cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
@@ -326,8 +320,7 @@ public class DataStorageTest {
         Assert.assertEquals("TERMINAL", cursor.getString(2));
         Assert.assertEquals("NAME", cursor.getString(3));
         Assert.assertEquals("AGENT", cursor.getString(4));
-        Assert.assertEquals(1, cursor.getInt(5));
-        Assert.assertEquals(0, cursor.getInt(6));
+        Assert.assertEquals(Person.State.Valid.code, cursor.getInt(5));
         cursor.close();
 
         Mockito.when(person.getLogin()).thenReturn("LOGIN1");
@@ -335,8 +328,7 @@ public class DataStorageTest {
         Mockito.when(person.getTerminal()).thenReturn("TERMINAL1");
         Mockito.when(person.getName()).thenReturn("NAME1");
         Mockito.when(person.getAgentId()).thenReturn("AGENT1");
-        Mockito.when(person.isVerified()).thenReturn(true);
-        Mockito.when(person.isEnabled()).thenReturn(true);
+        Mockito.when(person.getState()).thenReturn(Person.State.Unchecked);
         storage.storePerson(person);
         cursor = db.rawQuery("SELECT * FROM persons;", null);
         Assert.assertNotNull(cursor);
@@ -347,16 +339,14 @@ public class DataStorageTest {
         Assert.assertEquals("TERMINAL", cursor.getString(2));
         Assert.assertEquals("NAME", cursor.getString(3));
         Assert.assertEquals("AGENT", cursor.getString(4));
-        Assert.assertEquals(1, cursor.getInt(5));
-        Assert.assertEquals(0, cursor.getInt(6));
+        Assert.assertEquals(Person.State.Valid.code, cursor.getInt(5));
         Assert.assertTrue(cursor.moveToNext());
         Assert.assertEquals("LOGIN1", cursor.getString(0));
         Assert.assertEquals("PASSWORD1", cursor.getString(1));
         Assert.assertEquals("TERMINAL1", cursor.getString(2));
         Assert.assertEquals("NAME1", cursor.getString(3));
         Assert.assertEquals("AGENT1", cursor.getString(4));
-        Assert.assertEquals(1, cursor.getInt(5));
-        Assert.assertEquals(1, cursor.getInt(6));
+        Assert.assertEquals(Person.State.Unchecked.code, cursor.getInt(5));
         cursor.close();
     }
 
@@ -376,16 +366,14 @@ public class DataStorageTest {
         values.put("terminal", "TERMINAL0");
         values.put("name", "NAME0");
         values.put("agent_id", "AGENT0");
-        values.put("enabled", false);
-        values.put("verified", true);
+        values.put("state", Person.State.Valid.code);
         db.replace("persons", null, values);
         values.put("login", "LOGIN1");
         values.put("password", "WEAK_PASSWORD");
         values.put("terminal", "TERMINAL1");
         values.put("name", "NAME1");
         values.put("agent_id", "AGENT1");
-        values.put("enabled", true);
-        values.put("verified", false);
+        values.put("state", Person.State.Invalid.code);
         db.replace("persons", null, values);
 
         persons = storage.getPersons();
@@ -396,15 +384,13 @@ public class DataStorageTest {
         Assert.assertEquals("TERMINAL0", persons[0].getTerminal());
         Assert.assertEquals("NAME0", persons[0].getName());
         Assert.assertEquals("AGENT0", persons[0].getAgentId());
-        Assert.assertEquals(false, persons[0].isEnabled());
-        Assert.assertEquals(true, persons[0].isVerified());
+        Assert.assertEquals(Person.State.Valid, persons[0].getState());
         Assert.assertEquals("LOGIN1", persons[1].getLogin());
         Assert.assertEquals("WEAK_PASSWORD", persons[1].getPasswordHash());
         Assert.assertEquals("TERMINAL1", persons[1].getTerminal());
         Assert.assertEquals("NAME1", persons[1].getName());
         Assert.assertEquals("AGENT1", persons[1].getAgentId());
-        Assert.assertEquals(true, persons[1].isEnabled());
-        Assert.assertEquals(false, persons[1].isVerified());
+        Assert.assertEquals(Person.State.Invalid, persons[1].getState());
     }
 
     @Test
@@ -423,6 +409,8 @@ public class DataStorageTest {
         Mockito.when(agent.getTaxRegnum()).thenReturn("TAX_REGNUM");
         Mockito.when(agent.getPersonLogin()).thenReturn("PERSON_LOGIN");
         Mockito.when(agent.isValid()).thenReturn(false);
+        Mockito.when(agent.getTerminalsCount()).thenReturn(12);
+        Mockito.when(agent.getState()).thenReturn(Agent.State.Warn);
         Agent agents[] = new Agent[] {agent, null};
         storage.storeAgents(agents);
 
@@ -450,6 +438,8 @@ public class DataStorageTest {
         Assert.assertEquals("FISCAL_MODE", cursor.getString(8));
         Assert.assertEquals("KMM", cursor.getString(9));
         Assert.assertEquals("TAX_REGNUM", cursor.getString(10));
+        Assert.assertEquals(12, cursor.getInt(11));
+        Assert.assertEquals(Agent.State.Warn.code, cursor.getInt(12));
         cursor.close();
 
         Mockito.when(agent.getName()).thenReturn("NAME2");

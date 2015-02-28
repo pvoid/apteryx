@@ -29,7 +29,7 @@ import org.robolectric.annotation.Config;
 @Config(emulateSdk = 18)
 public class AgentTest {
     @Test
-    public void constructAndCloneChech() throws Exception {
+    public void constructAndCloneCheck() throws Exception {
         Agent agent = new Agent("ID", "PARENT_ID", "INN", "JUR_ADDRESS", "PHYS_ADDRESS", "NAME",
                 "CITY", "FISCAL_MODE", "KMM", "TAX");
         Assert.assertEquals("ID", agent.getId());
@@ -58,6 +58,20 @@ public class AgentTest {
         Assert.assertEquals("KMM", clone.getKMM());
         Assert.assertEquals("TAX", clone.getTaxRegnum());
         Assert.assertEquals("PERSON_LOGIN", clone.getPersonLogin());
+        clone = clone.cloneForState(12, Agent.State.Error);
+        Assert.assertEquals("ID", clone.getId());
+        Assert.assertEquals("PARENT_ID", clone.getParentId());
+        Assert.assertEquals("INN", clone.getINN());
+        Assert.assertEquals("JUR_ADDRESS", clone.getJurAddress());
+        Assert.assertEquals("PHYS_ADDRESS", clone.getPhysAddress());
+        Assert.assertEquals("NAME", clone.getName());
+        Assert.assertEquals("CITY", clone.getCity());
+        Assert.assertEquals("FISCAL_MODE", clone.getFiscalMode());
+        Assert.assertEquals("KMM", clone.getKMM());
+        Assert.assertEquals("TAX", clone.getTaxRegnum());
+        Assert.assertEquals("PERSON_LOGIN", clone.getPersonLogin());
+        Assert.assertEquals(12, clone.getTerminalsCount());
+        Assert.assertEquals(Agent.State.Error, clone.getState());
     }
 
     @Test
@@ -71,6 +85,7 @@ public class AgentTest {
                 "PHYS_ADDRESS", "NAME", "CITY", "FISCAL_MODE", "KMM", "TAX")));
         Assert.assertTrue(agent.equals(new Agent("ID", "PARENT_ID1", "INN1", "JUR_ADDRESS1",
                 "PHYS_ADDRESS1", "NAME1", "CITY1", "FISCAL_MODE1", "KMM1", "TAX1")));
+        //noinspection EqualsWithItself
         Assert.assertTrue(agent.equals(agent));
         Assert.assertEquals("ID".hashCode(), agent.hashCode());
     }
@@ -84,10 +99,19 @@ public class AgentTest {
         Mockito.when(person.getLogin()).thenReturn("PERSON_LOGIN");
         agent = agent.cloneForPerson(person);
         Assert.assertTrue(agent.isValid());
+        //noinspection ConstantConditions
         agent = new Agent(null, "PARENT_ID", "INN", "JUR_ADDRESS", "PHYS_ADDRESS", "NAME",
                 "CITY", "FISCAL_MODE", "KMM", "TAX");
         Assert.assertFalse(agent.isValid());
         agent = agent.cloneForPerson(person);
         Assert.assertFalse(agent.isValid());
+    }
+
+    @Test
+    public void statesCheck() throws Exception {
+        Assert.assertEquals(Agent.State.Error, Agent.State.fromCode(Agent.State.Error.code));
+        Assert.assertEquals(Agent.State.Ok, Agent.State.fromCode(Agent.State.Ok.code));
+        Assert.assertEquals(Agent.State.Warn, Agent.State.fromCode(Agent.State.Warn.code));
+        Assert.assertEquals(Agent.State.Ok, Agent.State.fromCode(Integer.MIN_VALUE));
     }
 }

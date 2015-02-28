@@ -51,19 +51,17 @@ import java.io.IOException;
         String COLUMN_TERMINAL = "terminal";
         String COLUMN_NAME = "name";
         String COLUMN_AGENT_ID = "agent_id";
-        String COLUMN_ENABLED = "enabled";
-        String COLUMN_VERIFIED = "verified";
+        String COLUMN_STATE = "state";
         String[] ALL_COLUMNS = new String[] {
             COLUMN_LOGIN, COLUMN_PASSWORD, COLUMN_TERMINAL, COLUMN_NAME,
-            COLUMN_AGENT_ID, COLUMN_ENABLED, COLUMN_VERIFIED
+            COLUMN_AGENT_ID, COLUMN_STATE
         };
         int COLUMN_LOGIN_INDEX = 0;
         int COLUMN_PASSWORD_INDEX = 1;
         int COLUMN_TERMINAL_INDEX = 2;
         int COLUMN_NAME_INDEX = 3;
         int COLUMN_AGENT_ID_INDEX = 4;
-        int COLUMN_ENABLED_INDEX = 5;
-        int COLUMN_VERIFIED_INDEX = 6;
+        int COLUMN_STATE_INDEX = 5;
     }
 
     private interface AgentsTable {
@@ -244,8 +242,7 @@ import java.io.IOException;
         values.put(PersonsTable.COLUMN_TERMINAL, person.getTerminal());
         values.put(PersonsTable.COLUMN_NAME, person.getName());
         values.put(PersonsTable.COLUMN_AGENT_ID, person.getAgentId());
-        values.put(PersonsTable.COLUMN_ENABLED, person.isEnabled());
-        values.put(PersonsTable.COLUMN_VERIFIED, person.isVerified());
+        values.put(PersonsTable.COLUMN_STATE, person.getState().code);
         db.replace(PersonsTable.NAME, null, values);
     }
 
@@ -266,8 +263,7 @@ import java.io.IOException;
                         cursor.getString(PersonsTable.COLUMN_TERMINAL_INDEX),
                         cursor.getString(PersonsTable.COLUMN_AGENT_ID_INDEX),
                         cursor.getString(PersonsTable.COLUMN_NAME_INDEX),
-                        cursor.getInt(PersonsTable.COLUMN_ENABLED_INDEX) == 1,
-                        cursor.getInt(PersonsTable.COLUMN_VERIFIED_INDEX) == 1);
+                        Person.State.fromCode(cursor.getInt(PersonsTable.COLUMN_STATE_INDEX)));
             }
             return result;
         } finally {
@@ -600,6 +596,7 @@ import java.io.IOException;
                 }
             }
         }
+        //noinspection ConstantConditions
         return mReadableDatabase;
     }
 
@@ -612,6 +609,7 @@ import java.io.IOException;
                 }
             }
         }
+        //noinspection ConstantConditions
         return mWritableDatabase;
     }
 
@@ -629,8 +627,7 @@ import java.io.IOException;
                             PersonsTable.COLUMN_TERMINAL + " TEXT, " +
                             PersonsTable.COLUMN_NAME + " TEXT," +
                             PersonsTable.COLUMN_AGENT_ID + " TEXT," +
-                            PersonsTable.COLUMN_VERIFIED + " INTEGER, " +
-                            PersonsTable.COLUMN_ENABLED + " INTEGER);"
+                            PersonsTable.COLUMN_STATE + " INTEGER);"
             );
             db.execSQL("CREATE TABLE " + AgentsTable.NAME + "(" +
                             AgentsTable.COLUMN_AGENT_ID + " TEXT UNIQUE ON CONFLICT REPLACE, " +

@@ -27,7 +27,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
-import android.text.style.TextAppearanceSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,18 +37,19 @@ import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerViewHolder> {
 
     private static final int VIEW_TYPE_ACCOUNT = 0;
     private static final int VIEW_AGENT = 1;
 
-    @NonNull
-    private final LayoutInflater mInflater;
+    @NonNull private final LayoutInflater mInflater;
+    @NonNull private final AgentsComparator mComparator = new AgentsComparator();
     @Nullable private Person mCurrentAccount;
     @Nullable private Agent[] mAgents;
     private int mAgentsCount = 0;
-    @Nullable private int mSelectedPosition;
+    private int mSelectedPosition;
     @Nullable private OnAccountSwitcherClickedListener mSwitcherClickedListener;
     @Nullable private OnAgentSelectedListener mOnAgentSelectedListener;
     private final int mColorError;
@@ -85,6 +85,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
                 mAgents[index++] = agent;
             }
             mAgentsCount = index;
+            if (mAgentsCount > 0) {
+                Arrays.sort(mAgents, 0, mAgentsCount - 1, mComparator);
+            }
         } else {
             mAgents = null;
             mAgentsCount = 0;
@@ -235,5 +238,18 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     public interface OnAgentSelectedListener {
         void onAgentSelected(@NonNull Agent agent);
+    }
+
+    private static class AgentsComparator implements Comparator<Agent> {
+        @Override
+        public int compare(Agent left, Agent right) {
+            if (left == null || left.getName() == null) {
+                return right != null && right.getName() != null ? -1 : 0;
+            }
+            if (right == null || right.getName() == null) {
+                return 1;
+            }
+            return left.getName().compareTo(right.getName());
+        }
     }
 }
