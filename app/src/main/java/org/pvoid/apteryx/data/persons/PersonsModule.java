@@ -19,6 +19,7 @@ package org.pvoid.apteryx.data.persons;
 
 import android.content.Context;
 
+import android.support.annotation.NonNull;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 
@@ -38,7 +39,7 @@ public class PersonsModule {
 
     @Provides
     @Singleton
-    public PersonsManager provideManager(Storage storage) {
-        return new OsmpPersonsManager(mContext, storage);
+    public PersonsManager provideManager(@NonNull Storage storage, @NonNull TerminalsManager terminalsManager) {
+        return new OsmpPersonsManager(mContext, storage, terminalsManager);
     }
 }

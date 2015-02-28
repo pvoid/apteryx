@@ -62,6 +62,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
+    @NonNull private final TerminalsManager mTerminalsManager;
     @NonNull private final Lock mLock = new ReentrantLock();
     @GuardedBy("mLock") @NonNull private final NavigableMap<String, Person> mPersons = new TreeMap<>();
     @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
@@ -69,9 +70,11 @@ import java.util.concurrent.locks.ReentrantLock;
     @GuardedBy("mLock") @Nullable private Agent mCurrentAgent = null;
     @GuardedBy("mLock") @NonNull private Map<String, ArrayList<Agent>> mAgents = new HashMap<>();
 
-    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage) {
+    /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
+                                     @NonNull TerminalsManager terminalsManager) {
         mStorage = storage;
         mContext = context.getApplicationContext();
+        mTerminalsManager = terminalsManager;
         Person[] persons = storage.getPersons();
         if (persons != null && persons.length > 0) {
             mPersonsList = new Person[persons.length];
@@ -357,6 +360,8 @@ import java.util.concurrent.locks.ReentrantLock;
                 LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
                 lbm.sendBroadcast(new Intent(ACTION_AGENTS_CHANGED));
             }
+
+            mTerminalsManager.sync(person, false);
         }
 
         @Override

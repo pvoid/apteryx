@@ -25,7 +25,6 @@ import org.pvoid.apteryx.data.persons.Person;
 public interface TerminalsManager {
     String ACTION_CHANGED = "org.pvoid.apteryx.data.terminals.TERMINALS_CHANGED";
 
-    void syncFull(@NonNull Person person);
-    void sync(@NonNull Person person);
+    void sync(@NonNull Person person, boolean partial);
     @NonNull Terminal[] getTerminals(@Nullable String agentId);
 }

@@ -22,8 +22,8 @@
   <color name="refresh_progress_color_1">#4fc3f7</color>
   <color name="refresh_progress_color_2">#bf360c</color>
   <color name="refresh_progress_color_3">#33691e</color>
-  <color name="terminal_state_error_background">#ff5722</color>
+  <color name="terminal_state_error_background">#d84315</color>
   <color name="terminal_state_error_foreground">#fbe9e7</color>
-  <color name="terminal_state_warn_background">#fff59d</color>
+  <color name="terminal_state_warn_background">#ffeb3b</color>
   <color name="terminal_state_warn_foreground">#000000</color>
 </resources>

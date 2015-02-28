@@ -186,27 +186,24 @@ import java.util.concurrent.locks.ReentrantLock;
     }
 
     @Override
-    public void syncFull(@NonNull Person person) {
-        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
-        builder.getInterface(OsmpInterface.Terminals).add(new GetTerminalsCommand(true));
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
-        OsmpRequest request = builder.create();
-        if (request != null) {
-            NetworkService.executeRequest(mContext, request, new TerminalsListReceiver(person));
+    public void sync(@NonNull Person person, boolean partial) {
+        final OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
+        final ResultReceiver receiver;
+        if (partial) {
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
+            receiver = new TerminalsStateReceiver();
+        } else {
+            builder.getInterface(OsmpInterface.Terminals).add(new GetTerminalsCommand(true));
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
+            builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
+            receiver = new TerminalsListReceiver(person);
         }
-    }
-
-    @Override
-    public void sync(@NonNull Person person) {
-        OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
-        builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsCashCommand());
         OsmpRequest request = builder.create();
         if (request != null) {
-            NetworkService.executeRequest(mContext, request, new TerminalsStateReceiver());
+            NetworkService.executeRequest(mContext, request, receiver);
         }
     }
 

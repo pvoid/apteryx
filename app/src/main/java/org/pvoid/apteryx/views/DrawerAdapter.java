@@ -42,7 +42,8 @@ import java.util.Comparator;
 public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerViewHolder> {
 
     private static final int VIEW_TYPE_ACCOUNT = 0;
-    private static final int VIEW_AGENT = 1;
+    private static final int VIEW_AGENTS_HEADER = 1;
+    private static final int VIEW_AGENT = 2;
 
     @NonNull private final LayoutInflater mInflater;
     @NonNull private final AgentsComparator mComparator = new AgentsComparator();
@@ -113,10 +114,15 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     @Override
     public DrawerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == VIEW_TYPE_ACCOUNT) {
-            return new AccountViewHolder(mInflater.inflate(R.layout.view_account_switcher, parent, false));
+        switch (viewType) {
+            case VIEW_TYPE_ACCOUNT:
+                return new AccountViewHolder(mInflater.inflate(R.layout.view_account_switcher, parent, false));
+            case VIEW_AGENTS_HEADER:
+                return new DrawerViewHolder(mInflater.inflate(R.layout.view_agents_header, parent, false));
+            case VIEW_AGENT:
+                return new AgentViewHolder(mInflater.inflate(R.layout.view_agent_item, parent, false));
         }
-        return new AgentViewHolder(mInflater.inflate(R.layout.view_agent_item, parent, false));
+        throw new IllegalArgumentException("Unknown view type");
     }
 
     @Override
@@ -125,18 +131,15 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
             case VIEW_TYPE_ACCOUNT: {
                 AccountViewHolder accountHolder = (AccountViewHolder) holder;
                 if (mCurrentAccount == null) {
-                    accountHolder.name.setVisibility(View.GONE);
-                    accountHolder.login.setText(R.string.empty_account);
+                    accountHolder.name.setText(R.string.empty_account);
                 } else {
-                    accountHolder.name.setVisibility(View.VISIBLE);
                     accountHolder.name.setText(mCurrentAccount.getName());
-                    accountHolder.login.setText(mCurrentAccount.getLogin());
                 }
                 break;
             }
             case VIEW_AGENT: {
-                --position;
-                AgentViewHolder agentHoder = (AgentViewHolder) holder;
+                position -= 2;
+                AgentViewHolder agentHolder = (AgentViewHolder) holder;
                 if (mAgents != null) {
                     final Agent agent = mAgents[position];
 
@@ -146,18 +149,23 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
                         t.setSpan(new StyleSpan(Typeface.BOLD), 0, t.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                         text = t;
                     }
-                    agentHoder.title.setText(text);
-                    agentHoder.position = position;
+                    agentHolder.title.setText(text);
+                    agentHolder.position = position;
                     switch (agent.getState()) {
                         case Error:
-                            agentHoder.errorMark.setBackgroundColor(mColorError);
+                            agentHolder.errorMark.setBackgroundColor(mColorError);
                             break;
                         case Warn:
-                            agentHoder.errorMark.setBackgroundColor(mColorWarn);
+                            agentHolder.errorMark.setBackgroundColor(mColorWarn);
                             break;
                         case Ok:
-                            agentHoder.errorMark.setBackgroundColor(Color.TRANSPARENT);
+                            agentHolder.errorMark.setBackgroundColor(Color.TRANSPARENT);
                             break;
+                    }
+                    if (position == mAgentsCount - 1) {
+                        agentHolder.line.setVisibility(View.GONE);
+                    } else {
+                        agentHolder.line.setVisibility(View.VISIBLE);
                     }
                 }
                 break;
@@ -168,13 +176,19 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     @Override
     public int getItemCount() {
-        return 1 + mAgentsCount;
+        if (mAgentsCount == 0) {
+            return 1;
+        }
+        return 2 + mAgentsCount;
     }
 
     @Override
     public int getItemViewType(int position) {
         if (position == 0) {
             return VIEW_TYPE_ACCOUNT;
+        }
+        if (position == 1) {
+            return VIEW_AGENTS_HEADER;
         }
         return VIEW_AGENT;
     }
@@ -187,13 +201,11 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
     private class AccountViewHolder extends DrawerViewHolder implements View.OnClickListener {
 
-        @NonNull final TextView login;
         @NonNull final TextView name;
 
         public AccountViewHolder(View itemView) {
             super(itemView);
             name = (TextView) itemView.findViewById(R.id.current_account_name);
-            login = (TextView) itemView.findViewById(R.id.current_account_login);
             View switcher = itemView.findViewById(R.id.account_switcher);
             switcher.setOnClickListener(this);
         }
@@ -211,6 +223,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
 
         @NonNull final TextView title;
         @NonNull final View errorMark;
+        @NonNull final View line;
         int position = -1;
 
         public AgentViewHolder(View itemView) {
@@ -218,6 +231,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
             itemView.setOnClickListener(this);
             title = (TextView) itemView.findViewById(R.id.agent_name);
             errorMark = itemView.findViewById(R.id.agent_error_mark);
+            line = itemView.findViewById(R.id.agent_line);
         }
 
         @Override

@@ -16,6 +16,9 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources>
+    <style name="Toolbar">
+    </style>
+
     <style name="Text"/>
 
     <style name="Text.Header">
@@ -52,8 +55,6 @@
     </style>
 
     <style name="Drawer.Account" parent="">
-        <item name="android:paddingLeft">10dp</item>
-        <item name="android:paddingRight">10dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
@@ -62,17 +63,22 @@
         <item name="android:ellipsize">middle</item>
     </style>
 
-    <style name="Drawer.Account.Image" parent="">
-        <item name="android:layout_alignParentTop">true</item>
+    <style name="Drawer.Account.Arrow" parent="">
         <item name="android:layout_alignParentRight">true</item>
-        <item name="android:layout_alignParentBottom">true</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_margin">@dimen/drawer_margin</item>
         <item name="android:src">@drawable/ic_account_switcher</item>
-        <item name="android:scaleType">fitCenter</item>
-        <item name="android:layout_marginLeft">10dp</item>
+    </style>
+
+    <style name="Drawer.Account.Image" parent="">
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_margin">@dimen/drawer_margin</item>
+        <item name="android:src">@drawable/ic_person_black</item>
     </style>
 
     <style name="Drawer.Account.Name" parent="Drawer.Account.Text">
-        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:layout_centerInParent">true</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:textStyle">bold</item>
     </style>
@@ -83,6 +89,26 @@
         <item name="android:layout_alignWithParentIfMissing">true</item>
     </style>
 
+    <style name="Drawer.Header" parent="" />
+
+    <style name="Drawer.Header.Title">
+        <item name="android:layout_marginLeft">@dimen/drawer_margin</item>
+        <item name="android:layout_marginRight">@dimen/drawer_margin</item>
+        <item name="android:textColor">@color/hint_foreground_material_light</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Drawer.Header.Line">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:layout_marginLeft">@dimen/drawer_line_margin</item>
+        <item name="android:layout_marginRight">@dimen/drawer_line_margin</item>
+        <item name="android:background">#ccc</item>
+    </style>
+
     <style name="Drawer.Agent" parent="">
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
@@ -90,10 +116,27 @@
 
     <style name="Drawer.Agent.Name" parent="">
         <item name="android:gravity">center_vertical</item>
-        <item name="android:paddingLeft">20dp</item>
-        <item name="android:paddingRight">10dp</item>
+        <item name="android:layout_marginLeft">20dp</item>
+        <item name="android:layout_marginRight">@dimen/drawer_margin</item>
+        <item name="android:textAppearance">?android:textAppearanceListItemSmall</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">middle</item>
+    </style>
+
+    <style name="Drawer.Agent.Line" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">#ccc</item>
+        <item name="android:layout_marginLeft">@dimen/drawer_line_margin</item>
+        <item name="android:layout_marginRight">@dimen/drawer_line_margin</item>
+    </style>
+
+    <style name="Drawer.Agent.Mark" parent="">
+        <item name="android:layout_width">15dp</item>
+        <item name="android:layout_height">15dp</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_marginRight">20dp</item>
     </style>
 
     <style name="TerminalCard" parent="CardView.Light">

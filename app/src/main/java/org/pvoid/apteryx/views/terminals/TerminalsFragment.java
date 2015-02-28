@@ -161,7 +161,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         final PersonsManager personsManager = graph.get(PersonsManager.class);
         Person person = personsManager.getCurrentPerson();
         if (person != null) {
-            manager.sync(person);
+            manager.sync(person, true);
         } else {
             stopRefreshAnimation();
         }

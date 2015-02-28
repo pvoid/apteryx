@@ -16,28 +16,16 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Drawer.Agent"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="?attr/listPreferredItemHeightSmall">
-    <View
-        android:id="@+id/agent_line"
-        style="@style/Drawer.Agent.Line"
-        android:layout_alignParentBottom="true"/>
+    android:layout_height="match_parent">
     <TextView
-        android:id="@+id/agent_name"
-        style="@style/Drawer.Agent.Name"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_above="@id/agent_line"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/agent_error_mark"
-        android:layout_alignWithParentIfMissing="true"
-        tools:text="Agent name"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/agents"
+        style="@style/Drawer.Header.Title"/>
     <View
-        android:id="@id/agent_error_mark"
-        style="@style/Drawer.Agent.Mark"
-        tools:background="@color/terminal_state_error_background"/>
-</RelativeLayout>
+        style="@style/Drawer.Header.Line"/>
+</LinearLayout>
