@@ -22,14 +22,15 @@ import android.support.annotation.NonNull;
 import org.pvoid.apteryx.net.results.Result;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.net.results.ResultFactory;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /* package */ class OsmpResultFactories implements ResultFactories {
 
-    private static final String TAG = "Factories";
+    private static final Logger LOG = Loggers.getLogger(Loggers.Network);
 
     private final Map<String, ResultFactory> mFactories = new HashMap<>();
 
@@ -44,7 +45,7 @@ import java.util.Map;
         if (factory != null) {
             return factory.create(tag);
         }
-        LogHelper.error(TAG, "Can't find factory for '%1$s'. Forget to register factory?");
+        LOG.error("Can't find factory for '{}'. Forget to register factory?", tag.getName());
         return null;
     }
 }

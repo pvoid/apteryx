@@ -22,7 +22,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
-import org.pvoid.apteryx.util.LogHelper;
 
 public class GetAgentInfoResult extends Result {
 
@@ -54,7 +53,7 @@ public class GetAgentInfoResult extends Result {
         try {
             tag = root.nextChild();
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Can't parse " + GetAgentInfoCommand.NAME + " tag", e);
+            LOG.error("Can't parse '" + GetAgentInfoCommand.NAME + "' tag", e);
         }
         if (tag != null && TextUtils.equals("agent", tag.getName())) {
             mAddress = tag.getAttribute(ATTR_ADDRESS);

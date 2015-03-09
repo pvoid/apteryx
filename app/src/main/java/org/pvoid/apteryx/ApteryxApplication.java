@@ -19,6 +19,7 @@ package org.pvoid.apteryx;
 
 import android.app.Application;
 
+import android.util.Log;
 import org.pvoid.apteryx.data.DataModule;
 import org.pvoid.apteryx.data.persons.PersonsModule;
 import org.pvoid.apteryx.data.terminals.TerminalsModule;
@@ -26,6 +27,7 @@ import org.pvoid.apteryx.net.NetworkModule;
 import org.pvoid.apteryx.settings.SettingsModule;
 
 import dagger.ObjectGraph;
+import org.pvoid.apteryx.util.Loggers;
 
 public class ApteryxApplication extends Application implements GraphHolder {
 
@@ -33,8 +35,13 @@ public class ApteryxApplication extends Application implements GraphHolder {
 
     @Override
     public void onCreate() {
+        configureLogs();
         createGraph();
         super.onCreate();
+    }
+
+    protected void configureLogs() {
+        Loggers.setLogLevel(Loggers.LOG_LEVEL_INFO);
     }
 
     protected void createGraph() {

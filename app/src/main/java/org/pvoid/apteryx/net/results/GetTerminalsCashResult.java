@@ -23,7 +23,6 @@ import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.Currency;
 import org.pvoid.apteryx.data.terminals.TerminalCash;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.util.StringUtils;
 
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ public class GetTerminalsCashResult extends Result {
                         }
                         item = new TerminalCash.CashItem(cur);
                     } catch (NumberFormatException e) {
-                        LogHelper.error("Network", "Error while reading getTerminalsCash result", e);
+                        LOG.error("Error while reading getTerminalsCash result", e);
                         continue;
                     }
 
@@ -101,7 +100,7 @@ public class GetTerminalsCashResult extends Result {
                 result.add(cash);
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Error while reading getTerminalsCash result", e);
+            LOG.error("Error while reading getTerminalsCash result", e);
         }
 
         if (result == null) {

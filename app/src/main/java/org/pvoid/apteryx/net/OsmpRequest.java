@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okio.BufferedSink;
@@ -47,14 +48,17 @@ public class OsmpRequest implements Parcelable {
     private static final Uri SERVER_URI = Uri.parse(BuildConfig.SERVER_URL);
     @NonNull private final Person mPerson;
     @NonNull private final byte[] mBody;
+    @NonNull private final String[] mCommands;
 
-    private OsmpRequest(@NonNull Person person, @NonNull byte[] data) {
+    private OsmpRequest(@NonNull Person person, @NonNull String[] commands, @NonNull byte[] data) {
         mBody = data;
         mPerson = person;
+        mCommands = commands;
     }
 
     private OsmpRequest(@NonNull Parcel source) {
         mPerson = source.readParcelable(Person.class.getClassLoader());
+        mCommands = source.createStringArray();
         mBody = source.createByteArray();
     }
 
@@ -64,6 +68,10 @@ public class OsmpRequest implements Parcelable {
 
     /* package */ RequestBody createBody() {
         return new OsmpRequestBody();
+    }
+
+    /* package */ String[] getCommands() {
+        return mCommands;
     }
 
     @NonNull
@@ -83,6 +91,7 @@ public class OsmpRequest implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(mPerson, flags);
+        dest.writeStringArray(mCommands);
         dest.writeByteArray(mBody);
     }
 
@@ -130,10 +139,12 @@ public class OsmpRequest implements Parcelable {
                       .append(TextUtils.htmlEncode(mPerson.getTerminal()))
                       .append("\" software=\"Dealer v0\" serial=\"\"/>");
 
+            final List<String> commands = new ArrayList<>();
             if (mInterfaces != null) {
                 for (Map.Entry<OsmpInterface, CommandsArrayList> i : mInterfaces.entrySet()) {
                     resultText.append("<").append(i.getKey().getName()).append(">");
                     for (Command command : i.getValue()) {
+                        commands.add(command.getName());
                         resultText.append("<").append(command.getName());
                         if (command.isAsync()) {
                             resultText.append(" mode=\"async\"");
@@ -155,7 +166,8 @@ public class OsmpRequest implements Parcelable {
 
             resultText.append("</request>");
 
-            return new OsmpRequest(mPerson, resultText.toString().getBytes(charset));
+            return new OsmpRequest(mPerson, commands.toArray(new String[commands.size()]),
+                    resultText.toString().getBytes(charset));
         }
     }
 

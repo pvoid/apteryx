@@ -158,6 +158,11 @@ public class Person implements Parcelable {
         dest.writeInt(mState.code);
     }
 
+    @Override
+    public String toString() {
+        return mName != null ? mName : mLogin;
+    }
+
     public static final Creator<Person> CREATOR = new Creator<Person>() {
         @Override
         public Person createFromParcel(Parcel source) {

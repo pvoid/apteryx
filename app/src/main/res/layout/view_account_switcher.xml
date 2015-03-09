@@ -39,6 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/current_account_icon"
         android:layout_toLeftOf="@id/current_account_arrow"
+        android:layout_alignWithParentIfMissing="true"
         tools:text="Some account name"
         tools:ignore="RtlHardcoded" />
 </RelativeLayout>

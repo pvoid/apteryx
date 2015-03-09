@@ -33,13 +33,16 @@ import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class AddAccountActivity extends Activity implements AddAccountFragment.AddAccuntListener {
+
+    private static final Logger LOG = Loggers.getLogger(Loggers.Accounts);
 
     private final AccountVerifiedReceiver mReceiver = new AccountVerifiedReceiver();
     private Handler mHandler = new Handler();
@@ -83,7 +86,7 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
             password = String.format("%1$032X", i).toLowerCase();
         }
         catch (NoSuchAlgorithmException e) {
-            LogHelper.error("Account", "Can't create password hash: %1$s", e.getMessage());
+            LOG.error("Can't create password hash", e);
             return;
         }
         mHandler.postDelayed(new AccountVerifyRunnable(login, password, terminal), duration);

@@ -17,16 +17,14 @@
 
 package org.pvoid.apteryx.net.results;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 public abstract class Result {
 
-    private static final String TAG = "Result";
+    protected static final Logger LOG = Loggers.getLogger(Loggers.Network);
     public static final int INVALID_VALUE = -1;
 
     public static final int ASYNC_STATE_PENDING = 1;
@@ -59,7 +57,7 @@ public abstract class Result {
             try {
                 return Integer.parseInt(val);
             } catch (NumberFormatException e) {
-                LogHelper.warn(TAG, "Cant't convert '$1%s' to number: %2$s", attribute, e.getMessage());
+                LOG.warn("Can't convert '{}' to number: {}", attribute, e.getMessage());
             }
         }
         return INVALID_VALUE;

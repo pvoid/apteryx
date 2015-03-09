@@ -23,13 +23,13 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/terminals_refresh_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:visibility="invisible">
         <android.support.v7.widget.RecyclerView
             android:id="@+id/terminals_list"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:visibility="invisible"/>
+            android:layout_height="match_parent"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
     <LinearLayout

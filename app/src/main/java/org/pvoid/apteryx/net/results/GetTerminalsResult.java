@@ -23,7 +23,6 @@ import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.terminals.Terminal;
 import org.pvoid.apteryx.data.terminals.TerminalType;
-import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +77,7 @@ public class GetTerminalsResult extends Result {
                         try {
                             terminal.setCity(Integer.parseInt(cityId), city);
                         } catch (NumberFormatException e) {
-                            LogHelper.error("Network", "Error while parsing city id");
+                            LOG.error("Error while parsing city id", e);
                         }
                     }
                     final String address = row.getAttribute(ATTR_DISPLAY_ADDRESS);
@@ -90,7 +89,7 @@ public class GetTerminalsResult extends Result {
                 }
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Error while reading getTerminals result: %1$s", e.getMessage());
+            LOG.error("Error while reading getTerminals result", e);
         }
         if (terminals == null) {
             mTerminals = null;

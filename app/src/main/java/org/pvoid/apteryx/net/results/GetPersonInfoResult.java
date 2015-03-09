@@ -20,8 +20,6 @@ package org.pvoid.apteryx.net.results;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import org.pvoid.apteryx.util.LogHelper;
-
 public class GetPersonInfoResult extends Result {
 
     private static final String ATTR_AGENT = "agent";
@@ -53,7 +51,7 @@ public class GetPersonInfoResult extends Result {
                 enabled = person.getAttribute(ATTR_ENABLED);
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Can't read GetPersonInfoResult: %1$s", e.getMessage());
+            LOG.error("Can't read GetPersonInfoResult", e);
         }
         mId = id;
         mLogin = login;

@@ -21,7 +21,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import org.pvoid.apteryx.data.agents.Agent;
-import org.pvoid.apteryx.util.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,7 @@ public class GetAgentsResult extends Result {
                 agents.add(agent);
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Can't create GetAgentsResult: %1$s", e.getMessage());
+            LOG.error("Can't create GetAgentsResult", e);
         }
         if (agents == null) {
             mAgents = null;

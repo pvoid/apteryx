@@ -22,7 +22,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.terminals.TerminalState;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.util.StringUtils;
 
 import java.text.ParseException;
@@ -85,7 +84,7 @@ public class GetTerminalsStatusResult extends Result {
                 ));
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Error while reading getTerminals result: %1$s", e.getMessage());
+            LOG.error("Error while reading getTerminals result", e);
         }
 
         if (states == null) {
@@ -121,7 +120,7 @@ public class GetTerminalsStatusResult extends Result {
             try {
                 return format.parse(date).getTime();
             } catch (ParseException e) {
-                LogHelper.error("Network", "Can't parse date in terminal status", e);
+                LOG.error("Can't parse date in terminal status", e);
             }
         }
         return -1;

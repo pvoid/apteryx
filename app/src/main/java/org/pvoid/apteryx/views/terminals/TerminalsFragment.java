@@ -72,8 +72,6 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         View button = root.findViewById(R.id.add_account_button);
         button.setOnClickListener(this);
         TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
-        String hint = getString(R.string.empty_account_message, BuildConfig.CREATE_ACCOUNT_INFO_URL);
-        hintText.setText(Html.fromHtml(hint));
         hintText.setMovementMethod(LinkMovementMethod.getInstance());
         return root;
     }
@@ -129,6 +127,9 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         } else {
             refreshLayout.setVisibility(View.INVISIBLE);
             accountError.setVisibility(View.VISIBLE);
+            TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
+            String hint = getString(R.string.empty_account_message, BuildConfig.CREATE_ACCOUNT_INFO_URL);
+            hintText.setText(Html.fromHtml(hint));
         }
     }
 

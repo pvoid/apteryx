@@ -23,7 +23,8 @@ import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.R;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 public enum TerminalType {
     Unknown(0, R.string.terminal_type_0),
@@ -59,6 +60,8 @@ public enum TerminalType {
     UniPos(801, R.string.terminal_type_801),
     MobileMonitor(1300, R.string.terminal_type_1300);
 
+    private static final Logger LOG = Loggers.getLogger(Loggers.Terminals);
+
     public final int id;
     @StringRes public final int nameRes;
 
@@ -84,7 +87,7 @@ public enum TerminalType {
             try {
                 return fromId(Integer.parseInt(value));
             } catch (NumberFormatException e) {
-                LogHelper.error("TerminalType", "Can't convert id '%1$s' to type. Reason: '%2$s'", value, e.getMessage());
+                LOG.error("Can't convert id '"+ value +"' to type. Reason: '%2$s'", e);
             }
         }
         return Unknown;

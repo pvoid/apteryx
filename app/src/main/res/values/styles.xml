@@ -74,7 +74,7 @@
         <item name="android:layout_alignParentLeft">true</item>
         <item name="android:layout_centerVertical">true</item>
         <item name="android:layout_margin">@dimen/drawer_margin</item>
-        <item name="android:src">@drawable/ic_person_black</item>
+        <item name="android:src">@drawable/ic_person</item>
     </style>
 
     <style name="Drawer.Account.Name" parent="Drawer.Account.Text">

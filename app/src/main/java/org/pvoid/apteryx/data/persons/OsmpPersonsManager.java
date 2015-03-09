@@ -45,7 +45,8 @@ import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
 import org.pvoid.apteryx.net.results.GetAgentInfoResult;
 import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.net.results.GetPersonInfoResult;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +59,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /* package */ class OsmpPersonsManager implements PersonsManager {
 
-    private static final String TAG = "AccountManager";
+    private static final Logger LOG = Loggers.getLogger(Loggers.Accounts);
 
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
@@ -85,16 +86,19 @@ import java.util.concurrent.locks.ReentrantLock;
             }
         }
         Agent[] agents = storage.getAgents();
+        int agentsCount = 0;
         if (agents != null && agents.length > 0) {
             for (Agent agent : agents) {
                 ArrayList<Agent> a = mAgents.get(agent.getPersonLogin());
                 if (a == null) {
                     a = new ArrayList<>();
                     mAgents.put(agent.getPersonLogin(), a);
+                    ++agentsCount;
                 }
                 a.add(agent);
             }
         }
+        LOG.info("Initialized. Loaded: {} accounts, {} agents", mPersonsList != null ? mPersonsList.length : 0, agentsCount);
         notifyPersonsChanged();
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
         lbm.registerReceiver(new TerminalsChangesReceiver(), new IntentFilter(TerminalsManager.ACTION_CHANGED));
@@ -105,10 +109,12 @@ import java.util.concurrent.locks.ReentrantLock;
         mLock.lock();
         try {
             if (mPersons.containsKey(person.getLogin())) {
+                LOG.warn("Person with login '{}' already added. Skipped.", person.getLogin());
                 return false;
             }
             mPersons.put(person.getLogin(), person);
             mPersonsList = null;
+            LOG.info("Person '{}' was added", person.getLogin());
         } finally {
             mLock.unlock();
         }
@@ -128,6 +134,7 @@ import java.util.concurrent.locks.ReentrantLock;
         if (request != null) {
             NetworkService.executeRequest(mContext, request,
                     new VerificationResultReceiver(person.getLogin()));
+            LOG.info("Verification requested for '{}'", person.getLogin());
         }
     }
 
@@ -166,6 +173,11 @@ import java.util.concurrent.locks.ReentrantLock;
                 mCurrentAgent = null;
                 LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
                 lbm.sendBroadcast(new Intent(ACTION_CURRENT_PERSON_CHANGED));
+                if (mCurrentPerson != null) {
+                    LOG.info("Current person switched to '{}'", mCurrentPerson.getLogin());
+                } else {
+                    LOG.error("Current person record can't be updated");
+                }
             }
             return mCurrentPerson;
         } finally {
@@ -189,6 +201,7 @@ import java.util.concurrent.locks.ReentrantLock;
         }
 
         if (notify) {
+            LOG.info("Current person switched to '{}'", login);
             LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
             lbm.sendBroadcast(new Intent(ACTION_CURRENT_PERSON_CHANGED));
         }
@@ -209,6 +222,7 @@ import java.util.concurrent.locks.ReentrantLock;
                                 mCurrentAgent = agent;
                                 LocalBroadcastManager.getInstance(mContext)
                                         .sendBroadcast(new Intent(ACTION_CURRENT_AGENT_CHANGED));
+                                LOG.info("Current agent was set to '{}' from person '{}'", agent.getName(), person.getLogin());
                                 break;
                             }
                         }
@@ -225,6 +239,7 @@ import java.util.concurrent.locks.ReentrantLock;
     public void setCurrentAgent(@NonNull String agentId) {
         Person currentPerson = getCurrentPerson();
         if (currentPerson == null) {
+            LOG.error("Can't set current agent, due to current person is NULL");
             return;
         }
 
@@ -237,6 +252,7 @@ import java.util.concurrent.locks.ReentrantLock;
                     if (TextUtils.equals(agentId, agent.getId())) {
                         mCurrentAgent = agent;
                         notify = true;
+                        LOG.info("Current agent was set to '{}' from person '{}'", agent.getName(), currentPerson.getLogin());
                         break;                    }
                 }
             }
@@ -247,6 +263,8 @@ import java.util.concurrent.locks.ReentrantLock;
         if (notify) {
             LocalBroadcastManager.getInstance(mContext)
                     .sendBroadcast(new Intent(ACTION_CURRENT_AGENT_CHANGED));
+        } else {
+            LOG.error("Can't find agent with id '{}' from person '{}'", agentId, currentPerson.getLogin());
         }
     }
 
@@ -263,6 +281,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
 
     private void notifyPersonsChanged() {
+        LOG.info("Notify about persons states changes");
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
         lbm.sendBroadcast(new Intent(ACTION_PERSONS_CHANGED));
     }
@@ -282,11 +301,14 @@ import java.util.concurrent.locks.ReentrantLock;
         try {
             person = mPersons.get(login);
             if (person == null) {
+                LOG.error("Can't update state for '{}'", login);
                 return null;
             }
+            final Person.State oldState = person.getState();
             person = person.cloneWithState(agentId, name, state);
             mPersons.put(person.getLogin(), person);
             mPersonsList = null;
+            LOG.info("Person '{}' state changed: {} -> {}", login, oldState.name(), state.name());
         } finally {
             mLock.unlock();
         }
@@ -309,6 +331,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Persons);
             if (response.getResult() != OsmpResponse.RESULT_OK || results == null) {
+                LOG.error("An error occurred while verifying person '{}'. Result code: {}", mLogin, response.getResult());
                 updatePersonState(mLogin, Person.State.Invalid, null, null);
                 return;
             }
@@ -318,6 +341,7 @@ import java.util.concurrent.locks.ReentrantLock;
             final String agentId = info.getAgentId();
 
             if (name == null || agentId == null) {
+                LOG.error("An error occurred while verifying person '{}'. Result code: {}", mLogin, response.getResult());
                 updatePersonState(mLogin, Person.State.Invalid, null, null);
                 return;
             }
@@ -329,6 +353,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
             results = response.getInterface(OsmpInterface.Agents);
             if (results == null) {
+                LOG.error("Can't obtain agents list for person '{}'", mLogin);
                 return;
             }
 
@@ -361,12 +386,14 @@ import java.util.concurrent.locks.ReentrantLock;
                 lbm.sendBroadcast(new Intent(ACTION_AGENTS_CHANGED));
             }
 
+            LOG.info("{} agents had been added to person {}", agentsList.size(), mLogin);
+
             mTerminalsManager.sync(person, false);
         }
 
         @Override
         public void onError() {
-            LogHelper.error(TAG, "Error while verifying account.");
+            LOG.error("Error while verifying account.");
             notifyVerifyResult(false, null);
         }
     }
@@ -374,6 +401,7 @@ import java.util.concurrent.locks.ReentrantLock;
     private class TerminalsChangesReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            LOG.info("Updating terminals");
             ObjectGraph graph = ((ApteryxApplication) context.getApplicationContext()).getGraph();
             TerminalsManager manager = graph.get(TerminalsManager.class);
             final Terminal[] terminals = manager.getTerminals(null);
@@ -412,14 +440,21 @@ import java.util.concurrent.locks.ReentrantLock;
                     for (int index = 0; index < agents.size(); ++index) {
                         final Agent agent = agents.get(index);
                         final Integer count = counts.get(agent.getId());
-                        final Agent.State state = states.get(agent.getId());
+                        Agent.State state = states.get(agent.getId());
                         if (count == null) {
                             continue;
                         }
-                        if (count != agent.getTerminalsCount() || state != agent.getState()) {
-                            Agent newAgent = agent.cloneForState(count, state == null ? Agent.State.Ok : state);
+                        if (state == null) {
+                            state = Agent.State.Ok;
+                        }
+                        final Agent.State oldState = agent.getState();
+                        final int oldCount = agent.getTerminalsCount();
+                        if (count != oldCount || state != oldState) {
+                            Agent newAgent = agent.cloneForState(count, state);
                             agents.set(index, newAgent);
                             changed.add(newAgent);
+                            LOG.info("Agent's '{}' state or terminals count had been changed. {} -> {}, {} -> {}",
+                                    agent.getName(), oldCount, count, oldState.name(),  state.name());
                         }
                     }
                 }

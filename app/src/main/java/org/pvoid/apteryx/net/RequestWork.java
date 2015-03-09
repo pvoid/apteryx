@@ -27,17 +27,20 @@ import com.squareup.okhttp.Response;
 import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
 import org.pvoid.apteryx.net.results.ResponseTag;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.BuildConfig;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /* package */ class RequestWork implements Runnable {
 
-    private static final String TAG = "RequestWork";
+    private static final Logger LOG = Loggers.getLogger(Loggers.Network);
     private static final XmlPullParserFactory PARSER_FACTORY;
 
     @NonNull private final OsmpRequest mRequest;
@@ -52,7 +55,7 @@ import java.io.IOException;
         try {
             factory = XmlPullParserFactory.newInstance();
         } catch (XmlPullParserException e) {
-            LogHelper.error(TAG, e.getMessage());
+            LOG.error("Can't create xml parser factory", e);
         }
         PARSER_FACTORY = factory;
     }
@@ -85,7 +88,7 @@ import java.io.IOException;
             try {
                 parser = PARSER_FACTORY.newPullParser();
             } catch (XmlPullParserException e) {
-                LogHelper.error(TAG, e.getMessage());
+                LOG.error("Can't create xml parser", e);
             }
         }
 
@@ -98,6 +101,8 @@ import java.io.IOException;
             return;
         }
 
+        LOG.info(">>> Account: '{}'. Commands: {}", mRequest.getPerson(), mRequest.getCommands());
+
         OkHttpClient client = new OkHttpClient();
         Request.Builder builder = new Request.Builder();
         builder.url(mRequest.getUri().toString()).post(mRequest.createBody());
@@ -105,7 +110,7 @@ import java.io.IOException;
         try {
             Response resp = client.newCall(builder.build()).execute();
             if (resp.code() != HttpStatus.SC_OK) {
-                LogHelper.error(TAG, "Server return error: " + resp.code());
+                LOG.error("Server return HTTP error: {}", resp.code());
                 mHandler.onError();
                 return;
             }
@@ -135,8 +140,10 @@ import java.io.IOException;
                 }
                 return;
             }
-        } catch (IOException | XmlPullParserException | ResponseTag.TagReadException e) {
-            LogHelper.error(TAG, e.getMessage());
+        } catch (XmlPullParserException | ResponseTag.TagReadException e) {
+            LOG.error("Error while reading response XML", e);
+        } catch (IOException e) {
+            LOG.error("Error while reading response", e);
         }
         mHandler.onError();
     }

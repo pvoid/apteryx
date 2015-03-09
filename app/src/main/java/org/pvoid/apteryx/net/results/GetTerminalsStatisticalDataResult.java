@@ -22,7 +22,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.data.terminals.TerminalStats;
-import org.pvoid.apteryx.util.LogHelper;
 import org.pvoid.apteryx.util.StringUtils;
 
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ public class GetTerminalsStatisticalDataResult extends Result {
                 stats.add(stat);
             }
         } catch (ResponseTag.TagReadException e) {
-            LogHelper.error("Network", "Error while parsing getTerminalsStatisticalData() result");
+            LOG.error("Error while parsing getTerminalsStatisticalData() result", e);
         }
 
         if (stats == null) {

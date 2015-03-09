@@ -28,7 +28,8 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.*;
-import org.pvoid.apteryx.util.LogHelper;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,10 +37,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-
 /* package */ class DataStorage implements Storage {
 
-    private static final String TAG = "Storage";
+    private static final Logger LOG = Loggers.getLogger(Loggers.Storage);
 
     /* package */ static final String DB_NAME = "apteryx";
     /* package */ static final int DB_VERSION = 1;
@@ -538,7 +538,7 @@ import java.io.IOException;
                 try {
                     cash.store(new DataOutputStream(out));
                 } catch (IOException e) {
-                    LogHelper.error(TAG, "Can't store cash item", e);
+                    LOG.error("Can't store cash item", e);
                     continue;
                 }
                 values.put(TerminalsCashTable.COLUMN_TERMINAL_ID, cash.getTerminalId());
@@ -570,7 +570,7 @@ import java.io.IOException;
                 try {
                     result[index++] = new TerminalCash(new DataInputStream(in));
                 } catch (IOException e) {
-                    LogHelper.error(TAG, "Can't read cash data", e);
+                    LOG.error("Can't read cash data", e);
                 }
             }
             return result;
