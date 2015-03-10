@@ -18,7 +18,6 @@
 package org.pvoid.apteryx.net;
 
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -26,6 +25,8 @@ import android.text.TextUtils;
 import org.pvoid.apteryx.net.commands.Command;
 import org.pvoid.apteryx.net.results.Result;
 import org.pvoid.apteryx.net.results.ResponseTag;
+import org.pvoid.apteryx.util.Loggers;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 public class OsmpResponse {
+
+    private static final Logger LOG = Loggers.getLogger(Loggers.Network);
 
     public static final int RESULT_OK = 0;
 
@@ -44,6 +47,7 @@ public class OsmpResponse {
     private final int mResult;
     @Nullable private final String mResultDescription;
     @NonNull private final Map<OsmpInterface, ResultMap> mInterfaces = new HashMap<>();
+    @Nullable private String mCommands[];
 
     /* package */ OsmpResponse(@NonNull ResponseTag tag,
                                @NonNull ResultFactories factory) throws ResponseTag.TagReadException {
@@ -63,6 +67,7 @@ public class OsmpResponse {
         mResultDescription = tag.getAttribute(ATTR_RESULT_DESCRIPTION);
 
         ResponseTag interfaceTag;
+        final List<String> results = new ArrayList<>();
         while ((interfaceTag = tag.nextChild()) != null) {
             OsmpInterface i = OsmpInterface.fromName(interfaceTag.getName());
             if (i == null) {
@@ -73,8 +78,10 @@ public class OsmpResponse {
             while ((commandTag = interfaceTag.nextChild()) != null) {
                 Result command = factory.build(commandTag);
                 if (command == null) {
+                    LOG.error("Unknown command {}", commandTag.getName());
                     continue;
                 }
+                results.add(command.getName());
                 if (commands == null) {
                     commands = new ResultMap();
                     mInterfaces.put(i, commands);
@@ -82,10 +89,16 @@ public class OsmpResponse {
                 commands.put(command.getName(), command);
             }
         }
+        mCommands = results.toArray(new String[results.size()]);
     }
 
     public int getResult() {
         return mResult;
+    }
+
+    @Nullable
+    public String[] getCommands() {
+        return mCommands;
     }
 
     /* package */ boolean hasAsyncResponse() {

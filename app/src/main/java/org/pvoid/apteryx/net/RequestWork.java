@@ -109,6 +109,7 @@ import java.util.List;
         builder.addHeader(HTTP.USER_AGENT, BuildConfig.USER_AGENT);
         try {
             Response resp = client.newCall(builder.build()).execute();
+            LOG.info("<<< Account: '{}'. HTTP/{} {}", mRequest.getPerson(), resp.code(), resp.message());
             if (resp.code() != HttpStatus.SC_OK) {
                 LOG.error("Server return HTTP error: {}", resp.code());
                 mHandler.onError();
@@ -119,6 +120,7 @@ import java.util.List;
             ResponseTag tag = reader.next();
             if (tag != null) {
                 OsmpResponse response = new OsmpResponse(tag, mFactories);
+                LOG.info("<<< Account: '{}'. Commands {}", mRequest.getPerson(), response.getCommands());
                 if (!mHandler.isCanceled()) {
                     if (mResponse != null) {
                         mResponse.update(response);
