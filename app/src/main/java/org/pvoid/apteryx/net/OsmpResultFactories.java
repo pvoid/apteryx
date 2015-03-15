@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import org.pvoid.apteryx.net.results.Result;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.net.results.ResultFactory;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 import java.util.HashMap;

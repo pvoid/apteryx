@@ -28,7 +28,7 @@ import android.support.annotation.Nullable;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.terminals.*;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;

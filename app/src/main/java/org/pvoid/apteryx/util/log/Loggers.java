@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pvoid.apteryx.util;
+package org.pvoid.apteryx.util.log;
 
 import android.support.annotation.NonNull;
 import org.slf4j.Logger;
@@ -27,20 +27,11 @@ public enum Loggers {
     Accounts,
     Storage;
 
-    public static final String LOG_LEVEL_VERBOSE = "V";
-    public static final String LOG_LEVEL_DEBUG = "D";
-    public static final String LOG_LEVEL_INFO = "I";
-    public static final String LOG_LEVEL_WARN = "W";
-    public static final String LOG_LEVEL_ERROR = "E";
-    public static final String LOG_LEVEL_SUPPRESS = "S";
-
     public static Logger getLogger(Loggers type) {
         return LoggerFactory.getLogger(type.name());
     }
 
-    public static void setLogLevel(@NonNull String level) {
-        for (Loggers logger : values()) {
-            System.setProperty("log.tag." + logger.name(), level);
-        }
+    public static void setLogLevel(int level) {
+        ApteryxLoggerAdapter.setLogLevel(level);
     }
 }

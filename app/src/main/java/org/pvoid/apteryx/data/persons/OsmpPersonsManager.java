@@ -45,7 +45,7 @@ import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
 import org.pvoid.apteryx.net.results.GetAgentInfoResult;
 import org.pvoid.apteryx.net.results.GetAgentsResult;
 import org.pvoid.apteryx.net.results.GetPersonInfoResult;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

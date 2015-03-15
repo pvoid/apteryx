@@ -85,7 +85,6 @@ dependencies {
     compile 'com.squareup.dagger:dagger:1.2.2'
     compile 'com.squareup.dagger:dagger-compiler:1.2.2'
     compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'org.slf4j:slf4j-android:1.7.10'
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile 'org.easytesting:fest-reflect:1.4.1'
     androidTestCompile 'org.robolectric:robolectric:2.4'

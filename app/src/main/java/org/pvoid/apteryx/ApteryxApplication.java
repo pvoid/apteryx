@@ -27,7 +27,7 @@ import org.pvoid.apteryx.net.NetworkModule;
 import org.pvoid.apteryx.settings.SettingsModule;
 
 import dagger.ObjectGraph;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 
 public class ApteryxApplication extends Application implements GraphHolder {
 
@@ -41,7 +41,7 @@ public class ApteryxApplication extends Application implements GraphHolder {
     }
 
     protected void configureLogs() {
-        Loggers.setLogLevel(Loggers.LOG_LEVEL_INFO);
+        Loggers.setLogLevel(Log.DEBUG);
     }
 
     protected void createGraph() {

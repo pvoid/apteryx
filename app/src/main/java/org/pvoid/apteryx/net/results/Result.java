@@ -19,7 +19,7 @@ package org.pvoid.apteryx.net.results;
 
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 public abstract class Result {

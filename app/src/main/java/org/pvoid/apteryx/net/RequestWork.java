@@ -28,15 +28,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
 import org.pvoid.apteryx.net.results.ResponseTag;
 import org.pvoid.apteryx.BuildConfig;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /* package */ class RequestWork implements Runnable {
 

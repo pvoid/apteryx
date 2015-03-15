@@ -23,7 +23,7 @@ import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
 import org.pvoid.apteryx.R;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 public enum TerminalType {

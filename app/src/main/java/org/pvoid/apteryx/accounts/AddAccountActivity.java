@@ -33,7 +33,7 @@ import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
-import org.pvoid.apteryx.util.Loggers;
+import org.pvoid.apteryx.util.log.Loggers;
 import org.slf4j.Logger;
 
 import java.math.BigInteger;
