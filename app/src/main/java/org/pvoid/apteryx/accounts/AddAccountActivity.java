@@ -29,6 +29,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.data.persons.Person;
@@ -42,6 +43,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class AddAccountActivity extends Activity implements AddAccountFragment.AddAccuntListener {
 
+    public static final String EXTRA_LOGIN = "AddAccountActivity.login";
     private static final Logger LOG = Loggers.getLogger(Loggers.Accounts);
 
     private final AccountVerifiedReceiver mReceiver = new AccountVerifiedReceiver();
@@ -51,9 +53,19 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        final String login = getIntent().getStringExtra(EXTRA_LOGIN);
+        final Person person;
+        if (login != null) {
+            final PersonsManager pm = ((ApteryxApplication) getApplication()).getGraph().get(PersonsManager.class);
+            person = pm.getPerson(login);
+            setTitle(R.string.edit_account);
+        } else {
+            person = null;
+        }
+
         setContentView(R.layout.activity_add_account);
         getFragmentManager().beginTransaction()
-                            .add(R.id.fragment_holder, AddAccountFragment.newInstance(null, null))
+                            .add(R.id.fragment_holder, AddAccountFragment.newInstance(person))
                             .commitAllowingStateLoss();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,

@@ -89,7 +89,12 @@ public class AccountsAdapter extends BaseAdapter {
             convertView = mInflater.inflate(android.R.layout.simple_list_item_single_choice, parent, false);
         }
         TextView textView = (TextView) convertView.findViewById(android.R.id.text1);
-        textView.setText(mPersons[position].getName());
+        final Person person = mPersons[position];
+        if (person.getState() == Person.State.Valid) {
+            textView.setText(person.getName());
+        } else {
+            textView.setText(person.getLogin());
+        }
         return convertView;
     }
 

@@ -36,6 +36,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.pvoid.apteryx.ApteryxApplication;
@@ -51,10 +52,46 @@ import org.pvoid.apteryx.views.terminals.filters.BaseTerminalsFilter;
 
 import dagger.ObjectGraph;
 
-public class TerminalsFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @Nullable private TerminalsAdapter mAdapter;
     @NonNull private final LocalReceiver mReceiver = new LocalReceiver();
+
+    private final View.OnClickListener mNewAccountListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(getActivity(), AddAccountActivity.class));
+        }
+    };
+    private final View.OnClickListener mEditAccountListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(getActivity(), AddAccountActivity.class);
+            intent.putExtra(AddAccountActivity.EXTRA_LOGIN, (String) v.getTag());
+            startActivity(intent);
+        }
+    };
+    private final View.OnClickListener mSyncAccountListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            final Activity activity = getActivity();
+            if (activity == null) {
+                return;
+            }
+            final Application application = activity.getApplication();
+            final ObjectGraph graph = ((ApteryxApplication) application).getGraph();
+            final PersonsManager persons = graph.get(PersonsManager.class);
+            final String login = (String) v.getTag();
+            if (login == null) {
+                return;
+            }
+            final Person person = persons.getPerson(login);
+            if (person == null) {
+                return;
+            }
+            persons.verify(person);
+        }
+    };
 
     @Nullable
     @Override
@@ -69,8 +106,7 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         mAdapter = new TerminalsAdapter(inflater.getContext());
         mAdapter.setFilter(new BaseTerminalsFilter());
         recyclerView.setAdapter(mAdapter);
-        View button = root.findViewById(R.id.add_account_button);
-        button.setOnClickListener(this);
+
         TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
         hintText.setMovementMethod(LinkMovementMethod.getInstance());
         return root;
@@ -114,22 +150,52 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         }
         final TerminalsManager terminalsManager = graph.get(TerminalsManager.class);
         final PersonsManager personsManager = graph.get(PersonsManager.class);
-        final Agent agent = personsManager.getCurrentAgent();
-        SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
-        View accountError = root.findViewById(R.id.empty_account_error);
+        final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
+        final View accountError = root.findViewById(R.id.empty_account_error);
+        final Button button = (Button) root.findViewById(R.id.add_account_button);
+        final TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
+        final Person person = personsManager.getCurrentPerson();
+        if (person == null) {
+            refreshLayout.setVisibility(View.INVISIBLE);
+            accountError.setVisibility(View.VISIBLE);
+            String hint = getString(R.string.account_empty_message, BuildConfig.CREATE_ACCOUNT_INFO_URL);
+            hintText.setText(Html.fromHtml(hint));
+            button.setOnClickListener(mNewAccountListener);
+            button.setText(R.string.add_new_account);
+            return;
+        }
 
+        if (person.getState() != Person.State.Valid) {
+            refreshLayout.setVisibility(View.INVISIBLE);
+            accountError.setVisibility(View.VISIBLE);
+            switch (person.getState()) {
+                case Unchecked:
+                    hintText.setText(R.string.account_not_synchronized);
+                    button.setTag(person.getLogin());
+                    button.setText(R.string.synchronize_account);
+                    button.setOnClickListener(mSyncAccountListener);
+                    break;
+                case Invalid:
+                    hintText.setText(R.string.account_invalid);
+                    button.setTag(person.getLogin());
+                    button.setText(R.string.edit_account);
+                    button.setOnClickListener(mEditAccountListener);
+                    break;
+                case Blocked:
+                    hintText.setText(R.string.account_blocked);
+                    button.setVisibility(View.INVISIBLE);
+                    break;
+            }
+            return;
+        }
+
+        final Agent agent = personsManager.getCurrentAgent();
         if (agent != null && agent.getPersonLogin() !=  null && mAdapter != null) {
             mAdapter.setTerminals(terminalsManager.getTerminals(agent.getId()));
             RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.terminals_list);
             recyclerView.scrollToPosition(0);
             refreshLayout.setVisibility(View.VISIBLE);
             accountError.setVisibility(View.INVISIBLE);
-        } else {
-            refreshLayout.setVisibility(View.INVISIBLE);
-            accountError.setVisibility(View.VISIBLE);
-            TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
-            String hint = getString(R.string.empty_account_message, BuildConfig.CREATE_ACCOUNT_INFO_URL);
-            hintText.setText(Html.fromHtml(hint));
         }
     }
 
@@ -140,15 +206,6 @@ public class TerminalsFragment extends Fragment implements View.OnClickListener,
         }
         SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.terminals_refresh_view);
         refreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.add_account_button:
-                startActivity(new Intent(getActivity(), AddAccountActivity.class));
-                break;
-        }
     }
 
     @Override

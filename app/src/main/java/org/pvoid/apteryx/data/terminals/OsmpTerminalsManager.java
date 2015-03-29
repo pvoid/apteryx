@@ -53,9 +53,10 @@ import java.util.concurrent.locks.ReentrantLock;
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
     private final ReentrantLock mLock = new ReentrantLock();
-    // TODO: use normal tree with indexes
-    @GuardedBy("mLock") private final Map<String, Terminal> mTerminalsById = new HashMap<>();
-    @GuardedBy("mLock") private Terminal[] mTerminalsByAgent;
+    @GuardedBy("mLock")
+    private final Map<String, Terminal> mTerminalsById = new HashMap<>();
+    @GuardedBy("mLock")
+    @Nullable private Terminal[] mTerminalsByAgent;
     private final TerminalByAgentComparator mCompareByAgent = new TerminalByAgentComparator();
     private final TerminalByAgentSearchComparator mSearchByAgent = new TerminalByAgentSearchComparator();
 
@@ -165,7 +166,7 @@ import java.util.concurrent.locks.ReentrantLock;
     }
 
     @Override
-    @NonNull
+    @Nullable
     public Terminal[] getTerminals(@Nullable String agentId) {
         if (TextUtils.isEmpty(agentId)) {
             return mTerminalsByAgent;
@@ -174,7 +175,7 @@ import java.util.concurrent.locks.ReentrantLock;
         try {
             int start = ArrayUtils.binarySearchLeft(mTerminalsByAgent, agentId, mSearchByAgent);
             if (start == -1) {
-                return new Terminal[0];
+                return null;
             }
             int end = ArrayUtils.binarySearchRight(mTerminalsByAgent, agentId, mSearchByAgent);
             Terminal result[] = new Terminal[end - start + 1];

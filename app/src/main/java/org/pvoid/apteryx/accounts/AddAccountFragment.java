@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.data.persons.Person;
 
 public class AddAccountFragment extends Fragment {
     private static final String ARG_LOGIN = "login";
@@ -43,11 +44,13 @@ public class AddAccountFragment extends Fragment {
     @Nullable private AddAccuntListener mListener;
     @Nullable private AlertDialog mDialog;
 
-    public static AddAccountFragment newInstance(@Nullable String login, @Nullable String terminal) {
+    public static AddAccountFragment newInstance(@Nullable Person person) {
         AddAccountFragment fragment = new AddAccountFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_LOGIN, login);
-        args.putString(ARG_TERMINAL, terminal);
+        if (person != null) {
+            args.putString(ARG_LOGIN, person.getLogin());
+            args.putString(ARG_TERMINAL, person.getTerminal());
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -75,15 +78,14 @@ public class AddAccountFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (savedInstanceState == null) {
-            if (!TextUtils.isEmpty(mLogin)) {
-                EditText login = (EditText) view.findViewById(R.id.account_login);
-                login.setText(mLogin);
-            }
-            if (!TextUtils.isEmpty(mTerminal)) {
-                EditText login = (EditText) view.findViewById(R.id.account_terminal);
-                login.setText(mTerminal);
-            }
+        if (savedInstanceState == null && !TextUtils.isEmpty(mLogin) && !TextUtils.isEmpty(mTerminal)) {
+            EditText login = (EditText) view.findViewById(R.id.account_login);
+            login.setText(mLogin);
+            login.setEnabled(false);
+            EditText terminal = (EditText) view.findViewById(R.id.account_terminal);
+            terminal.setText(mTerminal);
+            EditText password = (EditText) view.findViewById(R.id.account_password);
+            password.requestFocus();
         }
 
         Button button = (Button) view.findViewById(R.id.account_next);

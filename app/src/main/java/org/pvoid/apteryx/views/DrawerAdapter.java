@@ -133,7 +133,13 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
                 if (mCurrentAccount == null) {
                     accountHolder.name.setText(R.string.empty_account);
                 } else {
-                    accountHolder.name.setText(mCurrentAccount.getName());
+                    final String name;
+                    if (mCurrentAccount.getState() == Person.State.Valid) {
+                        name = mCurrentAccount.getName();
+                    } else {
+                        name = mCurrentAccount.getLogin();
+                    }
+                    accountHolder.name.setText(name);
                 }
                 break;
             }
