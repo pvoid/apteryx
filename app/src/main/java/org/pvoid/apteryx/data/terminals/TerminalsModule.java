@@ -18,8 +18,10 @@
 package org.pvoid.apteryx.data.terminals;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import org.pvoid.apteryx.data.Storage;
+import org.pvoid.apteryx.net.RequestExecutor;
 
 import javax.inject.Singleton;
 
@@ -28,15 +30,10 @@ import dagger.Provides;
 
 @Module(injects = TerminalsManager.class, complete = false)
 public class TerminalsModule {
-    private final Context mContext;
-
-    public TerminalsModule(Context context) {
-        mContext = context.getApplicationContext();
-    }
-
     @Provides
     @Singleton
-    public TerminalsManager provideManager(Storage storage) {
-        return new OsmpTerminalsManager(mContext, storage);
+    public TerminalsManager provideManager(@NonNull Context context, @NonNull Storage storage,
+                                           @NonNull RequestExecutor executor) {
+        return new OsmpTerminalsManager(context, storage, executor);
     }
 }

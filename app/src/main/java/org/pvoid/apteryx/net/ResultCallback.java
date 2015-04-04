@@ -17,7 +17,35 @@
 
 package org.pvoid.apteryx.net;
 
-public interface RequestHandle {
-    boolean isPending();
-    void cancel();
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import org.pvoid.apteryx.annotations.OnMainThread;
+
+public abstract class ResultCallback implements Runnable {
+
+    @Nullable
+    protected OsmpResponse mResponse;
+
+    public void setResponse(@NonNull OsmpResponse response) {
+        mResponse = response;
+    }
+
+    @Override
+    public void run() {
+        if (mResponse != null) {
+            onSuccess(mResponse);
+        } else {
+            onError();
+        }
+    }
+
+    @OnMainThread
+    protected abstract void onSuccess(@NonNull OsmpResponse response);
+    @OnMainThread
+    protected abstract void onError();
+
+    public boolean isCanceled() {
+        return false;
+    }
 }

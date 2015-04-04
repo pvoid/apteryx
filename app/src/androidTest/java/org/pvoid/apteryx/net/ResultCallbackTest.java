@@ -26,12 +26,12 @@ import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
-public class ResultHandlerTest {
+public class ResultCallbackTest {
     @Test
     public void listenerCheck() throws Exception {
         ResultReceiver receiver = Mockito.mock(ResultReceiver.class);
         OsmpResponse response = Mockito.mock(OsmpResponse.class);
-        ResultHandler handler = new ResultHandler(receiver);
+        ResultCallback handler = new ResultCallback(receiver);
 
         handler.onError();
         Mockito.verify(receiver, Mockito.only()).onError();
@@ -54,7 +54,7 @@ public class ResultHandlerTest {
 
     @Test
     public void cancelCheck() throws Exception {
-        ResultHandler handler = new ResultHandler(null);
+        ResultCallback handler = new ResultCallback(null);
         Assert.assertFalse(handler.isCanceled());
         handler.cancel();
         Assert.assertTrue(handler.isCanceled());
@@ -62,7 +62,7 @@ public class ResultHandlerTest {
 
     @Test
     public void pendingStateCheck() throws Exception {
-        ResultHandler handler = new ResultHandler(null);
+        ResultCallback handler = new ResultCallback(null);
         Assert.assertFalse(handler.isPending());
         handler.markPending();
         Assert.assertTrue(handler.isPending());

@@ -18,24 +18,18 @@
 package org.pvoid.apteryx.data;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
 
-@Module(injects = Storage.class)
+@Module(injects = Storage.class, complete = false)
 public class DataModule {
-
-    private final Context mContext;
-
-    public DataModule(Context context) {
-        mContext = context.getApplicationContext();
-    }
-
     @Provides
     @Singleton
-    public Storage provideStorage() {
-        return new DataStorage(mContext);
+    public Storage provideStorage(@NonNull Context context) {
+        return new DataStorage(context);
     }
 }

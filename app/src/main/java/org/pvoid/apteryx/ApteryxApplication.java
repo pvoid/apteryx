@@ -19,6 +19,8 @@ package org.pvoid.apteryx;
 
 import android.app.Application;
 
+import android.content.Context;
+import android.content.ServiceConnection;
 import android.util.Log;
 import org.pvoid.apteryx.data.DataModule;
 import org.pvoid.apteryx.data.persons.PersonsModule;
@@ -26,7 +28,10 @@ import org.pvoid.apteryx.data.terminals.TerminalsModule;
 import org.pvoid.apteryx.net.NetworkModule;
 import org.pvoid.apteryx.settings.SettingsModule;
 
+import dagger.Module;
 import dagger.ObjectGraph;
+import dagger.Provides;
+
 import org.pvoid.apteryx.util.log.Loggers;
 
 public class ApteryxApplication extends Application implements GraphHolder {
@@ -45,12 +50,20 @@ public class ApteryxApplication extends Application implements GraphHolder {
     }
 
     protected void createGraph() {
-        mGraph = ObjectGraph.create(new NetworkModule(), new DataModule(this),
-                new PersonsModule(this), new TerminalsModule(this), new SettingsModule(this));
+        mGraph = ObjectGraph.create(new AppModule(), new NetworkModule(), new DataModule(),
+                new PersonsModule(), new TerminalsModule(), new SettingsModule());
     }
 
     @Override
     public ObjectGraph getGraph() {
         return mGraph;
+    }
+
+    @Module(injects = {Context.class})
+    public class AppModule {
+        @Provides
+        public Context provideAppContext() {
+            return getApplicationContext();
+        }
     }
 }

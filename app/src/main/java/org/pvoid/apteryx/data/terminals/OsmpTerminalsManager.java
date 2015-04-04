@@ -31,7 +31,8 @@ import org.pvoid.apteryx.net.NetworkService;
 import org.pvoid.apteryx.net.OsmpInterface;
 import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
-import org.pvoid.apteryx.net.ResultReceiver;
+import org.pvoid.apteryx.net.RequestExecutor;
+import org.pvoid.apteryx.net.ResultCallback;
 import org.pvoid.apteryx.net.commands.GetTerminalsCashCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsCommand;
 import org.pvoid.apteryx.net.commands.GetTerminalsStatisticalDataCommand;
@@ -52,6 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /* package */ class OsmpTerminalsManager implements TerminalsManager {
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
+    @NonNull private final RequestExecutor mExecutor;
     private final ReentrantLock mLock = new ReentrantLock();
     @GuardedBy("mLock")
     private final Map<String, Terminal> mTerminalsById = new HashMap<>();
@@ -60,9 +62,11 @@ import java.util.concurrent.locks.ReentrantLock;
     private final TerminalByAgentComparator mCompareByAgent = new TerminalByAgentComparator();
     private final TerminalByAgentSearchComparator mSearchByAgent = new TerminalByAgentSearchComparator();
 
-    public OsmpTerminalsManager(@NonNull Context context, @NonNull Storage storage) {
+    public OsmpTerminalsManager(@NonNull Context context, @NonNull Storage storage,
+                                @NonNull RequestExecutor executor) {
         mContext = context.getApplicationContext();
         mStorage = storage;
+        mExecutor = executor;
 
         Terminal[] terminals = mStorage.getTerminals();
         if (terminals != null) {
@@ -189,7 +193,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @Override
     public void sync(@NonNull Person person, boolean partial) {
         final OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
-        final ResultReceiver receiver;
+        final ResultCallback receiver;
         if (partial) {
             builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatusCommand());
             builder.getInterface(OsmpInterface.Reports).add(new GetTerminalsStatisticalDataCommand());
@@ -204,11 +208,11 @@ import java.util.concurrent.locks.ReentrantLock;
         }
         OsmpRequest request = builder.create();
         if (request != null) {
-            NetworkService.executeRequest(mContext, request, receiver);
+            mExecutor.execute(request, receiver);
         }
     }
 
-    private class TerminalsListReceiver implements ResultReceiver {
+    private class TerminalsListReceiver extends ResultCallback {
 
         private final String mPersonLogin;
 
@@ -217,7 +221,7 @@ import java.util.concurrent.locks.ReentrantLock;
         }
 
         @Override
-        public void onResponse(@NonNull OsmpResponse response) {
+        public void onSuccess(@NonNull OsmpResponse response) {
             boolean notify = false;
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Terminals);
             if (results != null) {
@@ -255,9 +259,9 @@ import java.util.concurrent.locks.ReentrantLock;
         }
     }
 
-    private class TerminalsStateReceiver implements ResultReceiver {
+    private class TerminalsStateReceiver extends ResultCallback {
         @Override
-        public void onResponse(@NonNull OsmpResponse response) {
+        public void onSuccess(@NonNull OsmpResponse response) {
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Reports);
             if (results != null) {
                 boolean notify = false;

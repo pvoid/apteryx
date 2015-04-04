@@ -31,6 +31,8 @@ import android.support.v7.widget.Toolbar;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
 import org.pvoid.apteryx.data.persons.PersonsManager;
+import org.pvoid.apteryx.net.NetworkService;
+import org.pvoid.apteryx.net.RequestExecutor;
 import org.pvoid.apteryx.views.DrawerFragment;
 
 import dagger.ObjectGraph;
@@ -46,6 +48,8 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeViews();
+        RequestExecutor executor =((ApteryxApplication) getApplication()).getGraph().get(RequestExecutor.class);
+        bindService(new Intent(this, NetworkService.class), executor, BIND_AUTO_CREATE);
     }
 
     private void initializeViews() {
@@ -78,6 +82,13 @@ public class MainActivity extends ActionBarActivity implements DrawerFragment.Dr
         super.onStop();
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.unregisterReceiver(mReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        RequestExecutor executor =((ApteryxApplication) getApplication()).getGraph().get(RequestExecutor.class);
+        unbindService(executor);
     }
 
     private void updateCurrentInfo() {

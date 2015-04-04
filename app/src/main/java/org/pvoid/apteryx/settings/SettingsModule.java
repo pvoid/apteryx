@@ -25,18 +25,11 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 
-@Module(injects = {SettingsManager.class})
+@Module(injects = {SettingsManager.class}, complete = false)
 public class SettingsModule {
-
-    @NonNull private final Context mContext;
-
-    public SettingsModule(@NonNull Context context) {
-        mContext = context;
-    }
-
     @Provides
     @Singleton
-    public SettingsManager provideSettingsManager() {
-        return new ApteryxSettingsManager(mContext);
+    public SettingsManager provideSettingsManager(@NonNull Context context) {
+        return new ApteryxSettingsManager(context);
     }
 }

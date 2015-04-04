@@ -18,98 +18,182 @@
 package org.pvoid.apteryx.net;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
 import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.annotation.Nullable;
 
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.BuildConfig;
-import org.pvoid.apteryx.GraphHolder;
+import org.pvoid.apteryx.net.results.ResponseTag;
+import org.pvoid.apteryx.util.log.Loggers;
+import org.slf4j.Logger;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import dagger.ObjectGraph;
+import java.io.IOException;
 
 // TODO: add ability to stop request
 public class NetworkService extends Service {
 
-    private final static String EXTRA_REQUEST = "request";
-    private final static String EXTRA_ID = "id";
+    public static final int MSG_SEND_REQUEST = 1;
 
-    private RequestExecutor mExecutor;
-    private static final Map<UUID, ResultReceiver> sReceivers = new HashMap<>();
+    private static final Logger LOG = Loggers.getLogger(Loggers.Network);
+    private static final XmlPullParserFactory PARSER_FACTORY;
+    private final HandlerThread mMessageThread = new HandlerThread("NetworkThread");
+    private final HandlerThread mCallbackThread = new HandlerThread("CallbackThread");
+    private Messenger mMessenger;
+
+    static {
+        XmlPullParserFactory factory = null;
+        try {
+            factory = XmlPullParserFactory.newInstance();
+        } catch (XmlPullParserException e) {
+            LOG.error("Can't create xml parser factory", e);
+        }
+        PARSER_FACTORY = factory;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        ObjectGraph graph = ((GraphHolder)getApplication()).getGraph();
-        mExecutor = graph.get(RequestExecutor.class);
+        LOG.info("Network service created");
+        ApteryxApplication application = (ApteryxApplication) getApplication();
+        ResultFactories factories = application.getGraph().get(ResultFactories.class);
+        mMessageThread.start();
+        mCallbackThread.start();
+        final CallbackHandler callbackHandler = new CallbackHandler(mCallbackThread.getLooper());
+        final Handler msgHandler = new NetworkHandler(factories, mMessageThread.getLooper(), callbackHandler);
+        mMessenger = new Messenger(msgHandler);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMessageThread.quit();
+        mCallbackThread.quit();
+        LOG.info("Network service destroyed");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        final OsmpRequest request = intent.getParcelableExtra(EXTRA_REQUEST);
-        final UUID id = UUID.fromString(intent.getStringExtra(EXTRA_ID));
-        mExecutor.execute(request, new ResultReceiverWrap(id, startId));
-        return START_NOT_STICKY;
+        return 0;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mMessenger.getBinder();
     }
 
-    public static void executeRequest(@NonNull Context context, @NonNull OsmpRequest request,
-                                      @NonNull ResultReceiver receiver) {
-        UUID id;
-        synchronized (sReceivers) {
-            if (BuildConfig.DEBUG && sReceivers.containsValue(receiver)) {
-                throw new IllegalArgumentException("Receiver already registered");
-            }
-            id = UUID.randomUUID();
-            sReceivers.put(id, receiver);
-        }
+    private static class NetworkHandler extends Handler {
+        @NonNull
+        private final ResultFactories mFactories;
+        @NonNull
+        private final Handler mResultHandler;
 
-        final Intent intent = new Intent(context, NetworkService.class);
-        intent.putExtra(EXTRA_REQUEST, request);
-        intent.putExtra(EXTRA_ID, id.toString());
-        context.startService(intent);
-    }
-
-    private class ResultReceiverWrap implements ResultReceiver {
-
-        private final int mStartId;
-        private final UUID mId;
-
-        private ResultReceiverWrap(@NonNull UUID id, int startId) {
-            mId = id;
-            mStartId = startId;
+        public NetworkHandler(@NonNull final ResultFactories factories,
+                              @NonNull final Looper looper,
+                              @NonNull final Handler callbackHandler) {
+            super(looper);
+            mFactories = factories;
+            mResultHandler = callbackHandler;
         }
 
         @Override
-        public void onResponse(@NonNull OsmpResponse response) {
-            ResultReceiver receiver;
-            synchronized (sReceivers) {
-                receiver = sReceivers.remove(mId);
+        public void dispatchMessage(@NonNull Message msg) {
+            switch (msg.what) {
+                case MSG_SEND_REQUEST:
+                    sendRequest((OsmpRequest) msg.obj, (ResultCallback) msg.getCallback());
+                    return;
             }
-            stopSelf(mStartId);
-            if (receiver != null) {
-                receiver.onResponse(response);
+            super.dispatchMessage(msg);
+        }
+
+        private void sendRequest(@NonNull OsmpRequest request, @Nullable ResultCallback callback) {
+            XmlPullParser parser = null;
+
+            if (PARSER_FACTORY != null) {
+                try {
+                    parser = PARSER_FACTORY.newPullParser();
+                } catch (XmlPullParserException e) {
+                    LOG.error("Can't create xml parser", e);
+                }
             }
+
+            if (callback != null && callback.isCanceled()) {
+                return;
+            }
+
+            if (parser == null) {
+                if (callback != null) {
+                    mResultHandler.post(callback);
+                }
+                return;
+            }
+
+            LOG.info(">>> Account: '{}'. Commands: {}", request.getPerson(), request.getCommands());
+
+            OkHttpClient client = new OkHttpClient();
+            Request.Builder builder = new Request.Builder();
+            builder.url(request.getUri().toString()).post(request.createBody());
+            builder.addHeader("User-Agent", BuildConfig.USER_AGENT);
+            try {
+                Response resp = client.newCall(builder.build()).execute();
+                LOG.info("<<< Account: '{}'. HTTP/{} {}", request.getPerson(), resp.code(), resp.message());
+                if (!resp.isSuccessful()) {
+                    LOG.error("Server return HTTP error: {}", resp.code());
+                    if (callback != null) {
+                        mResultHandler.post(callback);
+                    }
+                    return;
+                }
+                parser.setInput(resp.body().byteStream(), "windows-1251");
+                OsmpResponseReader reader = new OsmpResponseReader(parser);
+                ResponseTag tag = reader.next();
+                if (tag != null) {
+                    OsmpResponse response = new OsmpResponse(tag, mFactories);
+                    LOG.info("<<< Account: '{}'. Commands {}", request.getPerson(), response.getCommands());
+                    if (callback != null && !callback.isCanceled()) {
+                        if (!response.hasAsyncResponse()) {
+                            callback.setResponse(response);
+                            mResultHandler.post(callback);
+                        } else {
+                            // TODO (pvoid@): implement async requests
+                        }
+                    }
+                    return;
+                }
+            } catch (XmlPullParserException | ResponseTag.TagReadException e) {
+                LOG.error("Error while reading response XML", e);
+            } catch (IOException e) {
+                LOG.error("Error while reading response", e);
+            }
+            if (callback != null) {
+                mResultHandler.post(callback);
+            }
+        }
+    }
+
+    private static class CallbackHandler extends Handler {
+        public CallbackHandler(Looper looper) {
+            super(looper);
         }
 
         @Override
-        public void onError() {
-            ResultReceiver receiver;
-            synchronized (sReceivers) {
-                receiver = sReceivers.get(mId);
-            }
-            stopSelf(mStartId);
-            if (receiver != null) {
-                receiver.onError();
+        public void handleMessage(Message msg) {
+            final ResultCallback callback = (ResultCallback) msg.getCallback();
+            if (callback != null && !callback.isCanceled()) {
+                callback.run();
             }
         }
     }

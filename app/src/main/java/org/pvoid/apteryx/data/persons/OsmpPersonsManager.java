@@ -34,11 +34,11 @@ import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.terminals.Terminal;
 import org.pvoid.apteryx.data.terminals.TerminalState;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
-import org.pvoid.apteryx.net.NetworkService;
 import org.pvoid.apteryx.net.OsmpInterface;
 import org.pvoid.apteryx.net.OsmpRequest;
 import org.pvoid.apteryx.net.OsmpResponse;
-import org.pvoid.apteryx.net.ResultReceiver;
+import org.pvoid.apteryx.net.RequestExecutor;
+import org.pvoid.apteryx.net.ResultCallback;
 import org.pvoid.apteryx.net.commands.GetAgentInfoCommand;
 import org.pvoid.apteryx.net.commands.GetAgentsCommand;
 import org.pvoid.apteryx.net.commands.GetPersonInfoCommand;
@@ -64,6 +64,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @NonNull private final Context mContext;
     @NonNull private final Storage mStorage;
     @NonNull private final TerminalsManager mTerminalsManager;
+    @NonNull private final RequestExecutor mExecutor;
     @NonNull private final Lock mLock = new ReentrantLock();
     @GuardedBy("mLock") @NonNull private final NavigableMap<String, Person> mPersons = new TreeMap<>();
     @GuardedBy("mLock") @Nullable private Person[] mPersonsList = null;
@@ -72,10 +73,13 @@ import java.util.concurrent.locks.ReentrantLock;
     @GuardedBy("mLock") @NonNull private Map<String, ArrayList<Agent>> mAgents = new HashMap<>();
 
     /* package */ OsmpPersonsManager(@NonNull Context context, @NonNull Storage storage,
-                                     @NonNull TerminalsManager terminalsManager) {
+                                     @NonNull TerminalsManager terminalsManager,
+                                     @NonNull RequestExecutor executor) {
         mStorage = storage;
         mContext = context.getApplicationContext();
         mTerminalsManager = terminalsManager;
+        mExecutor = executor;
+
         Person[] persons = storage.getPersons();
         if (persons != null && persons.length > 0) {
             mPersonsList = new Person[persons.length];
@@ -132,8 +136,7 @@ import java.util.concurrent.locks.ReentrantLock;
         OsmpRequest request = builder.create();
 
         if (request != null) {
-            NetworkService.executeRequest(mContext, request,
-                    new VerificationResultReceiver(person.getLogin()));
+            mExecutor.execute(request, new VerificationResultReceiver(person.getLogin()));
             LOG.info("Verification requested for '{}'", person.getLogin());
         }
     }
@@ -317,7 +320,7 @@ import java.util.concurrent.locks.ReentrantLock;
         return person;
     }
 
-    private class VerificationResultReceiver implements ResultReceiver {
+    private class VerificationResultReceiver extends ResultCallback {
 
         @NonNull
         private final String mLogin;
@@ -327,7 +330,7 @@ import java.util.concurrent.locks.ReentrantLock;
         }
 
         @Override
-        public void onResponse(@NonNull OsmpResponse response) {
+        public void onSuccess(@NonNull OsmpResponse response) {
 
             OsmpResponse.Results results = response.getInterface(OsmpInterface.Persons);
             if (response.getResult() != OsmpResponse.RESULT_OK || results == null) {

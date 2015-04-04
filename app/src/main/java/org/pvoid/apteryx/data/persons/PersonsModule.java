@@ -22,6 +22,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
+import org.pvoid.apteryx.net.RequestExecutor;
 
 import javax.inject.Singleton;
 
@@ -30,16 +31,11 @@ import dagger.Provides;
 
 @Module(injects = {PersonsManager.class}, complete = false)
 public class PersonsModule {
-
-    private final Context mContext;
-
-    public PersonsModule(Context context) {
-        mContext = context.getApplicationContext();
-    }
-
     @Provides
     @Singleton
-    public PersonsManager provideManager(@NonNull Storage storage, @NonNull TerminalsManager terminalsManager) {
-        return new OsmpPersonsManager(mContext, storage, terminalsManager);
+    public PersonsManager provideManager(@NonNull Context context, @NonNull Storage storage,
+                                         @NonNull TerminalsManager terminalsManager,
+                                         @NonNull RequestExecutor executor) {
+        return new OsmpPersonsManager(context, storage, terminalsManager, executor);
     }
 }

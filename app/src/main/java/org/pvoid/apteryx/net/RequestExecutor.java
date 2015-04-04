@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014  Dmitry "PVOID" Petuhov
+ * Copyright (C) 2010-2015  Dmitry "PVOID" Petuhov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 
 package org.pvoid.apteryx.net;
 
+import android.content.ServiceConnection;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public interface RequestExecutor {
-    @Nullable
-    RequestHandle execute(@NonNull OsmpRequest osmpRequest, @NonNull ResultReceiver receiver);
+public interface RequestExecutor extends ServiceConnection {
+    void execute(@NonNull OsmpRequest request, @Nullable ResultCallback callback);
 }

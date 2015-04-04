@@ -20,12 +20,15 @@ package org.pvoid.apteryx.net;
 import org.pvoid.apteryx.net.commands.*;
 import org.pvoid.apteryx.net.results.*;
 
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.Provides;
 
-@Module(injects = {RequestExecutor.class, ResultFactories.class})
+@Module(injects = {ResultFactories.class, RequestExecutor.class})
 public class NetworkModule {
     @Provides
+    @Singleton
     public ResultFactories provideFactories() {
         OsmpResultFactories factories = new OsmpResultFactories();
         // add all requests here
@@ -41,7 +44,8 @@ public class NetworkModule {
     }
 
     @Provides
-    public RequestExecutor provideExecutor(ResultFactories factories) {
-        return new OsmpRequestExecutor(factories);
+    @Singleton
+    public RequestExecutor provideExecutor() {
+        return new RequestExecutorImpl();
     }
 }
