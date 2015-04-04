@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.pvoid.apteryx.data.Storage;
+import org.pvoid.apteryx.net.RequestExecutor;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -36,7 +37,8 @@ public class OsmpTerminalsManagerTest {
     @Test
     public void terminalsListCheck() throws Exception {
         MockStorageBuilder builder = new MockStorageBuilder();
-        OsmpTerminalsManager manager = new OsmpTerminalsManager(Robolectric.application, builder.create());
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
+        OsmpTerminalsManager manager = new OsmpTerminalsManager(Robolectric.application, builder.create(), executor);
         Assert.assertNull(manager.getTerminals(null));
 
         builder.addTerminal("ID0", "AGENT0");
@@ -44,7 +46,7 @@ public class OsmpTerminalsManagerTest {
         builder.addTerminal("ID2", "AGENT0");
         builder.addTerminal("ID3", "AGENT1");
         builder.addTerminal("ID4", "AGENT1");
-        manager = new OsmpTerminalsManager(Robolectric.application, builder.create());
+        manager = new OsmpTerminalsManager(Robolectric.application, builder.create(), executor);
         Terminal terminals[] = manager.getTerminals(null);
         Assert.assertNotNull(terminals.length);
         Assert.assertEquals(5, terminals.length);
@@ -74,7 +76,7 @@ public class OsmpTerminalsManagerTest {
         builder.addCash("ID1");
         builder.addCash("ID2");
         builder.addCash("ID10");
-        manager = new OsmpTerminalsManager(Robolectric.application, builder.create());
+        manager = new OsmpTerminalsManager(Robolectric.application, builder.create(), executor);
         terminals = manager.getTerminals("AGENT0");
         Assert.assertNotNull(terminals[0].getState());
         Assert.assertNotNull(terminals[0].getStats());

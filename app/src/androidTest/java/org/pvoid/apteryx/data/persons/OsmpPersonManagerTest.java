@@ -27,11 +27,15 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.pvoid.apteryx.data.Storage;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.net.NetworkService;
+import org.pvoid.apteryx.net.OsmpRequest;
+import org.pvoid.apteryx.net.RequestExecutor;
+import org.pvoid.apteryx.net.ResultCallback;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -44,10 +48,11 @@ public class OsmpPersonManagerTest {
         Storage storage = Mockito.mock(Storage.class);
         BroadcastReceiver receiver = Mockito.mock(BroadcastReceiver.class);
         TerminalsManager tm = Mockito.mock(TerminalsManager.class);
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
         LocalBroadcastManager.getInstance(Robolectric.application)
                 .registerReceiver(receiver, new IntentFilter(PersonsManager.ACTION_PERSONS_CHANGED));
         Mockito.reset(receiver);
-        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Person[] persons = manager.getPersons();
         Assert.assertNotNull(persons);
         Assert.assertNull(manager.getAgents("ANY"));
@@ -60,7 +65,7 @@ public class OsmpPersonManagerTest {
         Mockito.reset(storage, receiver);
         Mockito.when(storage.getPersons()).thenReturn(sourcePersons);
         Mockito.when(storage.getAgents()).thenReturn(sourceAgents);
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         persons = manager.getPersons();
         Assert.assertNotNull(persons);
         Assert.assertEquals(0, persons.length);
@@ -87,7 +92,7 @@ public class OsmpPersonManagerTest {
 
         Mockito.when(storage.getPersons()).thenReturn(sourcePersons);
         Mockito.when(storage.getAgents()).thenReturn(sourceAgents);
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         persons = manager.getPersons();
         Assert.assertNotNull(persons);
         Assert.assertNotSame(sourcePersons, persons);
@@ -115,7 +120,8 @@ public class OsmpPersonManagerTest {
     public void personAddCheck() throws Exception {
         Storage storage = Mockito.mock(Storage.class);
         TerminalsManager tm = Mockito.mock(TerminalsManager.class);
-        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         BroadcastReceiver receiver = Mockito.mock(BroadcastReceiver.class);
         LocalBroadcastManager.getInstance(Robolectric.application)
                 .registerReceiver(receiver, new IntentFilter(PersonsManager.ACTION_PERSONS_CHANGED));
@@ -148,17 +154,22 @@ public class OsmpPersonManagerTest {
     public void personVerifyCheck() throws Exception {
         Storage storage = Mockito.mock(Storage.class);
         TerminalsManager tm = Mockito.mock(TerminalsManager.class);
-        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Person person = Mockito.mock(Person.class);
         Mockito.when(person.getLogin()).thenReturn("LOGIN");
         Mockito.when(person.getPasswordHash()).thenReturn("PASSWORD");
         Mockito.when(person.getTerminal()).thenReturn("TERMINAL");
         manager.verify(person);
 
-        Intent intent = Robolectric.getShadowApplication().getNextStartedService();
-        Assert.assertNotNull(intent);
-        Assert.assertEquals(new ComponentName(Robolectric.application, NetworkService.class),
-                intent.getComponent());
+        ArgumentCaptor<OsmpRequest> req = ArgumentCaptor.forClass(OsmpRequest.class);
+        ArgumentCaptor<ResultCallback> cb = ArgumentCaptor.forClass(ResultCallback.class);
+        Mockito.verify(executor, Mockito.only()).execute(req.capture(), cb.capture());
+
+        OsmpRequest request = req.getValue();
+        Assert.assertSame(person, request.getPerson());
+
+
     }
 
     @Test
@@ -166,9 +177,11 @@ public class OsmpPersonManagerTest {
         Storage storage = Mockito.mock(Storage.class);
         BroadcastReceiver receiver = Mockito.mock(BroadcastReceiver.class);
         TerminalsManager tm = Mockito.mock(TerminalsManager.class);
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
+
         LocalBroadcastManager.getInstance(Robolectric.application)
                 .registerReceiver(receiver, new IntentFilter(PersonsManager.ACTION_CURRENT_PERSON_CHANGED));
-        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Assert.assertNull(manager.getCurrentPerson());
 
         Person[] persons = new Person[] {
@@ -179,7 +192,7 @@ public class OsmpPersonManagerTest {
         Mockito.when(persons[2].getLogin()).thenReturn("LOGIN2");
         Mockito.when(storage.getPersons()).thenReturn(persons);
 
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
 
         Person person = manager.getCurrentPerson();
         Assert.assertNotNull(person);
@@ -207,9 +220,10 @@ public class OsmpPersonManagerTest {
         Storage storage = Mockito.mock(Storage.class);
         BroadcastReceiver receiver = Mockito.mock(BroadcastReceiver.class);
         TerminalsManager tm = Mockito.mock(TerminalsManager.class);
+        RequestExecutor executor = Mockito.mock(RequestExecutor.class);
         LocalBroadcastManager.getInstance(Robolectric.application)
                 .registerReceiver(receiver, new IntentFilter(PersonsManager.ACTION_CURRENT_AGENT_CHANGED));
-        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        OsmpPersonsManager manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Assert.assertNull(manager.getCurrentAgent());
 
         Person[] persons = new Person[] {
@@ -233,11 +247,11 @@ public class OsmpPersonManagerTest {
         Mockito.when(agents[2].getId()).thenReturn("AGENT8");
         Mockito.when(agents[2].getPersonLogin()).thenReturn("LOGIN0");
 
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Assert.assertNull(manager.getCurrentAgent());
 
         Mockito.when(storage.getAgents()).thenReturn(agents);
-        manager = new OsmpPersonsManager(Robolectric.application, storage, tm);
+        manager = new OsmpPersonsManager(Robolectric.application, storage, tm, executor);
         Agent agent = manager.getCurrentAgent();
         Assert.assertSame(agents[1], agent);
         Assert.assertSame(agent, manager.getCurrentAgent());

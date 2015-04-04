@@ -30,11 +30,11 @@ import org.pvoid.apteryx.net.results.Result;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-//@RunWith(RobolectricTestRunner.class)
-//@Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class)
+@Config(emulateSdk = 18)
 public class RequestWorkTest {
-//    @Test
-//    public void requestHttpErrorCheck() throws Exception {
+    @Test
+    public void requestHttpErrorCheck() throws Exception {
 //        MockWebServer server = new MockWebServer();
 //        server.enqueue(new MockResponse().setResponseCode(404));
 //        server.play();
@@ -48,7 +48,7 @@ public class RequestWorkTest {
 //        requestWork.run();
 //        server.shutdown();
 //        Mockito.verify(handler, Mockito.times(1)).onError();
-//    }
+    }
 //
 //    @Test
 //    public void cancelRequestCheck() throws Exception {
