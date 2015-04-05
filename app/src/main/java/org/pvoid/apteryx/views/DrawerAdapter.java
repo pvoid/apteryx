@@ -72,9 +72,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<DrawerAdapter.DrawerView
     }
 
     public void setCurrentAccount(@Nullable Person currentAccount, @Nullable Agent[] agents) {
-        if (mCurrentAccount != null && mCurrentAccount.equals(currentAccount)) {
-            return;
-        }
+//        if (mCurrentAccount != null && mCurrentAccount.equals(currentAccount)) {
+//            return;
+//        }
         mCurrentAccount = currentAccount;
         if (agents != null) {
             mAgents = new Agent[agents.length];

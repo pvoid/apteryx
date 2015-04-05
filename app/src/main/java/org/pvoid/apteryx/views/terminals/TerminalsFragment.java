@@ -27,11 +27,14 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,15 +63,13 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
     private final View.OnClickListener mNewAccountListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            startActivity(new Intent(getActivity(), AddAccountActivity.class));
+            startAddAccountActivity(v, null);
         }
     };
     private final View.OnClickListener mEditAccountListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(getActivity(), AddAccountActivity.class);
-            intent.putExtra(AddAccountActivity.EXTRA_LOGIN, (String) v.getTag());
-            startActivity(intent);
+            startAddAccountActivity(v, (String) v.getTag());
         }
     };
     private final View.OnClickListener mSyncAccountListener = new View.OnClickListener() {
@@ -130,6 +131,7 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
         final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getActivity());
         final IntentFilter filter = new IntentFilter();
         filter.addAction(PersonsManager.ACTION_CURRENT_AGENT_CHANGED);
+        filter.addAction(PersonsManager.ACTION_PERSON_VERIFIED);
         filter.addAction(TerminalsManager.ACTION_CHANGED);
         lbm.registerReceiver(mReceiver, filter);
     }
@@ -225,6 +227,16 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
         }
     }
 
+    void startAddAccountActivity(@NonNull View anchor, @Nullable String login) {
+        Intent intent = new Intent(getActivity(), AddAccountActivity.class);
+        if (!TextUtils.isEmpty(login)) {
+            intent.putExtra(AddAccountActivity.EXTRA_LOGIN, login);
+        }
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(anchor, 0,
+                0, anchor.getWidth(), anchor.getHeight());
+        ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+    }
+
     private class LocalReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -235,6 +247,7 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
                 case TerminalsManager.ACTION_CHANGED:
                     stopRefreshAnimation();
                     // fall throe
+                case PersonsManager.ACTION_PERSON_VERIFIED:
                 case PersonsManager.ACTION_CURRENT_AGENT_CHANGED:
                     refillAdapter();
                     break;

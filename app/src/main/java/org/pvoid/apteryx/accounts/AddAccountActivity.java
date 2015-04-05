@@ -101,7 +101,7 @@ public class AddAccountActivity extends Activity implements AddAccountFragment.A
             LOG.error("Can't create password hash", e);
             return;
         }
-        mHandler.postDelayed(new AccountVerifyRunnable(login, password, terminal), duration);
+        mHandler.postDelayed(new AccountVerifyRunnable(login, password, terminal), duration * 2);
     }
 
     private class ShowProgressRunnable implements Runnable {

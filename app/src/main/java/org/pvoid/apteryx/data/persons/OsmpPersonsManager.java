@@ -131,7 +131,7 @@ import java.util.concurrent.locks.ReentrantLock;
     public void verify(@NonNull Person person) {
         OsmpRequest.Builder builder = new OsmpRequest.Builder(person);
         builder.getInterface(OsmpInterface.Persons).add(new GetPersonInfoCommand());
-        builder.getInterface(OsmpInterface.Agents).add(new GetAgentInfoCommand());
+//        builder.getInterface(OsmpInterface.Agents).add(new GetAgentInfoCommand());
         builder.getInterface(OsmpInterface.Agents).add(new GetAgentsCommand());
         OsmpRequest request = builder.create();
 
@@ -300,6 +300,7 @@ import java.util.concurrent.locks.ReentrantLock;
     private Person updatePersonState(@NonNull String login, @NonNull Person.State state,
                                    @Nullable String agentId, @Nullable String name) {
         Person person = null;
+        boolean notifyPersonChanged = false;
         mLock.lock();
         try {
             person = mPersons.get(login);
@@ -311,12 +312,21 @@ import java.util.concurrent.locks.ReentrantLock;
             person = person.cloneWithState(agentId, name, state);
             mPersons.put(person.getLogin(), person);
             mPersonsList = null;
-            LOG.info("Person '{}' state changed: {} -> {}", login, oldState.name(), state.name());
+            if (person.equals(mCurrentPerson)) {
+                mCurrentPerson = person;
+                notifyPersonChanged = true;
+                LOG.info("Current person '{}' state changed: {} -> {}", login, oldState.name(), state.name());
+            } else {
+                LOG.info("Person '{}' state changed: {} -> {}", login, oldState.name(), state.name());
+            }
         } finally {
             mLock.unlock();
         }
         mStorage.storePerson(person);
         notifyVerifyResult(state == Person.State.Valid, person);
+        if (notifyPersonChanged) {
+            notifyPersonsChanged();
+        }
         return person;
     }
 
@@ -361,14 +371,14 @@ import java.util.concurrent.locks.ReentrantLock;
             }
 
             ArrayList<Agent> agentsList = new ArrayList<>();
-            GetAgentInfoResult agentInfoResult = results.get(GetAgentInfoCommand.NAME);
-            if (agentInfoResult != null && agentInfoResult.getAgentId() != null
-                    && agentInfoResult.getAgentName() != null) {
-                agentsList.add(new Agent(agentInfoResult.getAgentId(), null,
-                        agentInfoResult.getAgentINN(), agentInfoResult.getAgentAddress(),
-                        agentInfoResult.getAgentAddress(), agentInfoResult.getAgentName(),
-                        null, null, null, null).cloneForPerson(person));
-            }
+//            GetAgentInfoResult agentInfoResult = results.get(GetAgentInfoCommand.NAME);
+//            if (agentInfoResult != null && agentInfoResult.getAgentId() != null
+//                    && agentInfoResult.getAgentName() != null) {
+//                agentsList.add(new Agent(agentInfoResult.getAgentId(), null,
+//                        agentInfoResult.getAgentINN(), agentInfoResult.getAgentAddress(),
+//                        agentInfoResult.getAgentAddress(), agentInfoResult.getAgentName(),
+//                        null, null, null, null).cloneForPerson(person));
+//            }
 
             GetAgentsResult agentsResult = results.get(GetAgentsCommand.NAME);
             if (agentsResult != null && agentsResult.getAgents() != null) {
@@ -390,7 +400,6 @@ import java.util.concurrent.locks.ReentrantLock;
             }
 
             LOG.info("{} agents had been added to person {}", agentsList.size(), mLogin);
-
             mTerminalsManager.sync(person, false);
         }
 
