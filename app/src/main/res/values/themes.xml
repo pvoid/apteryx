@@ -19,6 +19,13 @@
     <style name="Theme.Apteryx" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/actionbar_primary</item>
         <item name="colorPrimaryDark">@color/actionbar_primary_dark</item>
+        <item name="expandViewStyle">@style/Widget.ExpandView</item>
+    </style>
+
+    <style name="Theme.Apteryx.ActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/actionbar_primary</item>
+        <item name="colorPrimaryDark">@color/actionbar_primary_dark</item>
+        <item name="expandViewStyle">@style/Widget.ExpandView</item>
     </style>
 
     <style name="ThemeOverlay.Apteryx" parent="ThemeOverlay.AppCompat"/>

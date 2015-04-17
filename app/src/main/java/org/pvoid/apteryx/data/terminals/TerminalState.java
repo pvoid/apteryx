@@ -17,9 +17,13 @@
 
 package org.pvoid.apteryx.data.terminals;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.text.TextUtils;
+
+import org.pvoid.apteryx.R;
 
 public class TerminalState {
 
@@ -168,13 +172,89 @@ public class TerminalState {
     }
 
     @Nullable
-    public String getMessage() {
+    public CharSequence getMessage(@NonNull Context context) {
         if (mHasNoteError) {
             return mNoteError;
         }
         if (mHasPrinterError) {
             return mPrinterError;
         }
+        // Error first
+        if ((mMachineStatus & FLAG_STATE_STOPED_BY_SERVER) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_STOPED_BY_SERVER));
+        }
+        if ((mMachineStatus & FLAG_STATE_HARDWARE_ABSENT) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_HARDWARE_ABSENT));
+        }
+        if ((mMachineStatus & FLAG_STATE_HARDWARE_ERROR) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_HARDWARE_ERROR));
+        }
+        if ((mMachineStatus & FLAG_STATE_UI_CONFIG_ERROR) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_UI_CONFIG_ERROR));
+        }
+        // Then warnings
+        if ((mMachineStatus & FLAG_STATE_DANGEROUS_SOFTWARE) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_DANGEROUS_SOFTWARE));
+        }
+        if ((mMachineStatus & FLAG_STATE_HDD_WARNINGS) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_HDD_WARNINGS));
+        }
+        if ((mMachineStatus & FLAG_STATE_NOTE_ABSENT) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_NOTE_ABSENT));
+        }
+        if ((mMachineStatus & FLAG_STATE_PAPER_WARNING) != 0) {
+            return context.getString(getMessageForFlag(FLAG_STATE_PAPER_WARNING));
+        }
         return null;
+    }
+
+    @StringRes
+    public static int getMessageForFlag(int flag) {
+        switch (flag) {
+            case TerminalState.FLAG_STATE_HARDWARE_ERROR:
+                return R.string.state_hardware_error;
+            case TerminalState.FLAG_STATE_HARDWARE_ABSENT:
+                return R.string.state_hardware_absent;
+            case TerminalState.FLAG_STATE_STOPED_BY_SERVER:
+                return R.string.state_stopped_by_server;
+            case TerminalState.FLAG_STATE_UI_CONFIG_ERROR:
+                return R.string.state_ui_config_error;
+            case TerminalState.FLAG_STATE_INFO_ERRORS:
+                return R.string.state_info_errors;
+            case TerminalState.FLAG_STATE_NOTE_ABSENT:
+                return R.string.state_note_absent;
+            case TerminalState.FLAG_STATE_DANGEROUS_SOFTWARE:
+                return R.string.state_dangerous_software;
+            case TerminalState.FLAG_STATE_ASO_APP_MODIFIED:
+                return R.string.state_aso_app_modified;
+            case TerminalState.FLAG_STATE_PAPER_WARNING:
+                return R.string.state_paper_warning;
+            case TerminalState.FLAG_STATE_HDD_WARNINGS:
+                return R.string.state_hdd_warnings;
+            case TerminalState.FLAG_STATE_DOWNLOADING_UPDATES:
+                return R.string.state_downloading_updates;
+            case TerminalState.FLAG_STATE_PROXY:
+                return R.string.state_proxy;
+            case TerminalState.FLAG_STATE_ASO_MONITOR_DISABLED:
+                return R.string.state_aso_monitor_disabled;
+            case TerminalState.FLAG_STATE_UPDATING_FILES:
+                return R.string.state_updating_files;
+            case TerminalState.FLAG_STATE_UPDATING_ADVERTS:
+                return R.string.state_updating_adverts;
+            case TerminalState.FLAG_STATE_UPDATING_PROVIDERS:
+                return R.string.state_updating_providers;
+            case TerminalState.FLAG_STATE_UPDATING_NUMBERS:
+                return R.string.state_updating_numbers;
+            case TerminalState.FLAG_STATE_UPDATING_CONFIGS:
+                return R.string.state_updating_configs;
+            case TerminalState.FLAG_STATE_LOCAL_NETWORK:
+                return R.string.state_local_network;
+            case TerminalState.FLAG_STATE_DUAL_DISPLAY:
+                return R.string.state_dual_display;
+            case TerminalState.FLAG_STATE_GUARD_TIMER:
+                return R.string.state_guard_timer;
+            default:
+                return R.string.state_unknown;
+        }
     }
 }

@@ -24,9 +24,11 @@
     style="@style/TerminalCard">
 
     <LinearLayout
+        android:id="@+id/terminal_card_root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="?attr/selectableItemBackground">
 
         <RelativeLayout
             android:layout_width="match_parent"

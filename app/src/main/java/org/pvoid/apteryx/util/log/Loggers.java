@@ -25,7 +25,8 @@ public enum Loggers {
     Network,
     Terminals,
     Accounts,
-    Storage;
+    Storage,
+    UI;
 
     public static Logger getLogger(Loggers type) {
         return LoggerFactory.getLogger(type.name());

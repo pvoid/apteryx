@@ -46,6 +46,7 @@ import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.BuildConfig;
 import org.pvoid.apteryx.GraphHolder;
 import org.pvoid.apteryx.R;
+import org.pvoid.apteryx.TerminalInfoActivity;
 import org.pvoid.apteryx.accounts.AddAccountActivity;
 import org.pvoid.apteryx.data.agents.Agent;
 import org.pvoid.apteryx.data.persons.Person;
@@ -55,7 +56,7 @@ import org.pvoid.apteryx.views.terminals.filters.BaseTerminalsFilter;
 
 import dagger.ObjectGraph;
 
-public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, TerminalsAdapter.OnTerminalClickedListener {
 
     @Nullable private TerminalsAdapter mAdapter;
     @NonNull private final LocalReceiver mReceiver = new LocalReceiver();
@@ -106,6 +107,7 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
         mAdapter = new TerminalsAdapter(inflater.getContext());
         mAdapter.setFilter(new BaseTerminalsFilter());
+        mAdapter.setOnTerminalClickListener(this);
         recyclerView.setAdapter(mAdapter);
 
         TextView hintText = (TextView) root.findViewById(R.id.add_account_hint);
@@ -235,6 +237,15 @@ public class TerminalsFragment extends Fragment implements SwipeRefreshLayout.On
         ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(anchor, 0,
                 0, anchor.getWidth(), anchor.getHeight());
         ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+    }
+
+    @Override
+    public void onTerminalClicked(@NonNull View view, @NonNull String terminalId) {
+        ActivityOptionsCompat opts = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(),
+                view, TerminalInfoActivity.TRANSITION_NAME);
+        Intent intent = new Intent(getActivity(), TerminalInfoActivity.class);
+        intent.putExtra(TerminalInfoActivity.EXTRA_TERMINAL_ID, terminalId);
+        ActivityCompat.startActivity(getActivity(), intent, opts.toBundle());
     }
 
     private class LocalReceiver extends BroadcastReceiver {

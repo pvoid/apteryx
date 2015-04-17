@@ -42,6 +42,12 @@
     <string name="account_invalid">Сервер сказал нам что учетные данные не верны. Перепроверьте указанные данные.</string>
     <string name="account_blocked">Сервер сказал нам что аккаунт заблокирован.</string>
     <string name="agents">Агенты</string>
+    <string name="terminal_info_money">Деньги</string>
+    <string name="terminal_info_money_ammount">Сумма</string>
+    <string name="terminal_info_last_payment">Время последнего платежа</string>
+    <string name="terminal_info_last_activity">Время последней актвности</string>
+    <string name="see_more">Посмотреть все</string>
+    <string name="see_less">Свернуть</string>
 
     <!--
     string name="last_update">Последнее обновление</string>
@@ -141,5 +147,6 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_terminal_info">TerminalInfoActivity</string>
 
 </resources>

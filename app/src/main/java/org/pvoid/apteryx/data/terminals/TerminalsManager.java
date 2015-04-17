@@ -27,4 +27,5 @@ public interface TerminalsManager {
 
     void sync(@NonNull Person person, boolean partial);
     @Nullable Terminal[] getTerminals(@Nullable String agentId);
+    @Nullable Terminal getTerminal(@NonNull String id);
 }

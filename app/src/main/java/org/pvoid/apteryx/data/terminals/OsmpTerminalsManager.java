@@ -212,6 +212,17 @@ import java.util.concurrent.locks.ReentrantLock;
         }
     }
 
+    @Nullable
+    @Override
+    public Terminal getTerminal(@NonNull String id) {
+        mLock.lock();
+        try {
+            return mTerminalsById.get(id);
+        } finally {
+            mLock.unlock();
+        }
+    }
+
     private class TerminalsListReceiver extends ResultCallback {
 
         private final String mPersonLogin;

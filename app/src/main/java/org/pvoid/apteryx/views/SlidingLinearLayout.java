@@ -36,11 +36,13 @@ public class SlidingLinearLayout extends LinearLayout {
         super(context, attrs, defStyleAttr);
     }
 
+    @SuppressWarnings("unused")
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public SlidingLinearLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
+    @SuppressWarnings("unused")
     public float getYFraction()
     {
         float height = getHeight();
@@ -50,6 +52,7 @@ public class SlidingLinearLayout extends LinearLayout {
         return getY() / height;
     }
 
+    @SuppressWarnings("unused")
     public void setYFraction(float yFraction) {
         float height = getHeight();
         if (height == 0) {

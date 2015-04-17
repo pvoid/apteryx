@@ -19,6 +19,13 @@
     <style name="Toolbar">
     </style>
 
+    <style name="Widget"/>
+
+    <style name="Widget.ExpandView">
+        <item name="android:clickable">true</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
     <style name="Text"/>
 
     <style name="Text.Header">
@@ -139,8 +146,7 @@
         <item name="android:layout_marginRight">20dp</item>
     </style>
 
-    <style name="TerminalCard" parent="CardView.Light">
-    </style>
+    <style name="TerminalCard" parent="CardView.Light" />
 
     <style name="TerminalCard.Container" parent="">
         <item name="android:minHeight">@dimen/terminal_card_height</item>
@@ -192,4 +198,64 @@
         <item name="android:background">@color/terminal_state_warn_background</item>
         <item name="android:textColor">@color/terminal_state_warn_foreground</item>
     </style>
+
+    <style name="TerminalInfoCard" parent="CardView.Light"/>
+
+    <style name="TerminalInfoCard.Title" parent="TerminalCard.Title">
+        <item name="android:layout_marginTop">@dimen/card_padding</item>
+        <item name="android:layout_marginLeft">@dimen/card_padding</item>
+        <item name="android:layout_marginRight">@dimen/card_padding</item>
+    </style>
+
+    <style name="TerminalInfoCard.Address" parent="TerminalCard.Address">
+        <item name="android:layout_marginLeft">@dimen/card_padding</item>
+        <item name="android:layout_marginRight">@dimen/card_padding</item>
+    </style>
+
+    <style name="TerminalInfoCard.State" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">@dimen/card_padding</item>
+        <item name="android:layout_marginRight">@dimen/card_padding</item>
+    </style>
+
+    <style name="TerminalInfoCard.CardTitle" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?android:attr/listPreferredItemHeightSmall</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">@dimen/card_padding</item>
+        <item name="android:paddingRight">@dimen/card_padding</item>
+        <item name="android:textColor">@color/actionbar_primary_dark</item>
+    </style>
+
+    <style name="TerminalInfoCard.Line" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:background">@color/primary_material_light</item>
+    </style>
+
+    <style name="TerminalInfoCard.Item" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingLeft">@dimen/card_padding</item>
+        <item name="android:paddingRight">@dimen/card_padding</item>
+    </style>
+
+    <style name="TerminalInfoCard.Item.Title">
+        <item name="android:paddingTop">@dimen/card_padding</item>
+        <item name="android:textColor">@color/primary_text_default_material_light</item>
+    </style>
+
+    <style name="TerminalInfoCard.Item.Value">
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">@dimen/card_padding</item>
+        <item name="android:textColor">@color/secondary_text_default_material_light</item>
+    </style>
+
+    <style name="TerminalInfoCard.Item.More" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?android:attr/listPreferredItemHeightSmall</item>
+        <item name="android:paddingLeft">0dp</item>
+    </style>
+
 </resources>

@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (C) 2010-2011  Dmitry Petuhov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+  <string name="state_hardware_error">Автомат остановлен из-за ошибок купюроприемника или принтера</string>
+  <string name="state_hardware_absent">Автомат остановлен из-за того, что при старте не обнаружено оборудование (купюроприемник или принтер)</string>
+  <string name="state_stopped_by_server">Остановлен по сигналу сервера или из-за отсутствия денег на счету агента</string>
+  <string name="state_ui_config_error">Автомат остановлен из-за ошибки в конфигурации интерфейса</string>
+  <string name="state_info_errors">Отсутствуют или неверно заполнены один или несколько реквизитов для терминала</string>
+  <string name="state_dangerous_software">Обнаружено стороннее ПО, которое может вызвать сбой модемного соединения</string>
+  <string name="state_note_absent">C автомата был снят купюроприемник</string>
+  <string name="state_aso_app_modified">Модифицировано приложение АСО</string>
+  <string name="state_paper_warning">В принтере скоро закончится бумага</string>
+  <string name="state_hdd_warnings">Проблемы с жестким диском</string>
+  <string name="state_downloading_updates">Автомат загружает с сервера обновление приложения</string>
+  <string name="state_proxy">Автомат работает через прокси-сервер</string>
+  <string name="state_aso_monitor_disabled">Монитор АСО выключен</string>
+  <string name="state_updating_files">Терминал проверяет и обновляет файлы</string>
+  <string name="state_updating_adverts">Терминал проверяет и обновляет рекламный плейлист</string>
+  <string name="state_updating_providers">Терминал обновляет список провайдеров</string>
+  <string name="state_updating_numbers">Терминал обновляет номерные емкости</string>
+  <string name="state_updating_configs">Терминал обновляет конфигурацию</string>
+  <string name="state_local_network">Автомат работает в локальной сети</string>
+  <string name="state_dual_display">Автомат оснащен вторым монитором</string>
+  <string name="state_guard_timer">Работает сторожевой таймер</string>
+  <string name="state_unknown">Неизвестный флаг состояния</string>
+</resources>

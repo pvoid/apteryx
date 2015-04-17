@@ -18,54 +18,36 @@
 package org.pvoid.apteryx.views.terminals;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
+import android.text.Spannable;
 import android.text.format.DateUtils;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.pvoid.apteryx.R;
-import org.pvoid.apteryx.data.Currency;
 import org.pvoid.apteryx.data.terminals.Terminal;
 import org.pvoid.apteryx.data.terminals.TerminalCash;
 import org.pvoid.apteryx.data.terminals.TerminalState;
+import org.pvoid.apteryx.util.StringUtils;
 import org.pvoid.apteryx.views.terminals.filters.TerminalsFilter;
-
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.ViewHolder> {
 
     private final LayoutInflater mInflater;
     @Nullable private Terminal[] mTerminals;
     @Nullable private TerminalsFilter mFilter;
-    private final NumberFormat mCashFormat;
+
     private final int mCurrencyColor;
+    private OnTerminalClickedListener mClickListener;
 
     public TerminalsAdapter(@NonNull Context context) {
         mInflater = LayoutInflater.from(context);
         mCurrencyColor = context.getResources().getColor(R.color.card_date_color);
-
-        mCashFormat = NumberFormat.getInstance(Locale.ENGLISH);
-        mCashFormat.setGroupingUsed(true);
-        if (mCashFormat instanceof DecimalFormat) {
-            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
-            symbols.setDecimalSeparator('.');
-            symbols.setGroupingSeparator(' ');
-            ((DecimalFormat) mCashFormat).setDecimalFormatSymbols(symbols);
-        }
     }
 
     public void setTerminals(@Nullable Terminal[] terminals) {
@@ -82,6 +64,10 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
             mFilter.fill(mTerminals);
         }
         notifyDataSetChanged();
+    }
+
+    public void setOnTerminalClickListener(OnTerminalClickedListener clickListener) {
+        mClickListener = clickListener;
     }
 
     @Override
@@ -113,17 +99,20 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
         return mTerminals == null ? 0 : mTerminals.length;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public final TextView title;
-        public final TextView address;
-        public final TextView lastActivity;
-        public final TextView lastPayment;
-        public final TextView cash;
-        public final TextView error;
-        public final TextView warn;
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        final View rootView;
+        final TextView title;
+        final TextView address;
+        final TextView lastActivity;
+        final TextView lastPayment;
+        final TextView cash;
+        final TextView error;
+        final TextView warn;
+        String terminalId;
 
         ViewHolder(View itemView) {
             super(itemView);
+            rootView = itemView.findViewById(R.id.terminal_card_root);
             title = (TextView) itemView.findViewById(R.id.terminal_title);
             address = (TextView) itemView.findViewById(R.id.terminal_address);
             lastActivity = (TextView) itemView.findViewById(R.id.terminal_last_activity);
@@ -134,30 +123,23 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
         }
 
         void bind(@NonNull Terminal terminal) {
+            terminalId = terminal.getId();
             title.setText(terminal.getDisplayName());
             address.setText(terminal.getDisplayAddress());
             bindState(terminal.getState());
             bindCash(terminal.getCash());
+            rootView.setOnClickListener(this);
         }
 
         void bindCash(@Nullable TerminalCash terminalCash) {
-            if (terminalCash == null) {
-                cash.setText("-");
-                return;
-            }
-            SpannableStringBuilder sb = new SpannableStringBuilder();
-            for (TerminalCash.CashItem item : terminalCash.getCash()) {
+            if (terminalCash != null) {
+                Spannable sb = StringUtils.formatCashSummary(terminalCash, mCurrencyColor);
                 if (sb.length() > 0) {
-                    sb.append(", ");
+                    cash.setText(sb);
+                    return;
                 }
-                final Currency currency = item.getCurrency();
-                mCashFormat.setMinimumFractionDigits(currency.getmFractionDigits());
-                sb.append(mCashFormat.format(item.getAmmount()));
-                int length = sb.length();
-                sb.append(currency.getCodeName());
-                sb.setSpan(new ForegroundColorSpan(mCurrencyColor), length, sb.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             }
-            cash.setText(sb);
+            cash.setText("-");
         }
 
         void bindState(@Nullable TerminalState state) {
@@ -191,17 +173,28 @@ public class TerminalsAdapter extends RecyclerView.Adapter<TerminalsAdapter.View
             }
 
             if (state.hasErrors()) {
-                error.setText(state.getMessage());
+                error.setText(state.getMessage(error.getContext()));
                 error.setVisibility(View.VISIBLE);
                 warn.setVisibility(View.GONE);
             } else if (state.hasWarnings()) {
                 error.setVisibility(View.GONE);
-                warn.setText(state.getMessage());
+                warn.setText(state.getMessage(warn.getContext()));
                 warn.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
                 warn.setVisibility(View.GONE);
             }
         }
+
+        @Override
+        public void onClick(View view) {
+            if (mClickListener != null) {
+                mClickListener.onTerminalClicked(itemView, terminalId);
+            }
+        }
+    }
+
+    public interface OnTerminalClickedListener {
+        void onTerminalClicked(@NonNull View view, @NonNull String terminalId);
     }
 }
