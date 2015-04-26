@@ -215,8 +215,10 @@
     <style name="TerminalInfoCard.State" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginLeft">@dimen/card_padding</item>
-        <item name="android:layout_marginRight">@dimen/card_padding</item>
+        <item name="android:minHeight">?android:attr/listPreferredItemHeightSmall</item>
+        <item name="android:padding">@dimen/card_padding</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/primary_text_default_material_light</item>
     </style>
 
     <style name="TerminalInfoCard.CardTitle" parent="">

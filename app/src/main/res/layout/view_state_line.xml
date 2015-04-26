@@ -18,6 +18,6 @@
 <TextView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/terminal_states"
+    android:id="@+id/terminal_state_message"
     style="@style/TerminalInfoCard.State"
     tools:text="Too much money"/>

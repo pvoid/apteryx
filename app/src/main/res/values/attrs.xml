@@ -20,7 +20,9 @@
         <attr name="expandViewStyle" format="reference"/>
     </declare-styleable>
 
-    <declare-styleable name="ExpandView">
+    <declare-styleable name="ExpandView"/>
+
+    <declare-styleable name="ExpandableView">
         <attr name="textMore" format="string|reference"/>
         <attr name="textLess" format="string|reference"/>
     </declare-styleable>

@@ -17,8 +17,9 @@
 
 package org.pvoid.apteryx.views.terminals;
 
-import android.graphics.drawable.Drawable;
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.view.ViewCompat;
@@ -32,16 +33,18 @@ import android.widget.TextView;
 import org.pvoid.apteryx.ApteryxApplication;
 import org.pvoid.apteryx.R;
 import org.pvoid.apteryx.TerminalInfoActivity;
+import org.pvoid.apteryx.data.terminals.MachineState;
 import org.pvoid.apteryx.data.terminals.Terminal;
 import org.pvoid.apteryx.data.terminals.TerminalCash;
 import org.pvoid.apteryx.data.terminals.TerminalState;
-import org.pvoid.apteryx.data.terminals.TerminalStats;
 import org.pvoid.apteryx.data.terminals.TerminalsManager;
 import org.pvoid.apteryx.util.StringUtils;
+import org.pvoid.apteryx.views.ExpandableView;
 
 public class TerminalInfoFragment extends Fragment {
 
     private static final String ARG_TERMINAL_ID = "id";
+    private static final int MAX_STATES = 5;
 
     public static TerminalInfoFragment create(@NonNull String terminalId) {
         Bundle args = new Bundle();
@@ -103,6 +106,62 @@ public class TerminalInfoFragment extends Fragment {
         } else {
             lastPayment.setText("-");
         }
+        ExpandableView statesView = (ExpandableView) view.findViewById(R.id.terminal_states);
+        if (state != null) {
+            String noteError = state.hasNoteError() ? state.getNoteError() : null;
+            String printerError = state.hasPrinterError() ? state.getPrinterError() : null;
+            statesView.setContent(new MachineStatesViewBuilder(noteError, printerError, state.getStates()));
+        } else {
+            statesView.setVisibility(View.GONE);
+        }
+    }
 
+    private class MachineStatesViewBuilder implements ExpandableView.ViewBuilder {
+
+        private final String mNoteError;
+        private final String mPrinterError;
+        private final MachineState mStates[];
+        private final int mCount;
+
+        private MachineStatesViewBuilder(@Nullable String noteError, @Nullable String printerError, @NonNull MachineState[] states) {
+            mNoteError = noteError;
+            mPrinterError = printerError;
+            mStates = states;
+            int count = mStates.length;
+            if (mNoteError != null) {
+                ++count;
+            }
+            if (mPrinterError != null) {
+                ++count;
+            }
+            mCount = count;
+        }
+
+        @NonNull
+        @Override
+        public View create(@NonNull Context context, int index, @NonNull ViewGroup parent) {
+            TextView line = (TextView) LayoutInflater.from(context).inflate(R.layout.view_state_line, parent, false);
+            if (mNoteError != null) {
+                if (index == 0) {
+                    line.setText(mNoteError);
+                    return line;
+                }
+                --index;
+            }
+            if (mPrinterError != null) {
+                if (index == 0) {
+                    line.setText(mPrinterError);
+                    return line;
+                }
+                --index;
+            }
+            line.setText(mStates[index].text);
+            return line;
+        }
+
+        @Override
+        public int getCount() {
+            return mCount;
+        }
     }
 }

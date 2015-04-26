@@ -36,10 +36,10 @@ public class GetTerminalsStatusResultTest {
         Assert.assertEquals(0, GetTerminalsStatusResult.parseStateFlags(null));
         Assert.assertEquals(0, GetTerminalsStatusResult.parseStateFlags(""));
         Assert.assertEquals(0, GetTerminalsStatusResult.parseStateFlags("001000"));
-        Assert.assertEquals(0, GetTerminalsStatusResult.parseStateFlags("000000000000A00000000000"));
+        Assert.assertEquals(0, GetTerminalsStatusResult.parseStateFlags("00000000000A00000000000"));
         Assert.assertEquals(TerminalState.FLAG_STATE_ASO_MONITOR_DISABLED | TerminalState.FLAG_STATE_UPDATING_PROVIDERS
                         | TerminalState.FLAG_STATE_DANGEROUS_SOFTWARE | TerminalState.FLAG_STATE_HARDWARE_ERROR,
-                GetTerminalsStatusResult.parseStateFlags("100000000000100001000001"));
+                GetTerminalsStatusResult.parseStateFlags("10000000000100001000001"));
     }
 
     @Test

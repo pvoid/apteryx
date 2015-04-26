@@ -58,9 +58,10 @@
                     tools:text="17 Марта, 15:58"/>
                 <View
                     style="@style/TerminalInfoCard.Line"/>
-                <org.pvoid.apteryx.views.ExpandView
-                    android:id="@+id/terminal_all_states"
-                    style="@style/TerminalInfoCard.Item.More"
+                <org.pvoid.apteryx.views.ExpandableView
+                    android:id="@+id/terminal_states"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     app:textMore="@string/see_more"
                     app:textLess="@string/see_less"/>
             </LinearLayout>

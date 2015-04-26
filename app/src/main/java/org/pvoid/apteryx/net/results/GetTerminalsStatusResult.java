@@ -96,13 +96,13 @@ public class GetTerminalsStatusResult extends Result {
 
     /* package */ static int parseStateFlags(@Nullable String flags) {
         int result = 0;
-        if (flags == null || flags.length() != 24) {
+        if (flags == null || flags.length() > 32) {
             return result;
         }
 
-        for (int index = 0; index < 24; ++index) {
+        for (int index = 0; index < flags.length(); ++index) {
             char c = flags.charAt(index);
-            if (!Character.isDigit(c)) {
+            if (!Character.isDigit(c) && !Character.isSpaceChar(c)) {
                 return 0;
             }
             result <<= 1;
